@@ -16,5 +16,23 @@ class GeneralSettings(BaseSettings):
     environment: EnvironmentEnum = EnvironmentEnum.LOCAL
 
 
+class DatabaseSettings(BaseSettings):
+    host: str
+    port: int
+    user: str
+    name: str
+    password: str
+
+    class Config:
+        env_prefix = "DB_"
+        env_file = ".env"
+        case_sensitive = False
+
+
 class Configs(BaseSettings):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
+    database: DatabaseSettings = Field(default_factory=DatabaseSettings)
+
+
+def create_configs() -> Configs:
+    return Configs()
