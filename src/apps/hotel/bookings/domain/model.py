@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from decimal import Decimal
 
 from sqlalchemy.orm import Mapped, mapped_column
@@ -14,8 +14,8 @@ class Bookings(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, primary_key=True)
     room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    date_from: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
-    date_to: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    date_from: Mapped[date] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    date_to: Mapped[date] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     price: Mapped[Decimal] = mapped_column(DECIMAL, nullable=False)
     total_cost: Mapped[Decimal] = mapped_column(DECIMAL, Computed("price * (date_to - date_from)"))
     total_days: Mapped[int] = mapped_column(Integer, Computed("date_to - date_from"))
