@@ -21,11 +21,6 @@ class BookingGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def update_booking(self, booking: Any) -> None:
-        """Update an existing booking."""
-        ...
-
-    @abstractmethod
     async def delete_booking(self, booking_id: int) -> None:
         """Delete a booking by its ID."""
         ...
