@@ -128,11 +128,26 @@ class SecurityProto(Protocol):
 
 
 class GatewayProto(ABC):
+
     def __call__(self, *args: Any, **kwargs: Any) -> AbstractAsyncContextManager[UowProto]:
         """Return an async context manager for a unit of work."""
         ...
 
+
+class SQLAlchemyGatewayProto(GatewayProto):
+    # TODO: add __call__ method to return UoW instance
+
     @abstractmethod
-    async def add(self, model: Any) -> None:
-        """Add a model instance gateway."""
+    async def find_all(self, **filters: Any) -> list[Any]:
+        """Find all model instances matching the given filters."""
+        ...
+
+    @abstractmethod
+    async def find_one(self, **filters: Any) -> Any | None:
+        """Find a single model instance matching the given filters."""
+        ...
+
+    @abstractmethod
+    async def find_by_id(self, instance_id: int) -> Any | None:
+        """Find a single model instance by its unique identifier."""
         ...
