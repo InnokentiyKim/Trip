@@ -4,6 +4,8 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Protocol, Any
 from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.common.domain.models import ORM_CLS, ORM_OBJ
 
 
 class TokenTypeEnum(StrEnum):
@@ -138,16 +140,17 @@ class SQLAlchemyGatewayProto(GatewayProto):
     # TODO: add __call__ method to return UoW instance
 
     @abstractmethod
-    async def find_all(self, **filters: Any) -> list[Any]:
-        """Find all model instances matching the given filters."""
+    async def add_item(self, session: AsyncSession, item: ORM_OBJ) -> None:
         ...
 
     @abstractmethod
-    async def find_one(self, **filters: Any) -> Any | None:
-        """Find a single model instance matching the given filters."""
+    async def get_item_by_id(self, session: AsyncSession, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ:
         ...
 
     @abstractmethod
-    async def find_by_id(self, instance_id: int) -> Any | None:
-        """Find a single model instance by its unique identifier."""
+    async def get_all_items(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
+        ...
+
+    @abstractmethod
+    async def delete_item(self, session: AsyncSession, orm_obj: ORM_OBJ) -> None:
         ...
