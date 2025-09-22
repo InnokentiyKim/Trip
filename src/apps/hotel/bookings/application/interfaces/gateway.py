@@ -1,22 +1,21 @@
 from abc import abstractmethod
-from typing import Any
-
+from src.apps.hotel.bookings.domain.model import Bookings
 from src.common.interfaces import GatewayProto
 
 
 class BookingGatewayProto(GatewayProto):
     @abstractmethod
-    async def get_bookings(self, **filters) -> list[Any]:
+    async def get_bookings(self, **filters) -> list[Bookings]:
         """Retrieve a list of bookings."""
         ...
 
     @abstractmethod
-    async def get_booking_by_id(self, booking_id: int) -> Any | None:
+    async def get_booking_by_id(self, booking_id: int) -> Bookings | None:
         """Retrieve a booking by its ID."""
         ...
 
     @abstractmethod
-    async def add_booking(self, booking: Any) -> None:
+    async def add_booking(self, booking: Bookings) -> None:
         """Add a new booking."""
         ...
 
