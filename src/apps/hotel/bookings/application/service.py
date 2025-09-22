@@ -1,27 +1,25 @@
-
 from src.apps.hotel.bookings.domain.model import Bookings
+from src.apps.hotel.bookings.adapters.adapter import BookingAdapter
+from src.common.application.service import ServiceBase
 
-from src.common.adapters.adapter import SQLAlchemyGateway
-from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 
+class BookingService(ServiceBase):
+    def __init__(
+        self,
+        booking: BookingAdapter
+    ) -> None:
+        self._booking = booking
 
-class BookingService(SQLAlchemyGateway, BookingGatewayProto):
-    def __init__(self) -> None:
-        super().__init__()
-        self.set_model(Bookings)
+    async def get_booking(self, booking_id: int) -> Bookings:
+        booking = await self._booking.get_booking_by_id(booking_id)
+        return booking
 
     async def get_bookings(self, **filters) -> list[Bookings]:
-        """Retrieve a list of bookings."""
-        return await self.find_all(**filters)
-
-    async def get_booking_by_id(self, booking_id: int) -> Bookings | None:
-        """Retrieve a booking by its ID."""
-        return await self.find_by_id(booking_id)
-
-    async def add_booking(self, booking: Bookings) -> None:
-        """Add a new booking."""
-        await self.add(booking)
+        bookings = await self._booking.get_bookings(**filters)
+        return bookings
 
     async def delete_booking(self, booking_id: int) -> None:
-        """Delete a booking by its ID."""
-        await self.delete_booking(booking_id)
+        await self._booking.delete_booking(booking_id)
+
+    async def add_booking(self, booking: Bookings) -> None:
+        await self._booking.add_booking(booking)
