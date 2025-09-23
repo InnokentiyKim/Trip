@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from src.apps.hotel.bookings.controllers.v1.http.router import router as bookings_router
+from src.common.controllers.http.api_v1 import http_router_v1
 
 
 def create_app() -> FastAPI:
     hotels_app = FastAPI()
-    hotels_app.include_router(bookings_router)
+    hotels_app.include_router(http_router_v1)
 
     @app.get("/health")
     async def health_check():

@@ -4,7 +4,6 @@ from sqlalchemy.exc import IntegrityError
 from typing import Any
 from sqlalchemy import select
 from src.common.interfaces import SQLAlchemyGatewayProto
-from src.common.domain.models import async_session_maker
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.common.domain.models import ORM_OBJ, ORM_CLS
 
@@ -20,11 +19,14 @@ class SQLAlchemyGateway(SQLAlchemyGatewayProto):
 
     async def get_item_by_id(self, session: AsyncSession, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ:
         item = await session.get(orm_cls, item_id)
-        if item is None:
-            raise HTTPException(status_code=404, detail="Item not found")
         return item
 
-    async def get_all_items(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
+    async def get_one_item(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ:
+        query = select(orm_cls).filter_by(**filters)
+        row = await session.execute(query)
+        return row.scalar_one_or_none()
+
+    async def get_items_list(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
         query = select(orm_cls).filter_by(**filters)
         rows = await session.execute(query)
         return list(rows)

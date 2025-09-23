@@ -148,7 +148,11 @@ class SQLAlchemyGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def get_all_items(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
+    async def get_one_item(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ:
+        ...
+
+    @abstractmethod
+    async def get_items_list(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
         ...
 
     @abstractmethod

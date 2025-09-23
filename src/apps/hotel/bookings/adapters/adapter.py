@@ -12,7 +12,7 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
 
     async def get_bookings(self, **filters) -> list[Bookings]:
         """Retrieve a list of bookings."""
-        bookings = await self.get_all_items(SessionDependency, Bookings, **filters)
+        bookings = await self.get_items_list(SessionDependency, Bookings, **filters)
         return bookings
 
     async def add_booking(self, booking: Bookings) -> None:

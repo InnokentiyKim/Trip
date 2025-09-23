@@ -1,13 +1,7 @@
 from pydantic_settings import BaseSettings
-from enum import StrEnum
 from pydantic import Field
 
-
-class EnvironmentEnum(StrEnum):
-    LOCAL = "local"
-    DEV = "dev"
-    STAGE = "stage"
-    PROD = "prod"
+from common.domain.enums import EnvironmentEnum
 
 
 class GeneralSettings(BaseSettings):
