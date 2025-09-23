@@ -10,9 +10,14 @@ class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
         user = await self.get_item_by_id(SessionDependency, Users, user_id)
         return user
 
+    async def get_user_by_email(self, email: str) -> Users | None:
+        """Retrieve a user by email."""
+        user = await self.get_one_item(SessionDependency, Users, email=email)
+        return user
+
     async def get_users(self, **filters) -> list[Users]:
         """Retrieve a list of users."""
-        users = await self.get_all_items(SessionDependency, Users, **filters)
+        users = await self.get_items_list(SessionDependency, Users, **filters)
         return users
 
     async def add_user(self, user: Users) -> None:
