@@ -1,13 +1,13 @@
 from datetime import timedelta, datetime, UTC
 from jose import jwt, JWTError
-from src.apps.authentication.application.interfaces.gateway import AuthenticationGatewayProto
+from src.apps.security.application.interfaces.gateway import SecurityGatewayProto
 from passlib.context import CryptContext
 from src.config import create_configs
 from fastapi import HTTPException
 
 config = create_configs()
 
-class AuthenticationAdapter(AuthenticationGatewayProto):
+class SecurityAdapter(SecurityGatewayProto):
     def __init__(self) -> None:
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

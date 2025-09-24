@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 
-from apps.authentication.adapters.adapter import AuthenticationAdapter
+from apps.security.adapters.adapter import SecurityAdapter
 from apps.user.adapters.adapter import UserAdapter
 from src.apps.user.application.service import UserService
 from src.apps.hotel.bookings.adapters.adapter import BookingAdapter
@@ -16,7 +16,7 @@ router = APIRouter(
 
 @router.get("")
 async def get_bookings(request: Request) -> list[BookingResponseDTO]:
-    user_service = UserService(UserAdapter(), AuthenticationAdapter())
+    user_service = UserService(UserAdapter(), SecurityAdapter())
     service = BookingService(BookingAdapter())
     token = request.cookies.get("token") or request.headers.get("Authorization")
     user_id = await user_service.verify_user_by_token(token)
@@ -26,7 +26,7 @@ async def get_bookings(request: Request) -> list[BookingResponseDTO]:
 
 @router.get("/{booking_id}")
 async def get_bookings(request: Request, booking_id: int) -> BookingResponseDTO:
-    user_service = UserService(UserAdapter(), AuthenticationAdapter())
+    user_service = UserService(UserAdapter(), SecurityAdapter())
     service = BookingService(BookingAdapter())
     token = request.cookies.get("token") or request.headers.get("Authorization")
     user_id = await user_service.verify_user_by_token(token)

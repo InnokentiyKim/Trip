@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from pydantic import EmailStr
 
 from src.config import Configs
-from src.apps.authentication.adapters.adapter import AuthenticationAdapter
+from src.apps.security.adapters.adapter import SecurityAdapter
 from src.apps.user.adapters.adapter import UserAdapter
 from common.application.service import ServiceBase
 from src.apps.user.domain.model import Users
@@ -14,7 +14,7 @@ class UserService(ServiceBase):
     def __init__(
         self,
         user_adapter: UserAdapter,
-        auth_adapter: AuthenticationAdapter,
+        auth_adapter: SecurityAdapter,
     ) -> None:
         self._user = user_adapter
         self._auth = auth_adapter

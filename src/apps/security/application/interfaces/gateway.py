@@ -3,7 +3,7 @@ from abc import abstractmethod
 from src.common.interfaces import GatewayProto
 
 
-class AuthenticationGatewayProto(GatewayProto):
+class SecurityGatewayProto(GatewayProto):
     @abstractmethod
     async def get_password_hash(self, password: str) -> str:
         """Get the hashed password."""
