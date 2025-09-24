@@ -1,3 +1,4 @@
+from apps.user.application.exception import UserAlreadyExistsException
 from apps.user.domain.model import Users
 from common.adapters.adapter import SQLAlchemyGateway
 from common.utils.dependency import SessionDependency
@@ -22,7 +23,10 @@ class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
 
     async def add_user(self, user: Users) -> None:
         """Add a new user."""
-        await self.add_item(SessionDependency, user)
+        try:
+            await self.add_item(SessionDependency, user)
+        except:
+            raise UserAlreadyExistsException
 
     async def delete_user(self, user_id: int) -> None:
         """Delete a user by its ID."""

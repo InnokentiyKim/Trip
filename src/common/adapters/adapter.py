@@ -15,7 +15,7 @@ class SQLAlchemyGateway(SQLAlchemyGatewayProto):
         try:
             await session.commit()
         except IntegrityError:
-            raise HTTPException(status_code=400, detail="Item already exists")
+            raise
 
     async def get_item_by_id(self, session: AsyncSession, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ:
         item = await session.get(orm_cls, item_id)

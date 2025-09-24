@@ -1,5 +1,6 @@
 from typing import Any
 
+from apps.hotel.bookings.application.exception import BookingAlreadyExistsException
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.bookings.domain.model import Bookings
 from src.common.adapters.adapter import SQLAlchemyGateway
@@ -19,7 +20,10 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
 
     async def add_booking(self, booking: Bookings) -> None:
         """Add a new booking."""
-        await self.add_item(SessionDependency, booking)
+        try:
+            await self.add_item(SessionDependency, booking)
+        except:
+            raise BookingAlreadyExistsException
 
     async def delete_booking(self, booking_id: int) -> None:
         """Delete a booking by its ID."""

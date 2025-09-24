@@ -1,6 +1,8 @@
-from fastapi import HTTPException
 from pydantic import EmailStr
 
+from apps.security.application.exception import TokenIsMissingException
+from src.apps.security.application.exception import InvalidTokenException
+from apps.user.application.exception import UserAlreadyExistsException, UserNotFoundException
 from src.config import Configs
 from src.apps.security.adapters.adapter import SecurityAdapter
 from src.apps.user.adapters.adapter import UserAdapter
@@ -22,27 +24,28 @@ class UserService(ServiceBase):
     async def register_user(self, email: EmailStr | str, password: str) -> Users:
         user = await self._user.get_user_by_email(email=email)
         if user:
-            raise HTTPException(status_code=400, detail="Email already registered")
+            raise UserAlreadyExistsException
         hashed_password = self._auth.get_password_hash(password)
         new_user = Users(email=email, hashed_password=hashed_password)
         await self._user.add_user(new_user)
+
         return new_user
 
     async def login_user(self, email: EmailStr | str, password: str) -> str:
         user = await self._user.get_user_by_email(email=email)
         if user is None:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise UserNotFoundException
         if not self._auth.verify_password(password, user.hashed_password):
-            raise HTTPException(status_code=401, detail="Incorrect email or password")
+            raise InvalidTokenException
         access_token = await self._auth.create_access_token(data={"sub": str(user.id)})
         return access_token
 
     async def verify_user_by_token(self, token: str | None) -> Users:
         if token is None:
-            raise HTTPException(status_code=401, detail="Token is missing")
+            raise TokenIsMissingException
         user_id = await self._auth.verify_access_token(token)
         user = await self._user.get_user_by_id(user_id=user_id)
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise UserNotFoundException
 
         return user
