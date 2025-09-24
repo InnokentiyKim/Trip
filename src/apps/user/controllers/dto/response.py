@@ -12,3 +12,24 @@ class RegisterUserResponseDTO(BaseDTO):
         """Create a user response from the user model."""
         fields = {name: getattr(model, name, None) for name in cls.model_fields}
         return cls.model_validate(fields)
+
+
+class LoginUserResponseDTO(BaseDTO):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class LogoutUserResponseDTO(BaseDTO):
+    message: str = "Successfully logged out"
+
+
+class UserInfoResponseDTO(BaseDTO):
+    id: int
+    email: EmailStr
+    is_active: bool
+
+    @classmethod
+    def from_model(cls, model: "Users") -> "UserInfoResponseDTO":
+        """Create a user info response from the user model."""
+        fields = {name: getattr(model, name, None) for name in cls.model_fields}
+        return cls.model_validate(fields)
