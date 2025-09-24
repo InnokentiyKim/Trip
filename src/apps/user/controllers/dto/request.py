@@ -1,6 +1,6 @@
 from pydantic import EmailStr
 
 
-class RegisterUserRequestDTO:
+class AuthUserRequestDTO:
     email: EmailStr
     password: str

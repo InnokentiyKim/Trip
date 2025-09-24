@@ -4,7 +4,6 @@ from pydantic import EmailStr
 
 
 class RegisterUserResponseDTO(BaseDTO):
-    id: int
     email: EmailStr
     is_active: bool
 
