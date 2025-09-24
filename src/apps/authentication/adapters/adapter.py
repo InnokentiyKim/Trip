@@ -1,6 +1,11 @@
+from datetime import timedelta, datetime, UTC
+from jose import jwt, JWTError
 from src.apps.authentication.application.interfaces.gateway import AuthenticationGatewayProto
 from passlib.context import CryptContext
+from src.config import create_configs
+from fastapi import HTTPException
 
+config = create_configs()
 
 class AuthenticationAdapter(AuthenticationGatewayProto):
     def __init__(self) -> None:
@@ -13,3 +18,25 @@ class AuthenticationAdapter(AuthenticationGatewayProto):
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash."""
         return self.pwd_context.verify(plain_password, hashed_password)
+
+    async def create_access_token(self, data: dict, expires_minutes: int = 30) -> str:
+        """Create a JWT access token."""
+        to_encode = data.copy()
+        expires = datetime.now(UTC) + timedelta(minutes=config.security.token_expire_minutes)
+        to_encode.update({"exp": expires})
+        encoded_jwt = jwt.encode(to_encode, config.security.secret_key, algorithm=config.security.algorithm)
+        return encoded_jwt
+
+    async def verify_access_token(self, token: str) -> int:
+        """Verify a JWT access token."""
+        try:
+            payload = jwt.decode(token, config.security.secret_key, config.security.algorithm)
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        expire = payload.get("exp")
+        if (not expire) or (int(expire) < int(datetime.now(UTC).timestamp())):
+            raise HTTPException(status_code=401, detail="Token is expired")
+        user_id = int(payload.get("sub"))
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return user_id

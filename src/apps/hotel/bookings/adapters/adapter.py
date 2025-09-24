@@ -1,3 +1,5 @@
+from typing import Any
+
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.bookings.domain.model import Bookings
 from src.common.adapters.adapter import SQLAlchemyGateway
@@ -5,9 +7,9 @@ from src.common.utils.dependency import SessionDependency
 
 
 class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
-    async def get_booking_by_id(self, booking_id: int) -> Bookings | None:
+    async def get_booking_by_id(self, booking_id: int, **filters: Any) -> Bookings | None:
         """Retrieve a booking by its ID."""
-        booking = await self.get_item_by_id(SessionDependency, Bookings, booking_id)
+        booking = await self.get_one_item(SessionDependency, Bookings, id=booking_id, **filters)
         return booking
 
     async def get_bookings(self, **filters) -> list[Bookings]:
