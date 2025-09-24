@@ -23,9 +23,20 @@ class DatabaseSettings(BaseSettings):
         case_sensitive = False
 
 
+class SecuritySettings(BaseSettings):
+    secret_key: str
+    algorithm: str
+    token_expire_minutes: int
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
+
+
 class Configs(BaseSettings):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
+    security: SecuritySettings = Field(default_factory=SecuritySettings)
 
 
 def create_configs() -> Configs:

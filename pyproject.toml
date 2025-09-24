@@ -15,6 +15,7 @@ dependencies = [
     "passlib>=1.7.4",
     "pillow>=11.3.0",
     "pydantic-settings>=2.10.1",
+    "python-jose>=3.5.0",
     "ruff>=0.12.11",
     "sqlalchemy>=2.0.43",
     "uvicorn>=0.35.0",
