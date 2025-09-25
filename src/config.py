@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field
 
-from common.domain.enums import EnvironmentEnum
+from common.application.enums import EnvironmentEnum
 
 
 class GeneralSettings(BaseSettings):
