@@ -1,8 +1,8 @@
-from fastapi import HTTPException
-
 from sqlalchemy.exc import IntegrityError
 from typing import Any
 from sqlalchemy import select
+
+from src.common.utils.dependency import SessionDependency
 from src.common.interfaces import SQLAlchemyGatewayProto
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.common.domain.models import ORM_OBJ, ORM_CLS
@@ -10,6 +10,8 @@ from src.common.domain.models import ORM_OBJ, ORM_CLS
 
 class SQLAlchemyGateway(SQLAlchemyGatewayProto):
     """SQLAlchemy adapters implementing the gateway protocol."""
+    session: AsyncSession = SessionDependency
+
     async def add_item(self, session: AsyncSession, item: ORM_OBJ) -> None:
         session.add(item)
         try:
