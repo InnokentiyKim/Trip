@@ -1,4 +1,6 @@
 from abc import abstractmethod
+from datetime import date
+
 from src.apps.hotel.bookings.domain.model import Bookings
 from src.common.interfaces import GatewayProto
 
@@ -15,7 +17,7 @@ class BookingGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def add_booking(self, booking: Bookings) -> None:
+    async def add_booking(self, user_id: int, room_id: int, date_from: date, date_to: date) -> None:
         """Add a new booking."""
         ...
 

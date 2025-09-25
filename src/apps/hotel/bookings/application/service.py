@@ -1,6 +1,7 @@
+from datetime import date
 from typing import Any
 
-from apps.hotel.bookings.application.exception import BookingNotFoundException, BookingAlreadyExistsException
+from apps.hotel.bookings.application.exception import BookingNotFoundException
 from src.apps.hotel.bookings.domain.model import Bookings
 from src.apps.hotel.bookings.adapters.adapter import BookingAdapter
 from src.common.application.service import ServiceBase
@@ -23,8 +24,10 @@ class BookingService(ServiceBase):
         bookings = await self._booking.get_bookings(**filters)
         return bookings
 
-    async def delete_booking(self, booking_id: int) -> None:
-        await self._booking.delete_booking(booking_id)
+    async def delete_booking(self, booking_id: int) -> int:
+        result = await self._booking.delete_booking(booking_id)
+        return result
 
-    async def add_booking(self, booking: Bookings) -> None:
-        await self._booking.add_booking(booking)
+    async def add_booking(self, user_id: int, room_id: int, date_from: date, date_to: date) -> int | None:
+        result = await self._booking.add_booking(user_id, room_id, date_from, date_to)
+        return result
