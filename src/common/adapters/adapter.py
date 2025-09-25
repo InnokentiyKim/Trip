@@ -1,7 +1,10 @@
+from uuid import UUID
+
 from sqlalchemy.exc import IntegrityError
 from typing import Any
 from sqlalchemy import select
 
+from src.common.application.exceptions import ExceptionBase
 from src.common.utils.dependency import SessionDependency
 from src.common.interfaces import SQLAlchemyGatewayProto
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,9 +20,9 @@ class SQLAlchemyGateway(SQLAlchemyGatewayProto):
         try:
             await session.commit()
         except IntegrityError:
-            raise
+            raise ExceptionBase(status_code=409, detail="Item already exists")
 
-    async def get_item_by_id(self, session: AsyncSession, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ:
+    async def get_item_by_id(self, session: AsyncSession, orm_cls: ORM_CLS, item_id: int | UUID) -> ORM_OBJ:
         item = await session.get(orm_cls, item_id)
         return item
 
