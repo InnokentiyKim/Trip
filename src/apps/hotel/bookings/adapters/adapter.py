@@ -1,6 +1,12 @@
 from datetime import date
 from typing import Any
+from uuid import UUID
+
 from sqlalchemy import select, and_, or_, func
+
+from apps.hotel.bookings.application.exceptions import BookingAlreadyExistsException, BookingNotFoundException
+from apps.hotel.bookings.domain.enums import BookingStatusEnum
+from common.application.exceptions import ExceptionBase
 from src.apps.hotel.rooms.domain.model import Rooms
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.bookings.domain.model import Bookings
@@ -18,6 +24,15 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
         """Retrieve a list of bookings."""
         bookings = await self.get_items_list(SessionDependency, Bookings, **filters)
         return bookings
+
+    async def get_active_bookings(self, **filters) -> list[Bookings]:
+        """Retrieve a list of active bookings."""
+        active_bookings = await self.session.execute(
+            select(Bookings).where(
+                or_(Bookings.status == BookingStatusEnum.PENDING, Bookings.status == BookingStatusEnum.CONFIRMED)
+            ).filter_by(**filters)
+        )
+        return list(active_bookings.scalars())
 
     async def add_booking(self, user_id: int, room_id: int, date_from: date, date_to: date) -> int | None:
         """Add a new booking."""
@@ -59,10 +74,18 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
                 date_to=date_to,
                 price=price
             )
-            await self.add_item(SessionDependency, new_booking)
-            return room_id
+            try:
+                await self.add_item(SessionDependency, new_booking)
+                return room_id
+            except:
+                raise BookingAlreadyExistsException
 
-    async def delete_booking(self, booking_id: int) -> int:
+    async def update_booking(self, booking: Bookings) -> UUID:
+        """Update a booking."""
+        await self.add_item(SessionDependency, booking)
+        return booking.id
+
+    async def delete_booking(self, booking_id: UUID) -> UUID:
         """Delete a booking by its ID."""
         booking = await self.get_item_by_id(SessionDependency, Bookings, booking_id)
         await self.delete_item(SessionDependency, booking)
