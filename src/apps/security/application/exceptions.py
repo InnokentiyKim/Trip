@@ -1,4 +1,4 @@
-from src.common.application.exception import ExceptionBase
+from src.common.application.exceptions import ExceptionBase
 
 
 class InvalidCredentialsException(ExceptionBase):
