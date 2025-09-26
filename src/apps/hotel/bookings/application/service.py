@@ -16,7 +16,7 @@ class BookingService(ServiceBase):
     ) -> None:
         self._booking = booking
 
-    async def get_booking_by_id(self, booking_id: int, **filters: Any) -> Bookings:
+    async def get_booking_by_id(self, booking_id: UUID, **filters: Any) -> Bookings:
         booking = await self._booking.get_booking_by_id(booking_id, **filters)
         if booking is None:
             raise BookingNotFoundException
@@ -32,8 +32,8 @@ class BookingService(ServiceBase):
         bookings = await self._booking.get_bookings(**filters)
         return bookings
 
-    async def delete_booking(self, booking_id: UUID) -> UUID:
-        result = await self._booking.delete_booking(booking_id)
+    async def delete_booking(self, booking_id: UUID, **filters) -> UUID:
+        result = await self._booking.delete_booking(booking_id, **filters)
         return result
 
     async def add_booking(self, user_id: int, room_id: int, date_from: date, date_to: date) -> int | None:
@@ -50,7 +50,7 @@ class BookingService(ServiceBase):
             raise BookingProcessingErrorException
         return updated
 
-    async def cancel_active_booking(self, user_id: int, booking_id: int) -> UUID:
+    async def cancel_active_booking(self, user_id: int, booking_id: UUID) -> UUID:
         active_bookings = await self._booking.get_active_bookings(user_id=user_id, booking_id=booking_id)
         if not active_bookings:
             raise BookingNotFoundException

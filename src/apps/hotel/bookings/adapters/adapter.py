@@ -6,7 +6,6 @@ from sqlalchemy import select, and_, or_, func
 
 from apps.hotel.bookings.application.exceptions import BookingAlreadyExistsException, BookingNotFoundException
 from apps.hotel.bookings.domain.enums import BookingStatusEnum
-from common.application.exceptions import ExceptionBase
 from src.apps.hotel.rooms.domain.model import Rooms
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.bookings.domain.model import Bookings
@@ -15,7 +14,7 @@ from src.common.utils.dependency import SessionDependency
 
 
 class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
-    async def get_booking_by_id(self, booking_id: int, **filters: Any) -> Bookings | None:
+    async def get_booking_by_id(self, booking_id: UUID, **filters: Any) -> Bookings | None:
         """Retrieve a booking by its ID."""
         booking = await self.get_one_item(SessionDependency, Bookings, id=booking_id, **filters)
         return booking
@@ -85,8 +84,8 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
         await self.add_item(SessionDependency, booking)
         return booking.id
 
-    async def delete_booking(self, booking_id: UUID) -> UUID:
+    async def delete_booking(self, booking_id: UUID, **filters) -> UUID:
         """Delete a booking by its ID."""
-        booking = await self.get_item_by_id(SessionDependency, Bookings, booking_id)
+        booking = await self.get_one_item(SessionDependency, Bookings, **filters)
         await self.delete_item(SessionDependency, booking)
         return booking_id

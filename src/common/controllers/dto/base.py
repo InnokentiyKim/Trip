@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
@@ -10,4 +12,4 @@ class BaseRequestDTO(BaseDTO):
 
 
 class BaseResponseDTO(BaseDTO):
-    id: int
+    id: int | UUID
