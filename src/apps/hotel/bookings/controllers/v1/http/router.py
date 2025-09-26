@@ -1,6 +1,7 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Request
 
-from apps.hotel.bookings.domain.enums import BookingStatusEnum
 from apps.security.adapters.adapter import SecurityAdapter
 from apps.user.adapters.adapter import UserAdapter
 from src.apps.user.application.service import UserService
@@ -27,7 +28,7 @@ async def get_bookings(request: Request) -> list[BookingResponseDTO]:
 
 
 @router.get("/{booking_id}")
-async def get_bookings(request: Request, booking_id: int) -> BookingResponseDTO:
+async def get_bookings(request: Request, booking_id: UUID) -> BookingResponseDTO:
     user_service = UserService(UserAdapter(), SecurityAdapter())
     service = BookingService(BookingAdapter())
     token = request.cookies.get("token") or request.headers.get("Authorization")
@@ -37,10 +38,20 @@ async def get_bookings(request: Request, booking_id: int) -> BookingResponseDTO:
 
 
 @router.post("/{booking_id}")
-async def cancel_active_booking(request: Request, booking_id: int) -> BaseResponseDTO:
+async def cancel_active_booking(request: Request, booking_id: UUID) -> BaseResponseDTO:
     user_service = UserService(UserAdapter(), SecurityAdapter())
     service = BookingService(BookingAdapter())
     token = request.cookies.get("token") or request.headers.get("Authorization")
     user = await user_service.verify_user_by_token(token)
-    await service.update_booking_status(user.id, booking_id, status)
+    await service.cancel_active_booking(user.id, booking_id)
+    return BaseResponseDTO(id=booking_id)
+
+
+@router.delete("/{booking_id}")
+async def delete_booking(request: Request, booking_id: UUID) -> BaseResponseDTO:
+    user_service = UserService(UserAdapter(), SecurityAdapter())
+    service = BookingService(BookingAdapter())
+    token = request.cookies.get("token") or request.headers.get("Authorization")
+    user = await user_service.verify_user_by_token(token)
+    await service.delete_booking(booking_id, user_id=user.id)
     return BaseResponseDTO(id=booking_id)
