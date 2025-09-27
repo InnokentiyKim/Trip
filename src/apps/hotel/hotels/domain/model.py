@@ -4,7 +4,7 @@ from sqlalchemy import Integer, String, ForeignKey, JSON
 from src.common.domain.models import Base
 
 
-class Hotels(Base):
+class Hotel(Base):
     __tablename__ = "hotels"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, nullable=False)
@@ -13,3 +13,5 @@ class Hotels(Base):
     services: Mapped[dict] = mapped_column(JSON, nullable=True)
     rooms_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     image_id: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    rooms = relationship("Room", back_populates="hotel", lazy="joined", cascade="all, delete-orphan")

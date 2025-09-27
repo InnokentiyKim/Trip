@@ -1,15 +1,15 @@
-from datetime import date
+from datetime import date, datetime, UTC
 from decimal import Decimal
 from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey, Integer, String, TIMESTAMP, Computed, DECIMAL
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, Integer, TIMESTAMP, Computed, DECIMAL, DATETIME
 from src.common.domain.models import Base
 import uuid
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 
 
-class Bookings(Base):
+class Booking(Base):
     __tablename__ = "bookings"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, primary_key=True)
@@ -24,3 +24,8 @@ class Bookings(Base):
     price: Mapped[Decimal] = mapped_column(DECIMAL, nullable=False)
     total_cost: Mapped[Decimal] = mapped_column(DECIMAL, Computed("price * (date_to - date_from)"))
     total_days: Mapped[int] = mapped_column(Integer, Computed("date_to - date_from"))
+    created_at: Mapped[datetime] = mapped_column(DATETIME(timezone=False), nullable=False, default=datetime.now(UTC))
+    updated_at: Mapped[date] = mapped_column(DATETIME(timezone=False), nullable=False)
+
+    user = relationship("User", back_populates="bookings", lazy="joined")
+    room = relationship("Room", back_populates="bookings", lazy="joined")
