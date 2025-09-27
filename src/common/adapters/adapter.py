@@ -20,13 +20,13 @@ class SQLAlchemyGateway(SQLAlchemyGatewayProto):
         try:
             await session.commit()
         except IntegrityError:
-            raise ExceptionBase(status_code=409, detail="Item already exists")
+            raise ExceptionBase(status_code=409, detail="Item already exists") from None
 
-    async def get_item_by_id(self, session: AsyncSession, orm_cls: ORM_CLS, item_id: int | UUID) -> ORM_OBJ:
+    async def get_item_by_id(self, session: AsyncSession, orm_cls: ORM_CLS, item_id: int | UUID) -> ORM_OBJ | None:
         item = await session.get(orm_cls, item_id)
         return item
 
-    async def get_one_item(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ:
+    async def get_one_item(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ | None:
         query = select(orm_cls).filter_by(**filters)
         row = await session.execute(query)
         return row.scalar_one_or_none()

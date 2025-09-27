@@ -6,67 +6,67 @@ from sqlalchemy import select, and_, or_, func
 
 from apps.hotel.bookings.application.exceptions import BookingAlreadyExistsException, BookingNotFoundException
 from apps.hotel.bookings.domain.enums import BookingStatusEnum
-from src.apps.hotel.rooms.domain.model import Rooms
+from src.apps.hotel.rooms.domain.model import Room
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
-from src.apps.hotel.bookings.domain.model import Bookings
+from src.apps.hotel.bookings.domain.model import Booking
 from src.common.adapters.adapter import SQLAlchemyGateway
 from src.common.utils.dependency import SessionDependency
 
 
 class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
-    async def get_booking_by_id(self, booking_id: UUID, **filters: Any) -> Bookings | None:
+    async def get_booking_by_id(self, booking_id: UUID, **filters: Any) -> Booking | None:
         """Retrieve a booking by its ID."""
-        booking = await self.get_one_item(SessionDependency, Bookings, id=booking_id, **filters)
+        booking = await self.get_one_item(SessionDependency, Booking, id=booking_id, **filters)
         return booking
 
-    async def get_bookings(self, **filters) -> list[Bookings]:
+    async def get_bookings(self, **filters) -> list[Booking]:
         """Retrieve a list of bookings."""
-        bookings = await self.get_items_list(SessionDependency, Bookings, **filters)
+        bookings = await self.get_items_list(SessionDependency, Booking, **filters)
         return bookings
 
-    async def get_active_bookings(self, **filters) -> list[Bookings]:
+    async def get_active_bookings(self, **filters) -> list[Booking]:
         """Retrieve a list of active bookings."""
         active_bookings = await self.session.execute(
-            select(Bookings).where(
-                or_(Bookings.status == BookingStatusEnum.PENDING, Bookings.status == BookingStatusEnum.CONFIRMED)
+            select(Booking).where(
+                or_(Booking.status == BookingStatusEnum.PENDING, Booking.status == BookingStatusEnum.CONFIRMED)
             ).filter_by(**filters)
         )
         return list(active_bookings.scalars())
 
     async def add_booking(self, user_id: int, room_id: int, date_from: date, date_to: date) -> int | None:
         """Add a new booking."""
-        booked_rooms = select(Bookings).where(
+        booked_rooms = select(Booking).where(
             and_(
-                Bookings.room_id == 1,
+                Booking.room_id == 1,
                 or_(
                     and_(
-                        Bookings.date_from >= date_from,
-                        Bookings.date_from < date_to
+                        Booking.date_from >= date_from,
+                        Booking.date_from < date_to
                     ),
                     and_(
-                        Bookings.date_from <= date_from,
-                        Bookings.date_to > date_from
+                        Booking.date_from <= date_from,
+                        Booking.date_to > date_from
                     ),
                 )
             )
         ).cte("booked_rooms")
 
         rooms_left_query = select(
-            (Rooms.quantity - func.count(booked_rooms.c.room_id)).label("room_left")
-        ).select_from(Rooms).join(
-            booked_rooms, booked_rooms.c.room_id == Rooms.id
-        ).where(Rooms.id == room_id).group_by(
-            Rooms.quantity, booked_rooms.c.room_id
+            (Room.quantity - func.count(booked_rooms.c.room_id)).label("room_left")
+        ).select_from(Room).join(
+            booked_rooms, booked_rooms.c.room_id == Room.id
+        ).where(Room.id == room_id).group_by(
+            Room.quantity, booked_rooms.c.room_id
         )
 
         rooms_left = await self.session.execute(rooms_left_query)
         rooms_left = rooms_left.scalar()
 
         if rooms_left is not None and rooms_left > 0:
-            price_query = select(Rooms.price).filter_by(id=room_id)
+            price_query = select(Room.price).filter_by(id=room_id)
             price = await self.session.execute(price_query)
             price = price.scalar()
-            new_booking = Bookings(
+            new_booking = Booking(
                 room_id=room_id,
                 user_id=user_id,
                 date_from=date_from,
@@ -79,13 +79,29 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
             except:
                 raise BookingAlreadyExistsException
 
-    async def update_booking(self, booking: Bookings) -> UUID:
+    async def update_booking(self, user_id: int, booking_id: UUID, only_active=False, **updated_params: Any) -> UUID:
         """Update a booking."""
+        if only_active:
+            booking = await self.get_one_item(
+                SessionDependency,
+                Booking,
+                id=booking_id,
+                user_id=user_id,
+                status=or_(BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED)
+            )
+        else:
+            booking = await self.get_one_item(SessionDependency, Booking, id=booking_id, user_id=user_id)
+        if not booking:
+            raise BookingNotFoundException
+        for key, value in updated_params.items():
+            setattr(booking, key, value)
         await self.add_item(SessionDependency, booking)
         return booking.id
 
-    async def delete_booking(self, booking_id: UUID, **filters) -> UUID:
+    async def delete_booking(self, user_id: int, booking_id: UUID, **filters) -> UUID:
         """Delete a booking by its ID."""
-        booking = await self.get_one_item(SessionDependency, Bookings, **filters)
+        booking = await self.get_one_item(SessionDependency, Booking, id=booking_id, user_id=user_id, **filters)
+        if not booking:
+            raise BookingNotFoundException
         await self.delete_item(SessionDependency, booking)
         return booking_id

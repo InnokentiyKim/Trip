@@ -23,7 +23,7 @@ async def get_bookings(request: Request) -> list[BookingResponseDTO]:
     service = BookingService(BookingAdapter())
     token = request.cookies.get("token") or request.headers.get("Authorization")
     user = await user_service.verify_user_by_token(token)
-    bookings = await service.get_bookings(user_id=user.id)
+    bookings = await service.get_bookings(user.id)
     return [BookingResponseDTO.from_model(booking) for booking in bookings]
 
 
@@ -33,7 +33,7 @@ async def get_bookings(request: Request, booking_id: UUID) -> BookingResponseDTO
     service = BookingService(BookingAdapter())
     token = request.cookies.get("token") or request.headers.get("Authorization")
     user = await user_service.verify_user_by_token(token)
-    booking = await service.get_booking_by_id(booking_id, user_id=user.id)
+    booking = await service.get_booking(user.id, booking_id)
     return BookingResponseDTO.from_model(booking)
 
 
@@ -53,5 +53,5 @@ async def delete_booking(request: Request, booking_id: UUID) -> BaseResponseDTO:
     service = BookingService(BookingAdapter())
     token = request.cookies.get("token") or request.headers.get("Authorization")
     user = await user_service.verify_user_by_token(token)
-    await service.delete_booking(booking_id, user_id=user.id)
+    await service.delete_booking(user.id, booking_id)
     return BaseResponseDTO(id=booking_id)
