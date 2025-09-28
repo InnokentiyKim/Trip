@@ -25,7 +25,7 @@ class Booking(Base):
     total_cost: Mapped[Decimal] = mapped_column(DECIMAL, Computed("price * (date_to - date_from)"))
     total_days: Mapped[int] = mapped_column(Integer, Computed("date_to - date_from"))
     created_at: Mapped[datetime] = mapped_column(DATETIME(timezone=False), nullable=False, default=datetime.now(UTC))
-    updated_at: Mapped[date] = mapped_column(DATETIME(timezone=False), nullable=False)
+    updated_at: Mapped[date] = mapped_column(DATETIME(timezone=False), nullable=False, default=datetime.now(UTC))
 
     user = relationship("User", back_populates="bookings", lazy="joined")
     room = relationship("Room", back_populates="bookings", lazy="joined")

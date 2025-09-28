@@ -20,9 +20,7 @@ class Room(Base):
     quantity: Mapped[float] = mapped_column(Float, nullable=False)
     image_id: Mapped[int] = mapped_column(Integer, nullable=True)
 
-    hotel: Mapped["Hotel"] = relationship(
-        "Hotel", back_populates="rooms", lazy="joined", cascade="all, delete-orphan"
-    )
-    booking: Mapped["Booking"] = relationship(
-        "Booking", back_populates="room", lazy="joined", cascade="all, delete-orphan"
+    hotel: Mapped["Hotel"] = relationship("Hotel", back_populates="rooms", lazy="joined")
+    bookings: Mapped[list["Booking"]] = relationship(
+        "Booking", back_populates="room", lazy="joined", uselist=True, cascade="all, delete-orphan"
     )

@@ -12,6 +12,10 @@ class Hotel(Base):
     location: Mapped[str] = mapped_column(String, nullable=False)
     services: Mapped[dict] = mapped_column(JSON, nullable=True)
     rooms_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    owner : Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
     image_id: Mapped[int] = mapped_column(Integer, nullable=True)
 
-    rooms = relationship("Room", back_populates="hotel", lazy="joined", cascade="all, delete-orphan")
+    user = relationship("User", back_populates="hotel", lazy="joined")
+    rooms = relationship(
+        "Room", back_populates="hotel", lazy="joined", uselist=True, cascade="all, delete-orphan"
+    )
