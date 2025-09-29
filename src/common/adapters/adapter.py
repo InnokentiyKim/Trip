@@ -2,7 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 from typing import Any
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from src.common.application.exceptions import ExceptionBase
 from src.common.utils.dependency import SessionDependency

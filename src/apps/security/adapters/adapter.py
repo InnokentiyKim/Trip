@@ -3,7 +3,7 @@ from jose import jwt, JWTError
 from src.apps.security.application.interfaces.gateway import SecurityGatewayProto
 from passlib.context import CryptContext
 from src.config import create_configs
-from fastapi import HTTPException
+from src.apps.security.application.exceptions import InvalidTokenException
 
 config = create_configs()
 
@@ -32,11 +32,11 @@ class SecurityAdapter(SecurityGatewayProto):
         try:
             payload = jwt.decode(token, config.security.secret_key, config.security.algorithm)
         except JWTError:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise InvalidTokenException
         expire = payload.get("exp")
         if (not expire) or (int(expire) < int(datetime.now(UTC).timestamp())):
-            raise HTTPException(status_code=401, detail="Token is expired")
+            raise InvalidTokenException
         user_id = int(payload.get("sub"))
         if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise InvalidTokenException
         return user_id
