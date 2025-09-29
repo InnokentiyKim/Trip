@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from uuid import UUID
 
 from src.apps.hotel.hotels.domain.model import Hotel
 from src.common.interfaces import GatewayProto
@@ -16,16 +17,16 @@ class HotelGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def create_hotel(self, name: str, location: str, services: dict, rooms_quantity: int, image_id: int) -> None:
+    async def create_hotel(self, name: str, location: str, services: dict, rooms_quantity: int, owner_id: int | UUID, image_id: int) -> None:
         """Add a new hotel."""
         ...
 
     @abstractmethod
-    async def update_hotel(self, hotel_id: int, **params) -> None:
+    async def update_hotel(self, user_id: int, hotel_id: int, **params) -> None:
         """Update an existing hotel."""
         ...
 
     @abstractmethod
-    async def delete_hotel(self, hotel_id: int) -> None:
+    async def delete_hotel(self, user_id: int, hotel_id: int) -> None:
         """Delete a hotel by its ID."""
         ...
