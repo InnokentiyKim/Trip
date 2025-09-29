@@ -79,7 +79,7 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
             except:
                 raise BookingAlreadyExistsException
 
-    async def update_booking(self, user_id: int, booking_id: UUID, only_active=False, **updated_params: Any) -> UUID:
+    async def update_booking(self, user_id: int, booking_id: UUID, only_active: bool=False, **updated_params: Any) -> UUID:
         """Update a booking."""
         if only_active:
             booking = await self.get_one_item(
@@ -98,7 +98,7 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
         await self.add_item(SessionDependency, booking)
         return booking.id
 
-    async def delete_booking(self, user_id: int, booking_id: UUID, **filters) -> UUID:
+    async def delete_booking(self, user_id: int, booking_id: UUID, **filters: Any) -> UUID:
         """Delete a booking by its ID."""
         booking = await self.get_one_item(SessionDependency, Booking, id=booking_id, user_id=user_id, **filters)
         if not booking:
