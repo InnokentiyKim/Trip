@@ -7,7 +7,7 @@ from src.config import Configs
 from src.apps.security.adapters.adapter import SecurityAdapter
 from src.apps.user.adapters.adapter import UserAdapter
 from common.application.service import ServiceBase
-from src.apps.user.domain.model import Users
+from src.apps.user.domain.model import User
 
 
 config = Configs()
@@ -21,12 +21,12 @@ class UserService(ServiceBase):
         self._user = user_adapter
         self._auth = auth_adapter
 
-    async def register_user(self, email: EmailStr | str, password: str) -> Users:
+    async def register_user(self, email: EmailStr | str, password: str) -> User:
         user = await self._user.get_user_by_email(email=email)
         if user:
             raise UserAlreadyExistsException
         hashed_password = self._auth.get_password_hash(password)
-        new_user = Users(email=email, hashed_password=hashed_password)
+        new_user = User(email=email, hashed_password=hashed_password)
         await self._user.add_user(new_user)
 
         return new_user
@@ -40,7 +40,7 @@ class UserService(ServiceBase):
         access_token = await self._auth.create_access_token(data={"sub": str(user.id)})
         return access_token
 
-    async def verify_user_by_token(self, token: str | None) -> Users:
+    async def verify_user_by_token(self, token: str | None) -> User:
         if token is None:
             raise TokenIsMissingException
         user_id = await self._auth.verify_access_token(token)

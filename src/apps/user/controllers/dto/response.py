@@ -1,4 +1,4 @@
-from apps.user.domain.model import Users
+from apps.user.domain.model import User
 from src.common.controllers.dto.base import BaseDTO
 from pydantic import EmailStr
 
@@ -8,7 +8,7 @@ class RegisterUserResponseDTO(BaseDTO):
     is_active: bool
 
     @classmethod
-    def from_model(cls, model: "Users") -> "RegisterUserResponseDTO":
+    def from_model(cls, model: "User") -> "RegisterUserResponseDTO":
         """Create a user response from the user model."""
         fields = {name: getattr(model, name, None) for name in cls.model_fields}
         return cls.model_validate(fields)
@@ -29,7 +29,7 @@ class UserInfoResponseDTO(BaseDTO):
     is_active: bool
 
     @classmethod
-    def from_model(cls, model: "Users") -> "UserInfoResponseDTO":
+    def from_model(cls, model: "User") -> "UserInfoResponseDTO":
         """Create a user info response from the user model."""
         fields = {name: getattr(model, name, None) for name in cls.model_fields}
         return cls.model_validate(fields)
