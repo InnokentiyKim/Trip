@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from src.apps.hotel.hotels.application.exceptions import HotelNotFoundException
 from src.common.adapters.adapter import SQLAlchemyGateway
 from src.common.utils.dependency import SessionDependency
@@ -18,17 +16,10 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         hotel = self.get_item_by_id(SessionDependency, Hotel, hotel_id)
         return hotel
 
-    async def create_hotel(self, name: str, location: str, services: dict, rooms_quantity: int, owner_id: int | UUID, image_id: int | None) -> None:
+    async def add_hotel(self, hotel: Hotel) -> None:
         """Add a new hotel."""
-        new_hotel = Hotel(
-            name=name,
-            location=location,
-            services=services,
-            rooms_quantity=rooms_quantity,
-            owner=owner_id,
-            image_id=image_id
-        )
-        await self.add_item(SessionDependency, new_hotel)
+        self.session.add(hotel)
+        await self.session.commit()
 
     async def update_hotel(self, user_id: int, hotel_id: int, **params) -> int | None:
         """Update an existing hotel."""

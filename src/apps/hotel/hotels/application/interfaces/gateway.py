@@ -17,7 +17,7 @@ class HotelGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def create_hotel(self, name: str, location: str, services: dict, rooms_quantity: int, owner_id: int | UUID, image_id: int) -> None:
+    async def add_hotel(self, hotel: Hotel) -> None:
         """Add a new hotel."""
         ...
 
