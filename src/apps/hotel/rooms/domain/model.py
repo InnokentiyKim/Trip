@@ -22,5 +22,5 @@ class Room(Base):
 
     hotel: Mapped["Hotel"] = relationship("Hotel", back_populates="rooms", lazy="joined")
     bookings: Mapped[list["Booking"]] = relationship(
-        "Booking", back_populates="room", lazy="joined", uselist=True, cascade="all, delete-orphan"
+        "Booking", back_populates="room", lazy="selectin", uselist=True, cascade="all, delete-orphan"
     )
