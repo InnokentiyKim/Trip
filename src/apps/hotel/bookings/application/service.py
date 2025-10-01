@@ -1,10 +1,8 @@
 from datetime import date
-from typing import Any
 from uuid import UUID
 
 from apps.hotel.bookings.application.exceptions import BookingNotFoundException, BookingProcessingErrorException
 from apps.hotel.bookings.domain.enums import BookingStatusEnum
-from common.utils.dependency import SessionDependency
 from src.apps.hotel.bookings.domain.model import Booking
 from src.apps.hotel.bookings.adapters.adapter import BookingAdapter
 from src.common.application.service import ServiceBase
