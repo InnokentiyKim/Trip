@@ -1,9 +1,9 @@
 from datetime import timedelta, datetime, UTC
 from jose import jwt, JWTError
-from src.apps.security.application.interfaces.gateway import SecurityGatewayProto
+from infrastructure.security.application.interfaces.gateway import SecurityGatewayProto
 from passlib.context import CryptContext
 from src.config import create_configs
-from src.apps.security.application.exceptions import InvalidTokenException
+from infrastructure.security.application.exceptions import InvalidTokenException
 
 config = create_configs()
 
@@ -19,7 +19,7 @@ class SecurityAdapter(SecurityGatewayProto):
         """Verify a password against its hash."""
         return self.pwd_context.verify(plain_password, hashed_password)
 
-    async def create_access_token(self, data: dict, expires_minutes: int = 30) -> str:
+    def create_access_token(self, data: dict, expires_minutes: int = 30) -> str:
         """Create a JWT access token."""
         to_encode = data.copy()
         expires = datetime.now(UTC) + timedelta(minutes=config.security.token_expire_minutes)
@@ -27,7 +27,7 @@ class SecurityAdapter(SecurityGatewayProto):
         encoded_jwt = jwt.encode(to_encode, config.security.secret_key, algorithm=config.security.algorithm)
         return encoded_jwt
 
-    async def verify_access_token(self, token: str) -> int:
+    def verify_access_token(self, token: str) -> int:
         """Verify a JWT access token."""
         try:
             payload = jwt.decode(token, config.security.secret_key, config.security.algorithm)
