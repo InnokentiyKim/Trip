@@ -1,3 +1,4 @@
+from sqlalchemy.exc import IntegrityError
 from src.apps.hotel.hotels.application.exceptions import HotelNotFoundException
 from src.common.adapters.adapter import SQLAlchemyGateway
 from src.common.utils.dependency import SessionDependency
@@ -16,10 +17,14 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         hotel = self.get_item_by_id(SessionDependency, Hotel, hotel_id)
         return hotel
 
-    async def add_hotel(self, hotel: Hotel) -> None:
+    async def add_hotel(self, hotel: Hotel) -> int | None:
         """Add a new hotel."""
         self.session.add(hotel)
-        await self.session.commit()
+        try:
+            await self.session.commit()
+            return hotel.id
+        except IntegrityError:
+            return None
 
     async def update_hotel(self, user_id: int, hotel_id: int, **params) -> int | None:
         """Update an existing hotel."""

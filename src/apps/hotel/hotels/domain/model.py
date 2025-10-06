@@ -1,11 +1,14 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Integer, String, ForeignKey, JSON
+from sqlalchemy import Integer, String, ForeignKey, JSON, UniqueConstraint
 
 from src.common.domain.models import Base
 
 
 class Hotel(Base):
     __tablename__ = "hotels"
+    __table_args__ = (
+        UniqueConstraint("name", "location", name="unq_hotel_name_location"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)

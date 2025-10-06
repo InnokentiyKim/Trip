@@ -1,5 +1,5 @@
 from apps.hotel.hotels.application.commands import CreateHotelCommand
-from apps.hotel.hotels.application.exceptions import HotelNotFoundException
+from apps.hotel.hotels.application.exceptions import HotelNotFoundException, HotelAlreadyExistsException
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from src.apps.hotel.hotels.domain.model import Hotel
 from src.common.application.service import ServiceBase
@@ -24,7 +24,7 @@ class HotelService(ServiceBase):
             raise HotelNotFoundException
         return hotel
 
-    async def create_hotel(self, cmd: CreateHotelCommand) -> None:
+    async def create_hotel(self, cmd: CreateHotelCommand) -> int | None:
         hotel = Hotel(
             name=cmd.name,
             location=cmd.location,
@@ -35,7 +35,10 @@ class HotelService(ServiceBase):
             hotel.services = cmd.services
         if cmd.image_id:
             hotel.image_id = cmd.image_id
-        await self._hotel.add_hotel(hotel)
+        new_hotel_id = await self._hotel.add_hotel(hotel)
+        if not new_hotel_id:
+            raise HotelAlreadyExistsException
+        return new_hotel_id
 
     async def update_hotel(self, user_id: int, hotel_id: int, **params) -> None:
         await self._hotel.update_hotel(user_id, hotel_id, **params)

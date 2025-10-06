@@ -1,3 +1,4 @@
+from common.controllers.dto.base import BaseResponseDTO
 from src.common.controllers.dto.base import BaseDTO
 
 
@@ -8,3 +9,7 @@ class GetHotelsResponseDTO(BaseDTO):
     rooms_quantity: int
     is_active: bool
     image_id: int | None = None
+
+
+class CreateHotelResponseDTO(BaseResponseDTO):
+    ...
