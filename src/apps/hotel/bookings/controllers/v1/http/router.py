@@ -2,8 +2,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Request
 
-from apps.security.adapters.adapter import SecurityAdapter
-from apps.user.adapters.adapter import UserAdapter
+from src.infrastructure.security.adapters.adapter import SecurityAdapter
+from src.apps.user.adapters.adapter import UserAdapter
 from src.apps.user.application.service import UserService
 from src.apps.hotel.bookings.adapters.adapter import BookingAdapter
 from src.apps.hotel.bookings.controllers.v1.dto.response import BookingResponseDTO

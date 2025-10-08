@@ -1,5 +1,5 @@
-from apps.user.controllers.dto.response import LogoutUserResponseDTO
-from src.apps.security.adapters.adapter import SecurityAdapter
+from src.apps.user.controllers.dto.response import LogoutUserResponseDTO
+from src.infrastructure.security.adapters.adapter import SecurityAdapter
 from src.apps.user.adapters.adapter import UserAdapter
 from src.apps.user.controllers.dto.response import RegisterUserResponseDTO, LoginUserResponseDTO
 from src.apps.user.controllers.dto.request import AuthUserRequestDTO

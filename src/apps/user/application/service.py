@@ -1,12 +1,12 @@
 from pydantic import EmailStr
 
-from apps.security.application.exceptions import TokenIsMissingException
-from src.apps.security.application.exceptions import InvalidTokenException
-from apps.user.application.exceptions import UserAlreadyExistsException, UserNotFoundException
+from src.infrastructure.security.application.exceptions import TokenIsMissingException
+from src.infrastructure.security.application.exceptions import InvalidTokenException
+from src.apps.user.application.exceptions import UserAlreadyExistsException, UserNotFoundException
 from src.config import Configs
-from src.apps.security.adapters.adapter import SecurityAdapter
+from src.infrastructure.security.adapters.adapter import SecurityAdapter
 from src.apps.user.adapters.adapter import UserAdapter
-from common.application.service import ServiceBase
+from src.common.application.service import ServiceBase
 from src.apps.user.domain.model import User
 
 
