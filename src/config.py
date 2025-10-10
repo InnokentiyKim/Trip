@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, SecretStr
 
 from common.domain.enums import EnvironmentEnum
 
@@ -33,10 +33,23 @@ class SecuritySettings(BaseSettings):
         case_sensitive = False
 
 
+class SMTPSettings(BaseSettings):
+    smtp_username: str
+    smtp_password: SecretStr = SecretStr("app_secret")
+    smtp_use_credentials: bool = False
+    mail_from: str = "test@yandex.ru"
+    mail_from_name: str = "Trips"
+    smtp_server: str = "smtp.yandex.ru"
+    smtp_port: int = 465
+    smtp_ssl_tls: bool = True
+    smtp_starttls: bool = False
+
+
 class Configs(BaseSettings):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     security: SecuritySettings = Field(default_factory=SecuritySettings)
+    smtp_email: SMTPSettings = Field(default_factory=SMTPSettings)
 
 
 def create_configs() -> Configs:
