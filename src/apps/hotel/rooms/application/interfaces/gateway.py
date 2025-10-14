@@ -27,6 +27,6 @@ class RoomGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def delete_room(self, hotel_id: int, room_id: int) -> int:
+    async def delete_room(self, hotel_id: int, room_id: int) -> int | None:
         """Delete a room by its ID."""
         ...

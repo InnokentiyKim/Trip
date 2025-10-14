@@ -1,4 +1,4 @@
-from common.application.exceptions import ExceptionBase
+from src.common.application.exceptions import ExceptionBase
 
 
 class HotelNotFoundException(ExceptionBase):

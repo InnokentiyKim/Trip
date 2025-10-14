@@ -1,6 +1,6 @@
 from src.apps.hotel.hotels.application.exceptions import HotelNotFoundException
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
-from src.apps.hotel.rooms.domain.commands import AddRoomCommand, UpdateRoomCommand
+from src.apps.hotel.rooms.domain.commands import AddRoomCommand, UpdateRoomCommand, DeleteRoomCommand
 from src.apps.hotel.rooms.application.exceptions import RoomNotFoundException
 from src.apps.hotel.rooms.application.interfaces.gateway import RoomGatewayProto
 from src.apps.hotel.rooms.domain.model import Room
@@ -38,3 +38,8 @@ class RoomService(ServiceBase):
             raise RoomNotFoundException
         return updated_room
 
+    async def delete_room(self, cmd: DeleteRoomCommand) -> int:
+        deleted_room = await self._rooms.delete_room(cmd.hotel_id, cmd.room_id)
+        if deleted_room is None:
+            raise RoomNotFoundException
+        return deleted_room
