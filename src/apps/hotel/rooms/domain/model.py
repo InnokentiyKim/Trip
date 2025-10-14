@@ -24,3 +24,9 @@ class Room(Base):
     bookings: Mapped[list["Booking"]] = relationship(
         "Booking", back_populates="room", lazy="selectin", uselist=True, cascade="all, delete-orphan"
     )
+
+    def from_dict(self, data: dict) -> "Room":
+        for key, value in data.items():
+            if hasattr(self, key) and value is not None:
+                setattr(self, key, value)
+        return self
