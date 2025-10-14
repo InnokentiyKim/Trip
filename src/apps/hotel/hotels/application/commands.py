@@ -1,9 +1,6 @@
-from dataclasses import dataclass
-
 from src.common.domain.commands import Command
 
 
-@dataclass(frozen=True, slots=True)
 class CreateHotelCommand(Command):
     name: str
     location: str

@@ -1,10 +1,7 @@
-from dataclasses import dataclass
 from decimal import Decimal
-
 from src.common.domain.commands import Command
 
 
-@dataclass(frozen=True, slots=True)
 class AddRoomCommand(Command):
     hotel_id: int
     name: str
@@ -13,3 +10,19 @@ class AddRoomCommand(Command):
     description: str | None = None
     services: dict | None = None
     image_id: int | None = None
+
+
+class UpdateRoomCommand(Command):
+    hotel_id: int
+    room_id: int
+    name: str | None = None
+    price: Decimal | None = None
+    quantity: float | None = None
+    description: str | None = None
+    services: dict | None = None
+    image_id: int | None = None
+
+
+class DeleteRoomCommand(Command):
+    hotel_id: int
+    room_id: int
