@@ -1,16 +1,16 @@
-from src.common.application.exceptions import ExceptionBase
+from common.exceptions.common import BaseError
 
 
-class HotelNotFoundException(ExceptionBase):
+class HotelNotFoundException(BaseError):
     status_code = 404
     detail = "Hotel not found."
 
 
-class HotelAlreadyExistsException(ExceptionBase):
+class HotelAlreadyExistsException(BaseError):
     status_code = 409
     detail = "Hotel already exists."
 
 
-class HotelProcessingErrorException(ExceptionBase):
+class HotelProcessingErrorException(BaseError):
     status_code = 500
     detail = "Hotel processing error."
