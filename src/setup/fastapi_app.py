@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 
 from common.controllers.http.api_v1 import http_router_v1
+from common.exceptions.common import BaseError
+from common.exceptions.handlers import general_exception_handler
 
 
 def create_fastapi_app() -> FastAPI:
@@ -29,6 +31,7 @@ def create_fastapi_app() -> FastAPI:
     # Middleware Configuration
 
     # Exception handling
+    app.add_exception_handler(BaseError, general_exception_handler)
 
     # API routing
     app.include_router(http_router_v1)
