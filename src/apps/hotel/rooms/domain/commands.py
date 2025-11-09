@@ -1,4 +1,6 @@
 from decimal import Decimal
+from typing import Any
+
 from src.common.domain.commands import Command
 
 
@@ -21,6 +23,7 @@ class UpdateRoomCommand(Command):
     description: str | None = None
     services: dict | None = None
     image_id: int | None = None
+
 
 
 class DeleteRoomCommand(Command):
