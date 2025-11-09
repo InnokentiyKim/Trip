@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 
-from src.apps.hotel.hotels.application.commands import CreateHotelCommand
-from src.apps.hotel.hotels.adapters.adapter import HotelAdapter
+from apps.hotel.hotels.application.commands import CreateHotelCommand
+from src.apps.authentication.application.exceptions import Unauthorized
+from src.apps.hotel.hotels.controllers.v1.dto.request import CreateHotelRequestDTO
+from src.common.exceptions.handlers import generate_responses
+from src.common.utils.auth_scheme import auth_header
 from src.apps.hotel.hotels.application.service import HotelService
 from src.apps.hotel.hotels.controllers.v1.dto.response import GetHotelsResponseDTO, CreateHotelResponseDTO
-from src.infrastructure.security.adapters.adapter import SecurityAdapter
-from src.apps.user.adapters.adapter import UserAdapter
 from src.apps.user.application.service import UserService
+from dishka.integrations.fastapi import FromDishka, inject
 
 
 router = APIRouter(
@@ -15,29 +17,55 @@ router = APIRouter(
 )
 
 
-@router.get("")
-async def get_hotels(request: Request) -> list[GetHotelsResponseDTO]:
-    user_service = UserService(UserAdapter(), SecurityAdapter())
-    service = HotelService(HotelAdapter())
-    token = request.cookies.get("token") or request.headers.get("Authorization")
+@router.get(
+    "",
+    responses=generate_responses(
+        Unauthorized,
+    )
+)
+@inject
+async def get_hotels(
+    user_service: FromDishka[UserService],
+    hotel_service: FromDishka[HotelService],
+    token: str = auth_header
+) -> list[GetHotelsResponseDTO]:
     user = await user_service.verify_user_by_token(token)
-    hotels = await service.get_hotels()
+    hotels = await hotel_service.get_hotels()
     return [GetHotelsResponseDTO.from_model(hotel) for hotel in hotels]
 
-@router.get("/{hotel_id}")
-async def get_hotel(request: Request, hotel_id: int) -> GetHotelsResponseDTO:
-    user_service = UserService(UserAdapter(), SecurityAdapter())
-    service = HotelService(HotelAdapter())
-    token = request.cookies.get("token") or request.headers.get("Authorization")
+
+@router.get(
+    "/{hotel_id}",
+    responses=generate_responses(
+        Unauthorized,
+    )
+)
+@inject
+async def get_hotel(
+    hotel_id: int,
+    user_service: FromDishka[UserService],
+    hotel_service: FromDishka[HotelService],
+    token: str = auth_header
+) -> GetHotelsResponseDTO:
     user = await user_service.verify_user_by_token(token)
-    hotel = await service.get_hotel(hotel_id)
+    hotel = await hotel_service.get_hotel(hotel_id)
     return GetHotelsResponseDTO.from_model(hotel)
 
-@router.post("")
-async def create_hotel(request: Request, cmd: CreateHotelCommand) -> CreateHotelResponseDTO:
-    user_service = UserService(UserAdapter(), SecurityAdapter())
-    service = HotelService(HotelAdapter())
-    token = request.cookies.get("token") or request.headers.get("Authorization")
+
+@router.post(
+    "",
+    responses=generate_responses(
+        Unauthorized,
+    )
+)
+@inject
+async def create_hotel(
+    dto: CreateHotelRequestDTO,
+    user_service: FromDishka[UserService],
+    hotel_service: FromDishka[HotelService],
+    token: str = auth_header,
+) -> CreateHotelResponseDTO:
     user = await user_service.verify_user_by_token(token)
-    hotel_id = await service.create_hotel(cmd=cmd)
+    cmd = CreateHotelCommand.from_model(dto)
+    hotel_id = await hotel_service.create_hotel(cmd)
     return  CreateHotelResponseDTO(id=hotel_id)
