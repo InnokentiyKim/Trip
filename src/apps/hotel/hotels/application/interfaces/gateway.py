@@ -22,7 +22,7 @@ class HotelGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def update_hotel(self, user_id: int, hotel_id: int, **params) -> None:
+    async def update_hotel(self, user_id: int, hotel_id: int, **params) -> int | None:
         """Update an existing hotel."""
         ...
 

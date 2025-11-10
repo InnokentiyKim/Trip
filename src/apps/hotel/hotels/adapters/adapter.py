@@ -1,15 +1,21 @@
 from sqlalchemy.exc import IntegrityError
-from src.apps.hotel.hotels.application.exceptions import HotelNotFoundException
 from src.common.adapters.adapter import SQLAlchemyGateway
 from src.common.utils.dependency import SessionDependency
 from src.apps.hotel.hotels.domain.model import Hotel
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
+from sqlalchemy import select
 
 
 class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
     async def get_hotels(self, **filters) -> list[Hotel]:
         """Retrieve a list of hotels."""
-        hotels = await self.get_items_list(SessionDependency, Hotel, **filters)
+        services = filters.pop('services', None)
+        if services:
+            stmt = select(Hotel).filter_by(**filters).where(Hotel.services.contains(services))
+            result = await self.session.execute(stmt)
+            hotels = list(result.scalars())
+        else:
+            hotels = await self.get_items_list(SessionDependency, Hotel, **filters)
         return hotels
 
     async def get_hotel_by_id(self, hotel_id: int) -> Hotel | None:
@@ -30,7 +36,7 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         """Update an existing hotel."""
         hotel = await self.get_one_item(SessionDependency, Hotel, id=hotel_id, owner_id=user_id)
         if not hotel:
-            raise HotelNotFoundException
+            return None
         for key, value in params.items():
             setattr(hotel, key, value)
         await self.add_item(SessionDependency, hotel)
@@ -40,6 +46,6 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         """Delete a hotel by its ID."""
         hotel = await self.get_one_item(SessionDependency, Hotel, id=hotel_id, owner_id=user_id)
         if not hotel:
-            raise HotelNotFoundException
+            return None
         await self.delete_item(SessionDependency, hotel)
         return hotel_id

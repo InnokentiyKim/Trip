@@ -1,5 +1,5 @@
-from apps.hotel.hotels.application.commands import CreateHotelCommand
-from apps.hotel.hotels.application.exceptions import HotelNotFoundException, HotelAlreadyExistsException
+from apps.hotel.hotels.domain import commands
+from apps.hotel.hotels.application import exceptions
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from src.apps.hotel.hotels.domain.model import Hotel
 from src.common.application.service import ServiceBase
@@ -8,40 +8,46 @@ from src.common.application.service import ServiceBase
 class HotelService(ServiceBase):
     def __init__(
         self,
-        hotel: HotelGatewayProto
+        gateway: HotelGatewayProto
     ) -> None:
-        self._hotel = hotel
+        self._adapter = gateway
 
-    async def get_hotels(self, **filters) -> list[Hotel]:
-        hotels = await self._hotel.get_hotels(**filters)
-        if not hotels:
-            raise HotelNotFoundException
+    async def list_hotels(self, cmd: commands.ListHotelsCommand) -> list[Hotel]:
+        params = cmd.model_dump(exclude_unset=True)
+        hotels = await self._adapter.get_hotels(**params)
         return hotels
 
-    async def get_hotel(self, hotel_id: int) -> Hotel:
-        hotel = await self._hotel.get_hotel_by_id(hotel_id)
+    async def get_hotel(self, cmd: commands.GetHotelCommand) -> Hotel:
+        hotel = await self._adapter.get_hotel_by_id(cmd.hotel_id)
         if hotel is None:
-            raise HotelNotFoundException
+            raise exceptions.HotelNotFoundException
         return hotel
 
-    async def create_hotel(self, cmd: CreateHotelCommand) -> int | None:
+    async def create_hotel(self, cmd: commands.CreateHotelCommand) -> int | None:
+        params = cmd.model_dump(exclude_unset=True)
+
         hotel = Hotel(
-            name=cmd.name,
-            location=cmd.location,
-            rooms_quantity=cmd.rooms_quantity,
-            owner=cmd.owner
+            name=params.pop("name"),
+            location=params.pop("location"),
+            rooms_quantity=params.pop("rooms_quantity"),
+            owner=params.pop("owner"),
         )
-        if cmd.services:
-            hotel.services = cmd.services
-        if cmd.image_id:
-            hotel.image_id = cmd.image_id
-        new_hotel_id = await self._hotel.add_hotel(hotel)
+        for key, value in params.items():
+            setattr(hotel, key, value)
+        new_hotel_id = await self._adapter.add_hotel(hotel)
         if not new_hotel_id:
-            raise HotelAlreadyExistsException
+            raise exceptions.HotelAlreadyExistsException
         return new_hotel_id
 
-    async def update_hotel(self, user_id: int, hotel_id: int, **params) -> None:
-        await self._hotel.update_hotel(user_id, hotel_id, **params)
+    async def update_hotel(self, cmd: commands.UpdateHotelCommand) -> int | None:
+        params = cmd.model_dump(exclude={"user_id", "hotel_id"}, exclude_unset=True)
+        hotel_id = await self._adapter.update_hotel(cmd.user_id, cmd.hotel_id, **params)
+        if hotel_id is None:
+            raise exceptions.HotelNotFoundException
+        return hotel_id
 
-    async def delete_hotel(self, user_id: int, hotel_id: int) -> None:
-        await self._hotel.delete_hotel(user_id, hotel_id)
+    async def delete_hotel(self, cmd: commands.DeleteHotelCommand) -> int | None:
+        hotel_id = await self._adapter.delete_hotel(cmd.user_id, cmd.hotel_id)
+        if hotel_id is None:
+            raise exceptions.HotelNotFoundException
+        return hotel_id
