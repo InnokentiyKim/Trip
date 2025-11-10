@@ -1,8 +1,7 @@
-from datetime import date
 from uuid import UUID
 
-from apps.hotel.bookings.application.exceptions import BookingNotFoundException, BookingProcessingErrorException
-from apps.hotel.bookings.domain.enums import BookingStatusEnum
+from apps.hotel.bookings.application import exceptions
+from apps.hotel.bookings.domain import commands
 from src.apps.hotel.bookings.domain.model import Booking
 from src.apps.hotel.bookings.adapters.adapter import BookingAdapter
 from src.common.application.service import ServiceBase
@@ -15,36 +14,43 @@ class BookingService(ServiceBase):
     ) -> None:
         self._booking = booking
 
-    async def get_booking(self, user_id: int, booking_id: UUID) -> Booking:
-        booking = await self._booking.get_booking_by_id(booking_id, user_id=user_id)
+    async def get_booking(self, cmd: commands.GetBookingCommand) -> Booking:
+        booking = await self._booking.get_booking_by_id(cmd.booking_id, user_id=cmd.user_id)
         if booking is None:
-            raise BookingNotFoundException
+            raise exceptions.BookingNotFoundException
         return booking
 
-    async def get_bookings_by_status(self, user_id: int, status: BookingStatusEnum) -> list[Booking]:
-        bookings = await self._booking.get_bookings(status=status, user_id=user_id)
-        if not bookings:
-            raise BookingNotFoundException
+    async def get_bookings_by_status(self, cmd: commands.GetBookingsByStatusCommand) -> list[Booking]:
+        bookings = await self._booking.get_bookings(status=cmd.status, user_id=cmd.user_id)
         return bookings
 
-    async def get_bookings(self, user_id: int, **filters) -> list[Booking]:
-        bookings = await self._booking.get_bookings(user_id=user_id, **filters)
+    async def list_bookings(self, cmd: commands.ListBookingsCommand) -> list[Booking]:
+        params = cmd.model_dump(exclude={'user_id'}, exclude_unset=True)
+        bookings = await self._booking.get_bookings(user_id=cmd.user_id, **params)
         return bookings
 
-    async def delete_booking(self, user_id: int, booking_id: UUID, **filters) -> UUID:
-        result = await self._booking.delete_booking(user_id, booking_id, **filters)
+    async def delete_booking(self, cmd: commands.DeleteBookingCommand) -> UUID:
+        result = await self._booking.delete_booking(cmd.user_id, cmd.booking_id)
+        if result is None:
+            raise exceptions.BookingNotFoundException
         return result
 
-    async def create_booking(self, user_id: int, room_id: int, date_from: date, date_to: date) -> int | None:
-        result = await self._booking.add_booking(user_id, room_id, date_from, date_to)
+    async def create_booking(self, cmd: commands.CreateBookingCommand) -> int | None:
+        result = await self._booking.add_booking(
+            user_id=cmd.user_id, room_id=cmd.room_id, date_from=cmd.date_from, date_to=cmd.date_to
+        )
+        if result is None:
+            raise exceptions.RoomCannotBeBookedException
         return result
 
-    async def update_booking_status(self, user_id: int, booking_id: UUID, status: BookingStatusEnum) -> UUID:
-        updated = await self._booking.update_booking(user_id, booking_id, status=status)
+    async def update_booking_status(self, cmd: commands.UpdateBookingCommand) -> UUID:
+        updated = await self._booking.update_booking(cmd.user_id, cmd.booking_id, status=cmd.status)
         if not updated:
-            raise BookingProcessingErrorException
+            raise exceptions.BookingNotFoundException
         return updated
 
-    async def cancel_active_booking(self, user_id: int, booking_id: UUID) -> UUID:
-        await self._booking.update_booking(user_id, booking_id, only_active=True)
+    async def cancel_active_booking(self, cmd: commands.CancelActiveBookingCommand) -> UUID:
+        booking_id = await self._booking.update_booking(cmd.user_id, cmd.booking_id, only_active=True)
+        if booking_id is None:
+            raise exceptions.BookingNotFoundException
         return booking_id
