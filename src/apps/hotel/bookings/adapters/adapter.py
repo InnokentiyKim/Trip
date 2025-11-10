@@ -4,7 +4,7 @@ from uuid import UUID
 
 from sqlalchemy import select, and_, or_, func
 
-from apps.hotel.bookings.application.exceptions import BookingAlreadyExistsException, BookingNotFoundException
+from apps.hotel.bookings.application.exceptions import BookingNotFoundException
 from apps.hotel.bookings.domain.enums import BookingStatusEnum
 from src.apps.hotel.rooms.domain.model import Room
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
@@ -21,7 +21,13 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
 
     async def get_bookings(self, **filters) -> list[Booking]:
         """Retrieve a list of bookings."""
-        bookings = await self.get_items_list(SessionDependency, Booking, **filters)
+        if 'date_from' in filters:
+            date_from = filters.pop('date_from')
+            stmt = select(Booking).filter_by(**filters).where(Booking.date_from >= date_from)
+            bookings = await self.session.execute(stmt)
+            bookings = list(bookings.scalars())
+        else:
+            bookings = await self.get_items_list(SessionDependency, Booking, **filters)
         return bookings
 
     async def get_active_bookings(self, **filters) -> list[Booking]:
@@ -37,7 +43,7 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
         """Add a new booking."""
         booked_rooms = select(Booking).where(
             and_(
-                Booking.room_id == 1,
+                Booking.room_id == room_id,
                 or_(
                     and_(
                         Booking.date_from >= date_from,
@@ -73,13 +79,12 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
                 date_to=date_to,
                 price=price
             )
-            try:
-                await self.add_item(SessionDependency, new_booking)
-                return room_id
-            except:
-                raise BookingAlreadyExistsException
+            await self.add_item(SessionDependency, new_booking)
+            return room_id
 
-    async def update_booking(self, user_id: int, booking_id: UUID, only_active: bool=False, **updated_params: Any) -> UUID:
+    async def update_booking(
+        self, user_id: int, booking_id: UUID, only_active: bool=False, **updating_params: Any
+    ) -> UUID | None:
         """Update a booking."""
         if only_active:
             booking = await self.get_one_item(
@@ -92,16 +97,16 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
         else:
             booking = await self.get_one_item(SessionDependency, Booking, id=booking_id, user_id=user_id)
         if not booking:
-            raise BookingNotFoundException
-        for key, value in updated_params.items():
+            return None
+        for key, value in updating_params.items():
             setattr(booking, key, value)
         await self.add_item(SessionDependency, booking)
-        return booking.id
+        return booking_id
 
-    async def delete_booking(self, user_id: int, booking_id: UUID, **filters: Any) -> UUID:
+    async def delete_booking(self, user_id: int, booking_id: UUID) -> UUID | None:
         """Delete a booking by its ID."""
-        booking = await self.get_one_item(SessionDependency, Booking, id=booking_id, user_id=user_id, **filters)
+        booking = await self.get_one_item(SessionDependency, Booking, id=booking_id, user_id=user_id)
         if not booking:
-            raise BookingNotFoundException
+            return None
         await self.delete_item(SessionDependency, booking)
         return booking_id
