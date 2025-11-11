@@ -6,7 +6,7 @@ from sqlalchemy import ForeignKey, Integer, TIMESTAMP, Computed, DECIMAL, DATETI
 from src.common.domain.models import Base
 import uuid
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
+from sqlalchemy.dialects.postgresql import UUID
 
 
 class Booking(Base):

@@ -29,11 +29,13 @@ class BookingGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def update_booking(self, user_id: int, booking_id: UUID, only_active: bool, **updated_params: Any) -> UUID:
+    async def update_booking(
+        self, booking: Booking, only_active: bool = False, **updating_params: Any
+    ) -> UUID:
         """Update a booking."""
         ...
 
     @abstractmethod
-    async def delete_booking(self, user_id: int, booking_id: int|UUID) -> None:
+    async def delete_booking(self, booking: Booking) -> None:
         """Delete a booking by its ID."""
         ...

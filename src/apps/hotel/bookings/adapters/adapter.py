@@ -82,30 +82,17 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
             return room_id
 
     async def update_booking(
-        self, user_id: int, booking_id: UUID, only_active: bool=False, **updating_params: Any
+        self, booking: Booking, only_active: bool=False, **updating_params: Any
     ) -> UUID | None:
         """Update a booking."""
-        if only_active:
-            booking = await self.get_one_item(
-                SessionDependency,
-                Booking,
-                id=booking_id,
-                user_id=user_id,
-                status=or_(BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED)
-            )
-        else:
-            booking = await self.get_one_item(SessionDependency, Booking, id=booking_id, user_id=user_id)
-        if not booking:
+        active_statuses = [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED]
+        if only_active and booking.status not in active_statuses:
             return None
         for key, value in updating_params.items():
             setattr(booking, key, value)
         await self.add_item(SessionDependency, booking)
-        return booking_id
+        return booking.id
 
-    async def delete_booking(self, user_id: int, booking_id: UUID) -> UUID | None:
+    async def delete_booking(self, booking: Booking) -> None:
         """Delete a booking by its ID."""
-        booking = await self.get_one_item(SessionDependency, Booking, id=booking_id, user_id=user_id)
-        if not booking:
-            return None
         await self.delete_item(SessionDependency, booking)
-        return booking_id

@@ -10,6 +10,10 @@ class GetBookingCommand(Command):
     booking_id: UUID
 
 
+class GetActiveBookingsCommand(Command):
+    user_id: int
+
+
 class GetBookingsByStatusCommand(Command):
     user_id: int
     status: BookingStatusEnum
