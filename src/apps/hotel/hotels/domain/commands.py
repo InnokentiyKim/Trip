@@ -37,7 +37,6 @@ class CreateHotelCommand(Command):
 
 
 class UpdateHotelCommand(Command):
-    user_id: int
     hotel_id: int
     name: str | None = None
     location: str | None = None
@@ -48,5 +47,4 @@ class UpdateHotelCommand(Command):
 
 
 class DeleteHotelCommand(Command):
-    user_id: int
     hotel_id: int

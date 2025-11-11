@@ -7,16 +7,23 @@ from sqlalchemy import select
 
 
 class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
-    async def get_hotels(self, **filters) -> list[Hotel]:
+    async def get_hotels(self, only_active: bool = True, **filters) -> list[Hotel]:
         """Retrieve a list of hotels."""
-        services = filters.pop('services', None)
+        location = filters.get('location', None)
+        services = filters.get('services', None)
+        rooms_quantity = filters.get('rooms_quantity', None)
+        criteria = []
+        if only_active:
+            criteria.append(Hotel.is_active.is_(True))
+        if location:
+            criteria.append(Hotel.location == location)
         if services:
-            stmt = select(Hotel).filter_by(**filters).where(Hotel.services.contains(services))
-            result = await self.session.execute(stmt)
-            hotels = list(result.scalars())
-        else:
-            hotels = await self.get_items_list(SessionDependency, Hotel, **filters)
-        return hotels
+            criteria.append(Hotel.services.contains(services))
+        if rooms_quantity:
+            criteria.append(Hotel.rooms_quantity >= rooms_quantity)
+        stmt = select(Hotel).where(**criteria)
+        result = await self.session.execute(stmt)
+        return list(result.scalars())
 
     async def get_hotel_by_id(self, hotel_id: int) -> Hotel | None:
         """Retrieve a hotel by its ID."""
@@ -32,7 +39,7 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         except IntegrityError:
             return None
 
-    async def update_hotel(self, user_id: int, hotel_id: int, **params) -> int | None:
+    async def update_hotel(self, hotel: Hotel, **params) -> int | None:
         """Update an existing hotel."""
         hotel = await self.get_one_item(SessionDependency, Hotel, id=hotel_id, owner_id=user_id)
         if not hotel:
@@ -42,10 +49,6 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         await self.add_item(SessionDependency, hotel)
         return hotel.id
 
-    async def delete_hotel(self, user_id: int, hotel_id: int) -> int | None:
+    async def delete_hotel(self, hotel: Hotel) -> None:
         """Delete a hotel by its ID."""
-        hotel = await self.get_one_item(SessionDependency, Hotel, id=hotel_id, owner_id=user_id)
-        if not hotel:
-            return None
         await self.delete_item(SessionDependency, hotel)
-        return hotel_id

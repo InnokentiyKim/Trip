@@ -6,7 +6,7 @@ from src.common.interfaces import GatewayProto
 
 class HotelGatewayProto(GatewayProto):
     @abstractmethod
-    async def get_hotels(self, **filters) -> list[Hotel]:
+    async def get_hotels(self, only_active: bool = True, **filters) -> list[Hotel]:
         """Retrieve a list of hotels."""
         ...
 
@@ -21,11 +21,11 @@ class HotelGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def update_hotel(self, user_id: int, hotel_id: int, **params) -> int | None:
+    async def update_hotel(self, hotel: Hotel, **params) -> int | None:
         """Update an existing hotel."""
         ...
 
     @abstractmethod
-    async def delete_hotel(self, user_id: int, hotel_id: int) -> None:
+    async def delete_hotel(self, hotel: Hotel) -> None:
         """Delete a hotel by its ID."""
         ...
