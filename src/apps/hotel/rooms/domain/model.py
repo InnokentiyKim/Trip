@@ -3,8 +3,8 @@ from decimal import Decimal
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Integer, String, JSON, ForeignKey, DECIMAL, Float
 
-from apps.hotel.bookings.domain.model import Booking
-from apps.hotel.hotels.domain.model import Hotel
+from src.apps.hotel.bookings.domain.model import Booking
+from src.apps.hotel.hotels.domain.model import Hotel
 from src.common.domain.models import Base
 
 

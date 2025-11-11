@@ -1,15 +1,15 @@
 from fastapi import APIRouter
-from apps.hotel.rooms.application.exceptions import RoomProcessingErrorException
-from apps.hotel.rooms.application.service import RoomService
-from apps.hotel.rooms.controllers.v1.dto.request import GetRoomRequestDTO, UpdateRoomRequestDTO, DeleteRoomRequestDTO
-from apps.hotel.rooms.controllers.v1.dto.response import GetRoomResponseDTO, DeleteRoomResponseDTO
-from apps.hotel.rooms.domain.commands import UpdateRoomCommand, DeleteRoomCommand
-from apps.user.application.service import UserService
-from common.controllers.dto.base import BaseResponseDTO
+from src.apps.hotel.rooms.application.exceptions import RoomProcessingErrorException
+from src.apps.hotel.rooms.application.service import RoomService
+from src.apps.hotel.rooms.controllers.v1.dto.request import GetRoomRequestDTO, UpdateRoomRequestDTO, DeleteRoomRequestDTO
+from src.apps.hotel.rooms.controllers.v1.dto.response import GetRoomResponseDTO, DeleteRoomResponseDTO
+from src.apps.hotel.rooms.domain.commands import UpdateRoomCommand, DeleteRoomCommand
+from src.apps.user.application.service import UserService
+from src.common.controllers.dto.base import BaseResponseDTO
 from dishka.integrations.fastapi import FromDishka, inject
 from src.apps.authentication.application.exceptions import Unauthorized
 
-from common.exceptions.handlers import generate_responses
+from src.common.exceptions.handlers import generate_responses
 from src.common.utils.auth_scheme import auth_header
 
 

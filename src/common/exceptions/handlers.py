@@ -1,6 +1,6 @@
 from typing import Any
 from pydantic import BaseModel, Field
-from common.exceptions.common import BaseError
+from src.common.exceptions.common import BaseError
 from fastapi.responses import ORJSONResponse
 from fastapi import Request
 

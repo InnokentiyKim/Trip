@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from typing import Any
 from sqlalchemy import select
 
-from common.exceptions.common import BaseError
+from src.common.exceptions.common import BaseError
 from src.common.interfaces import SQLAlchemyGatewayProto
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.common.domain.models import ORM_OBJ, ORM_CLS

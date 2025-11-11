@@ -1,7 +1,7 @@
-from apps.user.application.exceptions import UserAlreadyExistsException
-from apps.user.domain.model import User
-from common.adapters.adapter import SQLAlchemyGateway
-from common.utils.dependency import SessionDependency
+from src.apps.user.application.exceptions import UserAlreadyExistsException
+from src.apps.user.domain.model import User
+from src.common.adapters.adapter import SQLAlchemyGateway
+from src.common.utils.dependency import SessionDependency
 from src.apps.user.application.interfaces.gateway import UserGatewayProto
 
 

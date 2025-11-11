@@ -1,4 +1,4 @@
-from common.controllers.dto.base import BaseRequestDTO
+from src.common.controllers.dto.base import BaseRequestDTO
 
 
 class CreateHotelRequestDTO(BaseRequestDTO):

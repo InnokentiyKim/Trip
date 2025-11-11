@@ -1,8 +1,8 @@
 from uuid import UUID
 
-from apps.hotel.bookings.application import exceptions
-from apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
-from apps.hotel.bookings.domain import commands
+from src.apps.hotel.bookings.application import exceptions
+from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
+from src.apps.hotel.bookings.domain import commands
 from src.apps.hotel.bookings.domain.model import Booking
 from src.common.application.service import ServiceBase
 
@@ -29,7 +29,7 @@ class BookingService(ServiceBase):
         bookings = await self._adapter.get_bookings(user_id=cmd.user_id, **params)
         return bookings
 
-    async def delete_booking(self, cmd: commands.DeleteBookingCommand) -> UUID:
+    async def delete_booking(self, cmd: commands.DeleteBookingCommand) -> UUID | None:
         result = await self._adapter.delete_booking(cmd.user_id, cmd.booking_id)
         if result is None:
             raise exceptions.BookingNotFoundException

@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from uuid import UUID
 
 from src.apps.hotel.hotels.domain.model import Hotel
 from src.common.interfaces import GatewayProto

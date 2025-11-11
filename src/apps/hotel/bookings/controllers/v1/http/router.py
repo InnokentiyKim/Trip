@@ -4,8 +4,8 @@ from fastapi import APIRouter
 from dishka.integrations.fastapi import FromDishka, inject
 from src.common.utils.auth_scheme import auth_header
 
-from apps.user.application.exceptions import UserNotFoundException
-from common.exceptions.handlers import generate_responses
+from src.apps.user.application.exceptions import UserNotFoundException
+from src.common.exceptions.handlers import generate_responses
 from src.apps.user.application.service import UserService
 from src.apps.hotel.bookings.controllers.v1.dto.response import BookingResponseDTO
 from src.apps.hotel.bookings.application.service import BookingService

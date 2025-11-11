@@ -21,8 +21,8 @@ class Booking(Base):
         SAEnum(BookingStatusEnum, name="status", validate_strings=True),
         nullable=False, default=BookingStatusEnum.PENDING
     )
-    price: Mapped[Decimal] = mapped_column(DECIMAL, nullable=False)
-    total_cost: Mapped[Decimal] = mapped_column(DECIMAL, Computed("price * (date_to - date_from)"))
+    price: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), nullable=False)
+    total_cost: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), Computed("price * (date_to - date_from)"))
     total_days: Mapped[int] = mapped_column(Integer, Computed("date_to - date_from"))
     created_at: Mapped[datetime] = mapped_column(DATETIME(timezone=False), nullable=False, default=datetime.now(UTC))
     updated_at: Mapped[date] = mapped_column(DATETIME(timezone=False), nullable=False, default=datetime.now(UTC))

@@ -1,6 +1,6 @@
 from decimal import Decimal
 from pydantic import ConfigDict
-from common.controllers.dto.base import BaseDTO, BaseResponseDTO
+from src.common.controllers.dto.base import BaseDTO, BaseResponseDTO
 
 
 class GetRoomResponseDTO(BaseResponseDTO):

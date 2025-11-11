@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from apps.hotel.hotels.application.commands import CreateHotelCommand
+from src.apps.hotel.hotels.application.commands import CreateHotelCommand
 from src.apps.authentication.application.exceptions import Unauthorized
 from src.apps.hotel.hotels.controllers.v1.dto.request import CreateHotelRequestDTO
 from src.common.exceptions.handlers import generate_responses

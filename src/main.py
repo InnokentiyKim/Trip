@@ -1,9 +1,6 @@
 import asyncio
 
-from fastapi import FastAPI
-
-from ioc_registry import get_providers
-from src.common.controllers.http.api_v1 import http_router_v1
+from src.ioc_registry import get_providers
 from dishka import make_async_container
 from src.setup.fastapi_app import create_fastapi_app
 from dishka.integrations.fastapi import setup_dishka as setup_fastapi_ioc

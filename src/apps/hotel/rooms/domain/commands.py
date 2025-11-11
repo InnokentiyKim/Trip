@@ -1,5 +1,4 @@
 from decimal import Decimal
-from pydantic import Field
 from src.common.domain.commands import Command
 
 

@@ -1,4 +1,4 @@
-from common.controllers.dto.base import BaseResponseDTO
+from src.common.controllers.dto.base import BaseResponseDTO
 from src.common.controllers.dto.base import BaseDTO
 
 

@@ -2,7 +2,6 @@ from abc import abstractmethod
 from decimal import Decimal
 from typing import Any
 
-from src.apps.hotel.rooms.domain.commands import AddRoomCommand
 from src.apps.hotel.rooms.domain.model import Room
 from src.common.interfaces import GatewayProto
 

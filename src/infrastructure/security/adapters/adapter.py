@@ -1,9 +1,9 @@
 from datetime import timedelta, datetime, UTC
 from jose import jwt, JWTError
-from infrastructure.security.application.interfaces.gateway import SecurityGatewayProto
+from src.infrastructure.security.application.interfaces.gateway import SecurityGatewayProto
 from passlib.context import CryptContext
 from src.config import create_configs
-from infrastructure.security.application.exceptions import InvalidTokenException
+from src.infrastructure.security.application.exceptions import InvalidTokenException
 
 config = create_configs()
 

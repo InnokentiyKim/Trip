@@ -1,5 +1,5 @@
-from apps.hotel.hotels.domain import commands
-from apps.hotel.hotels.application import exceptions
+from src.apps.hotel.hotels.domain import commands
+from src.apps.hotel.hotels.application import exceptions
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from src.apps.hotel.hotels.domain.model import Hotel
 from src.common.application.service import ServiceBase

@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from common.controllers.http.api_v1 import http_router_v1
-from common.exceptions.common import BaseError
-from common.exceptions.handlers import general_exception_handler
+from src.common.controllers.http.api_v1 import http_router_v1
+from src.common.exceptions.common import BaseError
+from src.common.exceptions.handlers import general_exception_handler
 
 
 def create_fastapi_app() -> FastAPI:

@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field, SecretStr
 
-from common.domain.enums import EnvironmentEnum
+from src.common.domain.enums import EnvironmentEnum
 
 
 class GeneralSettings(BaseSettings):

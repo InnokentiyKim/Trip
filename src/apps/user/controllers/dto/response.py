@@ -1,4 +1,4 @@
-from apps.user.domain.model import User
+from src.apps.user.domain.model import User
 from src.common.controllers.dto.base import BaseDTO
 from pydantic import EmailStr
 

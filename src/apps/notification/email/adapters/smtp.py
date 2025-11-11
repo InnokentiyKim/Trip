@@ -1,7 +1,7 @@
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 
-from apps.notification.email.domain.model import EmailType
-from config import Configs
+from src.apps.notification.email.domain.model import EmailType
+from src.config import Configs
 from src.apps.notification.email.application.interfaces.gateway import EmailGatewayProto
 
 
