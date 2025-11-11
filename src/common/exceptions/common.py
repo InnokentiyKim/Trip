@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
 
-class GeneralError(Exception):
+class BaseError(Exception):
     """Base class for application-specific errors."""
 
     status_code: int = 500
@@ -17,7 +17,7 @@ class GeneralError(Exception):
         super().__init__(self.message)
 
 
-class InternalError(GeneralError):
+class InternalError(BaseError):
     status_code: int = 500
     message: str = "Internal error"
     loc: str = ""

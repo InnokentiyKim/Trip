@@ -37,13 +37,13 @@ class UserService(ServiceBase):
             raise UserNotFoundException
         if not self._auth.verify_password(password, user.hashed_password):
             raise InvalidTokenException
-        access_token = await self._auth.create_access_token(data={"sub": str(user.id)})
+        access_token = self._auth.create_access_token(data={"sub": str(user.id)})
         return access_token
 
     async def verify_user_by_token(self, token: str | None) -> User:
         if token is None:
             raise TokenIsMissingException
-        user_id = await self._auth.verify_access_token(token)
+        user_id = self._auth.verify_access_token(token)
         user = await self._user.get_user_by_id(user_id=user_id)
         if not user:
             raise UserNotFoundException

@@ -4,7 +4,6 @@ from uuid import UUID
 
 from sqlalchemy import select, and_, or_, func
 
-from apps.hotel.bookings.application.exceptions import BookingNotFoundException
 from apps.hotel.bookings.domain.enums import BookingStatusEnum
 from src.apps.hotel.rooms.domain.model import Room
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto

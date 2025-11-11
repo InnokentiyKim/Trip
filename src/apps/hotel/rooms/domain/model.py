@@ -15,9 +15,9 @@ class Room(Base):
     hotel_id: Mapped[int] = mapped_column(ForeignKey("hotels.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=True)
-    price: Mapped[Decimal] = mapped_column(DECIMAL, nullable=False)
+    price: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), nullable=False)
     services: Mapped[dict] = mapped_column(JSON, nullable=True)
-    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     image_id: Mapped[int] = mapped_column(Integer, nullable=True)
 
     hotel: Mapped["Hotel"] = relationship("Hotel", back_populates="rooms", lazy="joined")

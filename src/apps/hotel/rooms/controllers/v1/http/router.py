@@ -33,7 +33,7 @@ async def get_rooms(
     token: str = auth_header
 ) -> list[GetRoomResponseDTO]:
     user = await user_service.verify_user_by_token(token)
-    rooms = await room_service.get_rooms(hotel_id=hotel_id)
+    rooms = await room_service.list_rooms(hotel_id=hotel_id)
     return [GetRoomResponseDTO.model_validate(room) for room in rooms]
 
 

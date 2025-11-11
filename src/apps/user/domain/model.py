@@ -123,20 +123,22 @@ class User(UserBase):
         self,
         user_id: int,
         email: str,
+        hashed_password: str,
         phone: str | None = None,
         name: str | None = None,
         avatar_url: str | None = None,
+        is_active: bool = True,
     ) -> None:
         self.id = user_id
         self.email = email
         self.phone = phone
         self.name = name
         self.avatar_url = avatar_url
-        self.hashed_password = ""
+        self.hashed_password = hashed_password
         now = datetime.now(UTC)
         self.created_at = now
         self.updated_at = now
-        self.is_active = True
+        self.is_active = is_active
 
         self.auth_status = AuthStatus(user_id=user_id)
 

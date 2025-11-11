@@ -9,17 +9,17 @@ from src.common.interfaces import GatewayProto
 
 class BookingGatewayProto(GatewayProto):
     @abstractmethod
-    async def get_booking_by_id(self, booking_id: int|UUID) -> Booking | None:
+    async def get_booking_by_id(self, booking_id: int|UUID, **filters: dict | Any) -> Booking | None:
         """Retrieve a booking by its ID."""
         ...
 
     @abstractmethod
-    async def get_bookings(self, **filters) -> list[Booking]:
+    async def get_bookings(self, **filters: dict | Any) -> list[Booking]:
         """Retrieve a list of bookings."""
         ...
 
     @abstractmethod
-    async def get_active_bookings(self, **filters) -> list[Booking]:
+    async def get_active_bookings(self, **filters: dict | Any) -> list[Booking]:
         """Retrieve a list of active bookings."""
         ...
 

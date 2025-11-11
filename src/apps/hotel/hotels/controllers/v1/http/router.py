@@ -30,7 +30,7 @@ async def get_hotels(
     token: str = auth_header
 ) -> list[GetHotelsResponseDTO]:
     user = await user_service.verify_user_by_token(token)
-    hotels = await hotel_service.get_hotels()
+    hotels = await hotel_service.list_hotels()
     return [GetHotelsResponseDTO.from_model(hotel) for hotel in hotels]
 
 
