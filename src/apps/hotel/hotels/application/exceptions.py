@@ -9,7 +9,7 @@ class HotelNotFoundException(BaseError):
 
 class HotelCannotBeUpdatedException(BaseError):
     status_code = status.HTTP_400_BAD_REQUEST
-    message = "Hotel cannot be updated."
+    message = "Hotel updating failed."
 
 
 class HotelAlreadyExistsException(BaseError):

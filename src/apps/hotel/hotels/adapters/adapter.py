@@ -16,18 +16,18 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         if only_active:
             criteria.append(Hotel.is_active.is_(True))
         if location:
-            criteria.append(Hotel.location == location)
+            criteria.append(Hotel.location==location)
         if services:
             criteria.append(Hotel.services.contains(services))
         if rooms_quantity:
-            criteria.append(Hotel.rooms_quantity >= rooms_quantity)
+            criteria.append(Hotel.rooms_quantity>=rooms_quantity)
         stmt = select(Hotel).where(**criteria)
         result = await self.session.execute(stmt)
         return list(result.scalars())
 
     async def get_hotel_by_id(self, hotel_id: int) -> Hotel | None:
         """Retrieve a hotel by its ID."""
-        hotel = self.get_item_by_id(SessionDependency, Hotel, hotel_id)
+        hotel = await self.get_item_by_id(SessionDependency, Hotel, hotel_id)
         return hotel
 
     async def add_hotel(self, hotel: Hotel) -> int | None:
@@ -41,9 +41,6 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
 
     async def update_hotel(self, hotel: Hotel, **params) -> int | None:
         """Update an existing hotel."""
-        hotel = await self.get_one_item(SessionDependency, Hotel, id=hotel_id, owner_id=user_id)
-        if not hotel:
-            return None
         for key, value in params.items():
             setattr(hotel, key, value)
         await self.add_item(SessionDependency, hotel)

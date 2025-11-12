@@ -1,19 +1,18 @@
-from dishka import Provider, Scope, provide, provide_all
-from sqlalchemy.ext.asyncio import AsyncSession
+from dishka import Provider, Scope, provide, provide_all, AsyncContainer
 
+from config import Configs
 from src.apps.hotel.bookings.adapters.adapter import BookingAdapter
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.hotels.adapters.adapter import HotelAdapter
 from src.apps.hotel.rooms.adapters.adapter import RoomAdapter
 from src.apps.hotel.rooms.application.interfaces.gateway import RoomGatewayProto
-from src.config import Configs
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from src.apps.hotel.bookings.application.service import BookingService
 from src.apps.hotel.hotels.application.service import HotelService
 from src.apps.hotel.rooms.application.service import RoomService
 
 
-class ServiceProvider(Provider):
+class ServiceProviders(Provider):
     scope = Scope.REQUEST
 
     services = provide_all(
@@ -23,25 +22,30 @@ class ServiceProvider(Provider):
     )
 
 
-class GatewayProvider(Provider):
+class GatewayProviders(Provider):
 
     scope = Scope.REQUEST
 
-    @provide(HotelGatewayProto)
-    def provide_hotels_gateway(self, session: AsyncSession, config: Configs) -> HotelGatewayProto:
-        hotels_config = None
-        return HotelAdapter(session=session)
+    _hotels_adapter = provide(HotelAdapter)
+    _rooms_adapter = provide(RoomAdapter)
+    _bookings_adapter = provide(BookingAdapter)
 
-    @provide(RoomGatewayProto)
-    def provide_rooms_gateway(self, session: AsyncSession, config: Configs) -> RoomGatewayProto:
-        rooms_config = None
-        return RoomAdapter(session=session)
+    @provide(provides=HotelGatewayProto)
+    async def provide_hotel_gateway(self, config: Configs, request_container: AsyncContainer) -> HotelGatewayProto:
+        """"""
+        return await request_container.get(HotelAdapter)
 
-    @provide(BookingGatewayProto)
-    def provide_bookings_gateway(self, session: AsyncSession, config: Configs) -> BookingGatewayProto:
-        bookings_config = None
-        return BookingAdapter(session=session)
+    @provide(provides=RoomGatewayProto)
+    async def provide_room_gateway(self, config: Configs, request_container: AsyncContainer) -> RoomGatewayProto:
+        """"""
+        return await request_container.get(RoomAdapter)
+
+    @provide(provides=BookingGatewayProto)
+    async def provide_booking_gateway(self, config: Configs, request_container: AsyncContainer) -> BookingGatewayProto:
+        """"""
+        return await request_container.get(BookingAdapter)
+
 
 
 def get_hotel_providers() -> list[Provider]:
-    return [ServiceProvider(), GatewayProvider()]
+    return [ServiceProviders(), GatewayProviders()]

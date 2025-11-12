@@ -39,8 +39,8 @@ def create_fastapi_app() -> FastAPI:
     # Telemetry and metrics
 
     # Health check endpoint
-    @app.get("/health")
-    async def health_check():
-        return {"status": "ok"}
+    # @app.get("/health")
+    # async def health_check():
+    #     return {"status": "ok"}
 
     return app
