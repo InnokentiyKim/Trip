@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field, SecretStr
-
+from src.infrastructure.database.postgres.config import DatabaseSettings
 from src.common.domain.enums import EnvironmentEnum
 
 
@@ -8,19 +8,6 @@ class GeneralSettings(BaseSettings):
     app_version: str = "0.0.1"
     app_name: str = "backend-hotel-service"
     environment: EnvironmentEnum = EnvironmentEnum.LOCAL
-
-
-class DatabaseSettings(BaseSettings):
-    host: str
-    port: int
-    user: str
-    name: str
-    password: str
-
-    class Config:
-        env_prefix = "DB_"
-        env_file = ".env"
-        case_sensitive = False
 
 
 class SecuritySettings(BaseSettings):
