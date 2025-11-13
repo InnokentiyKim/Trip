@@ -2,7 +2,7 @@ from apps.hotel.bookings.domain.enums import BookingStatusEnum
 from src.apps.hotel.bookings.application import exceptions
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.bookings.domain import commands
-from src.apps.hotel.bookings.domain.model import Booking
+from src.apps.hotel.bookings.domain.models import Booking
 from src.common.application.service import ServiceBase
 from src.apps.hotel.bookings.application.ensure import BookingServiceInsurance
 

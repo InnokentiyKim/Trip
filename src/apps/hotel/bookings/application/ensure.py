@@ -1,5 +1,5 @@
 from uuid import UUID
-from src.apps.hotel.bookings.domain.model import Booking
+from src.apps.hotel.bookings.domain.models import Booking
 from src.apps.hotel.bookings.application import exceptions
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.common.application.ensure import ServiceInsuranceBase

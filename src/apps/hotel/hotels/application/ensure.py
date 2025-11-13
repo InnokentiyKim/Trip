@@ -1,4 +1,4 @@
-from src.apps.hotel.hotels.domain.model import Hotel
+from src.apps.hotel.hotels.domain.models import Hotel
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from src.common.application.ensure import ServiceInsuranceBase
 from src.apps.hotel.hotels.application import exceptions

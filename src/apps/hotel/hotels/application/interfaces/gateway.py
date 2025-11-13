@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from src.apps.hotel.hotels.domain.model import Hotel
+from src.apps.hotel.hotels.domain.models import Hotel
 from src.common.interfaces import GatewayProto
 
 

@@ -2,9 +2,8 @@ from decimal import Decimal
 from typing import Any
 
 from src.apps.hotel.rooms.application.interfaces.gateway import RoomGatewayProto
-from src.apps.hotel.rooms.domain.model import Room
+from src.apps.hotel.rooms.domain.models import Room
 from src.common.adapters.adapter import SQLAlchemyGateway
-from src.common.utils.dependency import SessionDependency
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
@@ -19,12 +18,12 @@ class RoomAdapter(SQLAlchemyGateway, RoomGatewayProto):
         if price_to is not None:
             criteria.append(Room.price <= price_to)
         stmt = select(Room).filter(*criteria)
-        row_result = await self.session.scalars(stmt)
+        row_result = await self._session.scalars(stmt)
         return list(row_result.all())
 
     async def get_room(self, hotel_id: int, room_id: int) -> Room | None:
         """Retrieve a room by its ID."""
-        room = await self.get_one_item(SessionDependency, 'Room', id=room_id, hotel_id=hotel_id)
+        room = await self.get_one_item(Room, id=room_id, hotel_id=hotel_id)
         return room
 
     async def add_room(
@@ -46,35 +45,27 @@ class RoomAdapter(SQLAlchemyGateway, RoomGatewayProto):
             services=services,
             image_id=image_id,
         )
+
         if quantity is not None:
             room.quantity = quantity
-        await self.add_item(SessionDependency, room)
+
+        self._session.add(room)
         try:
-            await self.session.commit()
+            await self._session.commit()
             return room.id
         except IntegrityError:
             return None
 
-    async def update_room(self, hotel_id: int, room_id: int, **params: dict[str, Any]) -> int | None:
+    async def update_room(self, room: Room, **params: dict[str, Any]) -> int | None:
         """Update an existing room."""
-        hotel = await self.get_one_item(SessionDependency, 'Hotel', id=hotel_id)
-        if not hotel:
-            return None
-        room = await self.get_one_item(SessionDependency, 'Room', id=room_id, hotel_id=hotel_id)
-        if not room:
-            return None
         for key, value in params.items():
             setattr(room, key, value)
         try:
-            await self.session.commit()
+            await self._session.commit()
             return room.id
         except IntegrityError:
             return None
 
-    async def delete_room(self, hotel_id: int, room_id: int) -> int | None:
+    async def delete_room(self, room: Room) -> int | None:
         """Delete a room by its ID."""
-        room = await self.get_one_item(SessionDependency, 'Room', id=room_id, hotel_id=hotel_id)
-        if not room:
-            return None
-        await self.delete_item(SessionDependency, room)
-        return room_id
+        await self.delete_item(room)

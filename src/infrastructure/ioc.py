@@ -29,14 +29,14 @@ class DatabaseProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
     async def provide_db_session(self, engine: AsyncEngine, config: Configs) -> AsyncIterable[AsyncSession]:
-        """Provides a database session for the duration of a request.
+        """Provides a database _session for the duration of a request.
 
         Args:
             engine (AsyncEngine): The asynchronous database engine.
             config (Configs): The configuration settings.
 
         Yields:
-            AsyncIterable[AsyncSession]: An asynchronous session for database operations.
+            AsyncIterable[AsyncSession]: An asynchronous _session for database operations.
         """
         session_config = config.database.session
         async with async_sessionmaker(engine, expire_on_commit=session_config.expire_on_commit)() as session:

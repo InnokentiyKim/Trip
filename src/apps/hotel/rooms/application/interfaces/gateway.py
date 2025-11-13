@@ -2,7 +2,7 @@ from abc import abstractmethod
 from decimal import Decimal
 from typing import Any
 
-from src.apps.hotel.rooms.domain.model import Room
+from src.apps.hotel.rooms.domain.models import Room
 from src.common.interfaces import GatewayProto
 
 
@@ -25,11 +25,11 @@ class RoomGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def update_room(self, hotel_id: int, room_id: int, **params: dict[str, Any]) -> int | None:
+    async def update_room(self, room: Room, **params: dict[str, Any]) -> int | None:
         """Update an existing room."""
         ...
 
     @abstractmethod
-    async def delete_room(self, hotel_id: int, room_id: int) -> int | None:
+    async def delete_room(self, room: Room) -> int | None:
         """Delete a room by its ID."""
         ...

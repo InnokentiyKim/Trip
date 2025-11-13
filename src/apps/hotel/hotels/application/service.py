@@ -1,7 +1,7 @@
 from src.apps.hotel.hotels.domain import commands
 from src.apps.hotel.hotels.application import exceptions
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
-from src.apps.hotel.hotels.domain.model import Hotel
+from src.apps.hotel.hotels.domain.models import Hotel
 from src.common.application.service import ServiceBase
 from src.apps.hotel.hotels.application.ensure import HotelServiceInsurance
 
@@ -35,7 +35,7 @@ class HotelService(ServiceBase):
         for key, value in params.items():
             setattr(hotel, key, value)
         new_hotel_id = await self._adapter.add_hotel(hotel)
-        if not new_hotel_id:
+        if new_hotel_id is None:
             raise exceptions.HotelAlreadyExistsException
 
     async def update_hotel(self, cmd: commands.UpdateHotelCommand) -> None:

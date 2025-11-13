@@ -1,7 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 from src.common.adapters.adapter import SQLAlchemyGateway
-from src.common.utils.dependency import SessionDependency
-from src.apps.hotel.hotels.domain.model import Hotel
+from src.apps.hotel.hotels.domain.models import Hotel
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from sqlalchemy import select
 
@@ -22,19 +21,19 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         if rooms_quantity:
             criteria.append(Hotel.rooms_quantity>=rooms_quantity)
         stmt = select(Hotel).where(**criteria)
-        result = await self.session.execute(stmt)
+        result = await self._session.execute(stmt)
         return list(result.scalars())
 
     async def get_hotel_by_id(self, hotel_id: int) -> Hotel | None:
         """Retrieve a hotel by its ID."""
-        hotel = await self.get_item_by_id(SessionDependency, Hotel, hotel_id)
+        hotel = await self.get_item_by_id(Hotel, hotel_id)
         return hotel
 
     async def add_hotel(self, hotel: Hotel) -> int | None:
         """Add a new hotel."""
-        self.session.add(hotel)
+        self._session.add(hotel)
         try:
-            await self.session.commit()
+            await self._session.commit()
             return hotel.id
         except IntegrityError:
             return None
@@ -43,9 +42,9 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         """Update an existing hotel."""
         for key, value in params.items():
             setattr(hotel, key, value)
-        await self.add_item(SessionDependency, hotel)
+        await self.add_item(hotel)
         return hotel.id
 
     async def delete_hotel(self, hotel: Hotel) -> None:
         """Delete a hotel by its ID."""
-        await self.delete_item(SessionDependency, hotel)
+        await self.delete_item(hotel)

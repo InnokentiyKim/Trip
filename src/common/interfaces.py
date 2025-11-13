@@ -140,21 +140,21 @@ class SQLAlchemyGatewayProto(GatewayProto):
     # TODO: add __call__ method to return UoW instance
 
     @abstractmethod
-    async def add_item(self, session: AsyncSession, item: ORM_OBJ) -> None:
+    async def add_item(self, item: ORM_OBJ) -> None:
         ...
 
     @abstractmethod
-    async def get_item_by_id(self, session: AsyncSession, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ:
+    async def get_item_by_id(self, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ:
         ...
 
     @abstractmethod
-    async def get_one_item(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ:
+    async def get_one_item(self, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ:
         ...
 
     @abstractmethod
-    async def get_items_list(self, session: AsyncSession, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
+    async def get_items_list(self, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
         ...
 
     @abstractmethod
-    async def delete_item(self, session: AsyncSession, orm_obj: ORM_OBJ) -> None:
+    async def delete_item(self, orm_obj: ORM_OBJ) -> None:
         ...

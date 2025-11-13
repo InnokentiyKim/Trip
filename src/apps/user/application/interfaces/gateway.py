@@ -1,13 +1,18 @@
 from abc import abstractmethod
 
 from src.common.interfaces import GatewayProto
-from src.apps.user.domain.model import User
+from src.apps.user.domain.models import User
 
 
 class UserGatewayProto(GatewayProto):
     @abstractmethod
     async def get_user_by_id(self, user_id) -> User:
         """Retrieve a user by filters."""
+        ...
+
+    @abstractmethod
+    async def get_user_by_email(self, email: str) -> User | None:
+        """Retrieve a user by email."""
         ...
 
     @abstractmethod
@@ -21,6 +26,11 @@ class UserGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def delete_user(self, user_id: int) -> None:
+    async def update_user(self, user: User, **params) -> int | None:
+        """Update an existing user."""
+        ...
+
+    @abstractmethod
+    async def delete_user(self, user: User) -> None:
         """Delete a user by its ID."""
         ...

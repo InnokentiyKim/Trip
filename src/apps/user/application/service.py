@@ -1,51 +1,49 @@
-from pydantic import EmailStr
-
-from src.infrastructure.security.application.exceptions import TokenIsMissingException
 from src.infrastructure.security.application.exceptions import InvalidTokenException
 from src.apps.user.application.exceptions import UserAlreadyExistsException, UserNotFoundException
-from src.config import Configs
 from src.infrastructure.security.adapters.adapter import SecurityAdapter
 from src.apps.user.adapters.adapter import UserAdapter
 from src.common.application.service import ServiceBase
-from src.apps.user.domain.model import User
+from src.apps.user.domain.models import User
+from src.apps.user.application.ensure import UserServiceInsurance
+from src.apps.user.domain import commands
 
-
-config = Configs()
 
 class UserService(ServiceBase):
     def __init__(
         self,
         user_adapter: UserAdapter,
         auth_adapter: SecurityAdapter,
+        user_ensure: UserServiceInsurance
     ) -> None:
         self._user = user_adapter
         self._auth = auth_adapter
+        self._user_ensure = user_ensure
 
-    async def register_user(self, email: EmailStr | str, password: str) -> User:
-        user = await self._user.get_user_by_email(email=email)
+    async def register_user(self, cmd: commands.CreateUserCommand) -> User:
+        user = await self._user_ensure.user_with_email_exists(cmd.email)
         if user:
             raise UserAlreadyExistsException
-        hashed_password = self._auth.get_password_hash(password)
-        new_user = User(email=email, hashed_password=hashed_password)
+        hashed_password = self._auth.get_password_hash(cmd.password)
+        new_user = User(
+            email=cmd.email,
+            hashed_password=hashed_password,
+            name=cmd.name,
+            phone=cmd.phone,
+            avatar_url=cmd.avatar_url,
+            is_active=cmd.is_active
+        )
         await self._user.add_user(new_user)
-
         return new_user
 
-    async def login_user(self, email: EmailStr | str, password: str) -> str:
-        user = await self._user.get_user_by_email(email=email)
-        if user is None:
-            raise UserNotFoundException
-        if not self._auth.verify_password(password, user.hashed_password):
+    async def login_user(self, cmd: commands.LoginUserCommand) -> str:
+        user = await self._user_ensure.user_with_email_exists(cmd.email)
+        if not self._auth.verify_password(cmd.password, user.hashed_password):
             raise InvalidTokenException
         access_token = self._auth.create_access_token(data={"sub": str(user.id)})
         return access_token
 
-    async def verify_user_by_token(self, token: str | None) -> User:
-        if token is None:
-            raise TokenIsMissingException
-        user_id = self._auth.verify_access_token(token)
-        user = await self._user.get_user_by_id(user_id=user_id)
-        if not user:
-            raise UserNotFoundException
+    async def verify_user_by_token(self, cmd: commands.VerifyUserByTokenCommand) -> User:
+        user_id = self._auth.verify_access_token(cmd.token)
+        user = await self._user_ensure.user_exists(user_id)
 
         return user

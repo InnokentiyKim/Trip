@@ -7,8 +7,8 @@ from sqlalchemy.dialects.postgresql import UUID
 
 from apps.authentication.domain.results import OAuthProviderUser
 from src.apps.authentication.domain.enums import OAuthProviderEnum
-from src.apps.hotel.hotels.domain.model import Hotel
-from src.apps.hotel.bookings.domain.model import Booking
+from src.apps.hotel.hotels.domain.models import Hotel
+from src.apps.hotel.bookings.domain.models import Booking
 from src.common.domain.models import Base
 
 
@@ -22,7 +22,7 @@ class AuthStatus(UserBase):
     __tablename__ = "auth_statuses"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, nullable=False)
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[uuid.UUID] = mapped_column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
@@ -37,7 +37,7 @@ class AuthStatus(UserBase):
     mfa_email_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     mfa_sms_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    def __init__(self, user_id: int) -> None:
+    def __init__(self, user_id: uuid.UUID) -> None:
         self.id = uuid.uuid4()
         self.user_id = user_id
         self.last_login_at = None
@@ -56,7 +56,7 @@ class OAuthAuth(UserBase):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[uuid.UUID] = mapped_column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
@@ -75,7 +75,7 @@ class OAuthAuth(UserBase):
 
     user: Mapped["User"] = relationship("User", back_populates="oauth_auths")
 
-    def __init__(self, user_id: int, provider: OAuthProviderEnum, provider_user_id: str) -> None:
+    def __init__(self, user_id: uuid.UUID, provider: OAuthProviderEnum, provider_user_id: str) -> None:
         self.id = uuid.uuid4()
         self.user_id = user_id
         self.provider = provider
@@ -92,7 +92,7 @@ class OAuthAuth(UserBase):
 class User(UserBase):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, nullable=False)
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     phone: Mapped[str | None] = mapped_column(String(60), nullable=True)
@@ -121,7 +121,6 @@ class User(UserBase):
 
     def __init__(
         self,
-        user_id: int,
         email: str,
         hashed_password: str,
         phone: str | None = None,
@@ -129,6 +128,7 @@ class User(UserBase):
         avatar_url: str | None = None,
         is_active: bool = True,
     ) -> None:
+        user_id = uuid.uuid4()
         self.id = user_id
         self.email = email
         self.phone = phone

@@ -3,7 +3,7 @@ from datetime import date
 from typing import Any
 from uuid import UUID
 
-from src.apps.hotel.bookings.domain.model import Booking
+from src.apps.hotel.bookings.domain.models import Booking
 from src.common.interfaces import GatewayProto
 
 
