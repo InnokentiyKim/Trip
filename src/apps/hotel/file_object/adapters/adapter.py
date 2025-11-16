@@ -1,10 +1,12 @@
+import asyncio
+
 from src.apps.hotel.file_object.domain.models import FileObject
 from src.apps.hotel.file_object.application.interfaces.gateway import FileObjectGatewayProto
 from aiobotocore.client import AioBaseClient
 from src.config import Configs
 from typing import Self
 from types import TracebackType
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, EndpointConnectionError
 
 
 class S3FileObjectAdapter(FileObjectGatewayProto):
@@ -139,10 +141,24 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
         ...
 
     async def check_availability(self) -> None:
-        ...
+        try:
+            await asyncio.wait_for(self.client.head_bucket(Bucket=self.bucket_name), timeout=10)
+        except TimeoutError as te:
+            raise EndpointConnectionError(endpoint_url=self.client.meta.endpoint_url) from None
+        except (ClientError, EndpointConnectionError) as exc:
+            raise exc
 
     async def copy_object(self, source_key: str, destination_key: str) -> None:
-        ...
+        copy_source = {"Bucket": self.bucket_name, "Key": source_key}
+
+        try:
+            await self.client.copy_object(
+                Bucket=self.bucket_name,
+                CopySource=copy_source,
+                Key=destination_key,
+            )
+        except ClientError as exc:
+            raise exc
 
     async def list_objects_keys(self, prefix: str = "") -> list[str]:
         ...
