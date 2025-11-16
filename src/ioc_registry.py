@@ -15,6 +15,6 @@ def get_providers() -> list[Provider]:
         list[Provider]: A list of provider instances.
     """
     return [
-        *get_hotel_providers(),
         *get_infra_providers(),
+        *get_hotel_providers(),
     ]
