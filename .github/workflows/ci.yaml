@@ -11,4 +11,4 @@ jobs:
         run: ls -la
       - uses: actions/checkout@v4
       - name: list files
-        run: la -la
+        run: ls -la
