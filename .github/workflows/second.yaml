@@ -1,0 +1,13 @@
+name: second-workflow
+on:
+  workflow_run:
+    workflows: ['First-workflow']
+    types:
+      - completed
+
+jobs:
+  hello-command:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello command
+        run: echo "Hello from second workflow!"
