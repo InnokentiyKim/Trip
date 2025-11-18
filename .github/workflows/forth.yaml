@@ -1,0 +1,14 @@
+name: Forth-workflow
+on:
+  schedule:
+    - cron: '*/2 * * * *'
+
+jobs:
+  run-scheduled-command:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scheduled Event vars
+        run: |
+          echo $GITHUB_EVENT_NAME
+          echo $GITHUB_SHA
+          echo $GITHUB_REF
