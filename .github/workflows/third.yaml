@@ -1,5 +1,7 @@
 name: third-workflow
-on: [push, issues, pull_request]
+on:
+  issues:
+    types: [opened, deleted]
 
 jobs:
   run-first-command:
