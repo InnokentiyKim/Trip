@@ -1,0 +1,12 @@
+name: third-workflow
+on: [push, issues, pull_request]
+
+jobs:
+  run-first-command:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Event vars
+        run: |
+          echo $GITHUB_EVENT_NAME
+          echo $GITHUB_SHA
+          echo $GITHUB_REF
