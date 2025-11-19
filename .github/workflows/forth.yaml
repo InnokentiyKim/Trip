@@ -4,13 +4,29 @@ on:
     inputs:
       titleCustom:
         description: Type the Title
+        type: string
         required: true
         default: 'Default Title'
+      selectCustom:
+        description: Select value
+        type: choice
+        required: true
+        options:
+          - value 1
+          - value 2
+          - value 3
+        default: "value 2"
+      checkCustom:
+        description: CheckBox
+        type: boolean
+        required: false
 
 jobs:
-  run-scheduled-command:
+  run-command:
     runs-on: ubuntu-latest
     steps:
-      - name: Scheduled Event vars
+      - name: Event vars
         run: |
           echo ${{ inputs.titleCustom }}
+          echo ${{ inputs.selectCustom }}
+          echo ${{ inputs.checkCustom }}
