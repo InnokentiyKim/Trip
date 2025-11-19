@@ -1,6 +1,11 @@
 name: Forth-workflow
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      titleCustom:
+        description: Type the Title
+        required: true
+        default: 'Default Title'
 
 jobs:
   run-scheduled-command:
