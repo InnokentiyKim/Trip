@@ -1,7 +1,6 @@
 name: Forth-workflow
 on:
-  schedule:
-    - cron: '*/5 * * * *'
+  workflow_dispatch
 
 jobs:
   run-scheduled-command:
