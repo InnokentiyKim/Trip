@@ -1,0 +1,23 @@
+name: fifth-workflow
+on:
+  push:
+    branches:
+      - main
+env:
+  WF_CUSTOM_VAR: WF 1
+
+jobs:
+  run-command:
+    runs-on: ubuntu-latest
+    env:
+      JOB_CUSTOM_VAR: JOB 1
+    steps:
+      - name: Vars
+        env:
+          STEP_CUSTOM_VAR: STEP 1
+        run: |
+          echo '${{ github.ref }}'
+          echo '${{ env.WF_CUSTOM_VAR }}'
+          echo $WF_CUSTOM_VAR
+          echo $JOB_CUSTOM_VAR
+          echo $STEP_CUSTOM_VAR

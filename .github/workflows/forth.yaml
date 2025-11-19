@@ -1,6 +1,7 @@
 name: Forth-workflow
 on:
   workflow_dispatch:
+
     inputs:
       titleCustom:
         description: Type the Title
