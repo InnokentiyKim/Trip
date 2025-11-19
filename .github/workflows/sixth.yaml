@@ -1,0 +1,12 @@
+name: sixth-workflow
+on: push
+
+jobs:
+  run-first-command:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Vars and Secrets
+        run: |
+          echo '${{ vars.STATUS }}'
+          echo '${{ secrets.PASSWORD }}'
