@@ -23,8 +23,8 @@ class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
     async def add_user(self, user: User) -> None:
         """Add a new user."""
         try:
-            self._session.add(user)
-            await self._session.commit()
+            self.session.add(user)
+            await self.session.commit()
         except:
             raise UserAlreadyExistsException
 

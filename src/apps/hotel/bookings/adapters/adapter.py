@@ -24,12 +24,12 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
             stmt = select(Booking).filter_by(**filters).where(Booking.date_from >= date_from)
         else:
             stmt = select(Booking).filter_by(**filters)
-        bookings = await self._session.execute(stmt)
+        bookings = await self.session.execute(stmt)
         return list(bookings.scalars())
 
     async def get_active_bookings(self, **filters) -> list[Booking]:
         """Retrieve a list of active bookings."""
-        active_bookings = await self._session.execute(
+        active_bookings = await self.session.execute(
             select(Booking).where(
                 or_(Booking.status == BookingStatusEnum.PENDING, Booking.status == BookingStatusEnum.CONFIRMED)
             ).filter_by(**filters)
@@ -62,12 +62,12 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
             Room.quantity, booked_rooms.c.room_id
         )
 
-        rooms_left = await self._session.execute(rooms_left_query)
+        rooms_left = await self.session.execute(rooms_left_query)
         rooms_left = rooms_left.scalar()
 
         if rooms_left is not None and rooms_left > 0:
             price_query = select(Room.price).filter_by(id=room_id)
-            price = await self._session.execute(price_query)
+            price = await self.session.execute(price_query)
             price = price.scalar()
             new_booking = Booking(
                 room_id=room_id,

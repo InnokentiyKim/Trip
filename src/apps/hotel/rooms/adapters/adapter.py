@@ -18,7 +18,7 @@ class RoomAdapter(SQLAlchemyGateway, RoomGatewayProto):
         if price_to is not None:
             criteria.append(Room.price <= price_to)
         stmt = select(Room).filter(*criteria)
-        row_result = await self._session.scalars(stmt)
+        row_result = await self.session.scalars(stmt)
         return list(row_result.all())
 
     async def get_room(self, hotel_id: int, room_id: int) -> Room | None:
@@ -49,9 +49,9 @@ class RoomAdapter(SQLAlchemyGateway, RoomGatewayProto):
         if quantity is not None:
             room.quantity = quantity
 
-        self._session.add(room)
+        self.session.add(room)
         try:
-            await self._session.commit()
+            await self.session.commit()
             return room.id
         except IntegrityError:
             return None
@@ -61,7 +61,7 @@ class RoomAdapter(SQLAlchemyGateway, RoomGatewayProto):
         for key, value in params.items():
             setattr(room, key, value)
         try:
-            await self._session.commit()
+            await self.session.commit()
             return room.id
         except IntegrityError:
             return None

@@ -21,7 +21,7 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         if rooms_quantity:
             criteria.append(Hotel.rooms_quantity>=rooms_quantity)
         stmt = select(Hotel).where(**criteria)
-        result = await self._session.execute(stmt)
+        result = await self.session.execute(stmt)
         return list(result.scalars())
 
     async def get_hotel_by_id(self, hotel_id: int) -> Hotel | None:
@@ -31,9 +31,9 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
 
     async def add_hotel(self, hotel: Hotel) -> int | None:
         """Add a new hotel."""
-        self._session.add(hotel)
+        self.session.add(hotel)
         try:
-            await self._session.commit()
+            await self.session.commit()
             return hotel.id
         except IntegrityError:
             return None

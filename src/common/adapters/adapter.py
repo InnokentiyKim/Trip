@@ -13,29 +13,29 @@ from src.common.domain.models import ORM_OBJ, ORM_CLS
 class SQLAlchemyGateway(SQLAlchemyGatewayProto):
     """SQLAlchemy adapters implementing the gateway protocol."""
     def __init__(self, session: AsyncSession):
-        self._session = session
+        self.session = session
 
     async def add_item(self, item: ORM_OBJ) -> None:
-        self._session.add(item)
+        self.session.add(item)
         try:
-            await self._session.commit()
+            await self.session.commit()
         except IntegrityError:
             raise BaseError(status_code=status.HTTP_409_CONFLICT, message="Item already exists") from None
 
     async def get_item_by_id(self, orm_cls: ORM_CLS, item_id: int | UUID) -> ORM_OBJ | None:
-        item = await self._session.get(orm_cls, item_id)
+        item = await self.session.get(orm_cls, item_id)
         return item
 
     async def get_one_item(self, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ | None:
         query = select(orm_cls).filter_by(**filters)
-        row = await self._session.execute(query)
+        row = await self.session.execute(query)
         return row.scalar_one_or_none()
 
     async def get_items_list(self, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
         query = select(orm_cls).filter_by(**filters)
-        rows = await self._session.execute(query)
+        rows = await self.session.execute(query)
         return list(rows)
 
     async def delete_item(self, orm_obj: ORM_OBJ) -> None:
-        await self._session.delete(orm_obj)
-        await self._session.commit()
+        await self.session.delete(orm_obj)
+        await self.session.commit()
