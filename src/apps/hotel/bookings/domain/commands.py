@@ -21,18 +21,9 @@ class GetBookingsByStatusCommand(Command):
 
 class ListBookingsCommand(Command):
     user_id: UUID
-    room_id: int | None = None
-    date_from: date | None = None
-    status: BookingStatusEnum | None = None
-
-    @classmethod
-    def from_dict(cls, data: dict) -> "ListBookingsCommand":
-        return cls(
-            user_id=data.get("user_id"),
-            room_id=data.get("room_id"),
-            date_from=data.get("date_from"),
-            status=data.get("status"),
-        )
+    room_id: int | None
+    date_from: date | None
+    status: BookingStatusEnum | None
 
 
 class DeleteBookingCommand(Command):

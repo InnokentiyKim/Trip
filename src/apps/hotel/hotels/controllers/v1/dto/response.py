@@ -13,3 +13,7 @@ class GetHotelsResponseDTO(BaseDTO):
 
 class CreateHotelResponseDTO(BaseResponseDTO):
     ...
+
+
+class UpdateHotelResponseDTO(BaseResponseDTO):
+    ...

@@ -23,7 +23,7 @@ class HotelService(ServiceBase):
         hotel = await self._ensure.hotel_exists(cmd.hotel_id)
         return hotel
 
-    async def create_hotel(self, cmd: commands.CreateHotelCommand) -> None:
+    async def create_hotel(self, cmd: commands.CreateHotelCommand) -> int:
         params = cmd.model_dump(exclude_unset=True)
 
         hotel = Hotel(
@@ -37,13 +37,15 @@ class HotelService(ServiceBase):
         new_hotel_id = await self._adapter.add_hotel(hotel)
         if new_hotel_id is None:
             raise exceptions.HotelAlreadyExistsException
+        return new_hotel_id
 
-    async def update_hotel(self, cmd: commands.UpdateHotelCommand) -> None:
+    async def update_hotel(self, cmd: commands.UpdateHotelCommand) -> int:
         hotel = await self._ensure.hotel_exists(cmd.hotel_id)
         params = cmd.model_dump(exclude={"hotel_id"}, exclude_unset=True)
         is_updated = await self._adapter.update_hotel(hotel, **params)
         if is_updated is None:
             raise exceptions.HotelCannotBeUpdatedException
+        return is_updated
 
     async def delete_hotel(self, cmd: commands.DeleteHotelCommand) -> None:
         hotel = await self._ensure.hotel_exists(cmd.hotel_id)
