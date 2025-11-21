@@ -6,33 +6,42 @@ from src.common.domain.commands import Command
 
 
 class GetBookingCommand(Command):
-    user_id: int
+    user_id: UUID
     booking_id: UUID
 
 
 class GetActiveBookingsCommand(Command):
-    user_id: int
+    user_id: UUID
 
 
 class GetBookingsByStatusCommand(Command):
-    user_id: int
+    user_id: UUID
     status: BookingStatusEnum
 
 
 class ListBookingsCommand(Command):
-    user_id: int
+    user_id: UUID
     room_id: int | None = None
     date_from: date | None = None
     status: BookingStatusEnum | None = None
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "ListBookingsCommand":
+        return cls(
+            user_id=data.get("user_id"),
+            room_id=data.get("room_id"),
+            date_from=data.get("date_from"),
+            status=data.get("status"),
+        )
+
 
 class DeleteBookingCommand(Command):
-    user_id: int
+    user_id: UUID
     booking_id: UUID
 
 
 class CreateBookingCommand(Command):
-    user_id: int
+    user_id: UUID
     room_id: int
     date_from: date
     date_to: date
@@ -45,5 +54,5 @@ class UpdateBookingCommand(Command):
 
 
 class CancelActiveBookingCommand(Command):
-    user_id: int
+    user_id: UUID
     booking_id: UUID

@@ -2,7 +2,11 @@ from uuid import UUID
 
 from fastapi import APIRouter
 from dishka.integrations.fastapi import FromDishka, inject
+
+from apps.hotel.bookings.controllers.v1.dto.request import ListBookingsRequestDTO
 from src.common.utils.auth_scheme import auth_header
+from src.apps.user.domain import commands as user_commands
+from src.apps.hotel.bookings.domain import commands as booking_commands
 
 from src.apps.user.application.exceptions import UserNotFoundException
 from src.common.exceptions.handlers import generate_responses
@@ -26,12 +30,18 @@ router = APIRouter(
 )
 @inject
 async def get_bookings(
+    dto: ListBookingsRequestDTO,
     user_service: FromDishka[UserService],
     booking_service: FromDishka[BookingService],
     token: str = auth_header
 ) -> list[BookingResponseDTO]:
-    user = await user_service.verify_user_by_token(token=token)
-    bookings = await booking_service.get_bookings(user.id)
+    cmd = booking_commands.ListBookingsCommand.from_dict(
+        dto.model_dump()
+    )
+    user = await user_service.verify_user_by_token(
+        user_commands.VerifyUserByTokenCommand(token=token)
+    )
+    bookings = await booking_service.list_bookings(cmd)
     return [BookingResponseDTO.from_model(booking) for booking in bookings]
 
 
@@ -42,14 +52,17 @@ async def get_bookings(
     )
 )
 @inject
-async def get_bookings(
+async def get_booking(
     booking_id: UUID,
     user_service: FromDishka[UserService],
     booking_service: FromDishka[BookingService],
     token: str = auth_header
 ) -> BookingResponseDTO:
-    user = await user_service.verify_user_by_token(token)
-    booking = await booking_service.get_booking(user.id, booking_id)
+    user = await user_service.verify_user_by_token(
+        user_commands.VerifyUserByTokenCommand(token=token)
+    )
+    cmd = booking_commands.GetBookingCommand(user_id=user.id, booking_id=booking_id)
+    booking = await booking_service.get_booking(cmd)
     return BookingResponseDTO.from_model(booking)
 
 
@@ -66,8 +79,11 @@ async def cancel_active_booking(
     booking_service: FromDishka[BookingService],
     token: str = auth_header
 ) -> BaseResponseDTO:
-    user = await user_service.verify_user_by_token(token)
-    await booking_service.cancel_active_booking(user.id, booking_id)
+    user = await user_service.verify_user_by_token(
+        user_commands.VerifyUserByTokenCommand(token=token)
+    )
+    cmd = booking_commands.CancelActiveBookingCommand(user_id=user.id, booking_id=booking_id)
+    await booking_service.cancel_active_booking(cmd)
     return BaseResponseDTO(id=booking_id)
 
 
@@ -84,6 +100,9 @@ async def delete_booking(
     booking_service: FromDishka[BookingService],
     token: str = auth_header
 ) -> BaseResponseDTO:
-    user = await user_service.verify_user_by_token(token)
-    await booking_service.delete_booking(user.id, booking_id)
+    user = await user_service.verify_user_by_token(
+        user_commands.VerifyUserByTokenCommand(token=token)
+    )
+    cmd = booking_commands.DeleteBookingCommand(user_id=user.id, booking_id=booking_id)
+    await booking_service.delete_booking(cmd)
     return BaseResponseDTO(id=booking_id)
