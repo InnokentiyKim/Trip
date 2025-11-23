@@ -1,12 +1,14 @@
 from decimal import Decimal
+from uuid import UUID
+
 from src.common.domain.commands import Command
 
 
 class ListRoomsCommand(Command):
     hotel_id: int
-    price_from: Decimal | None = None
-    price_to: Decimal | None = None
-    services: dict | None = None
+    price_from: Decimal | None
+    price_to: Decimal | None
+    services: dict | None
 
 
 class GetRoomCommand(Command):
@@ -18,21 +20,22 @@ class AddRoomCommand(Command):
     hotel_id: int
     name: str
     price: Decimal
-    quantity: int | None = None
-    description: str | None = None
-    services: dict | None = None
-    image_id: int | None = None
+    quantity: int | None
+    description: str | None
+    services: dict | None
+    image_id: int | None
 
 
 class UpdateRoomCommand(Command):
     hotel_id: int
     room_id: int
-    name: str | None = None
-    price: Decimal | None = None
-    quantity: int | None = None
-    description: str | None = None
-    services: dict | None = None
-    image_id: int | None = None
+    user_id: UUID
+    name: str | None
+    price: Decimal | None
+    quantity: int | None
+    description: str | None
+    services: dict | None
+    image_id: int | None
 
 
 class DeleteRoomCommand(Command):

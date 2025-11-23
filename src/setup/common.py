@@ -4,7 +4,7 @@ from src.config import create_configs, Configs
 from dishka import AsyncContainer, Provider, make_async_container
 
 
-app_config = create_configs()
+app_config: Configs = create_configs()
 
 
 def create_async_container(providers: Iterable[Provider], config: Configs = app_config) -> AsyncContainer:
