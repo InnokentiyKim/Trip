@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from src.apps.user.application.exceptions import UserAlreadyExistsException
 from src.apps.user.domain.models import User
 from src.common.adapters.adapter import SQLAlchemyGateway
@@ -28,7 +30,7 @@ class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
         except:
             raise UserAlreadyExistsException
 
-    async def update_user(self, user: User, **params) -> int | None:
+    async def update_user(self, user: User, **params) -> UUID | None:
         """Update an existing user."""
         for key, value in params.items():
             setattr(user, key, value)

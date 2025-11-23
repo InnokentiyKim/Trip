@@ -1,5 +1,6 @@
 from decimal import Decimal
 from pydantic import ConfigDict
+from fastapi import status
 from src.common.controllers.dto.base import BaseDTO, BaseResponseDTO
 
 
@@ -15,6 +16,9 @@ class GetRoomResponseDTO(BaseResponseDTO):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UpdateRoomResponseDTO(BaseResponseDTO):
+    ...
+
+
 class DeleteRoomResponseDTO(BaseDTO):
-    status_code: int = 204
-    details: str = "Room deleted successfully"
+    status_code: int = status.HTTP_204_NO_CONTENT

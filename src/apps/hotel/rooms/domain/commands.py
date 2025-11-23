@@ -18,6 +18,7 @@ class GetRoomCommand(Command):
 
 class AddRoomCommand(Command):
     hotel_id: int
+    user_id: UUID
     name: str
     price: Decimal
     quantity: int | None
@@ -41,3 +42,4 @@ class UpdateRoomCommand(Command):
 class DeleteRoomCommand(Command):
     hotel_id: int
     room_id: int
+    user_id: UUID

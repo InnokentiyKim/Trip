@@ -24,6 +24,7 @@ async def _start_app(port: int) -> None:
             port=port,
             log_config=None,
         )
+
         server = uvicorn.Server(uvicorn_config)
         await server.serve()
 

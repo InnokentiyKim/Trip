@@ -2,12 +2,17 @@ from pydantic_settings import BaseSettings
 from pydantic import Field, SecretStr
 from src.infrastructure.database.postgres.config import DatabaseSettings
 from src.common.domain.enums import EnvironmentEnum
+from pydantic import EmailStr
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class GeneralSettings(BaseSettings):
     app_version: str = "0.0.1"
     app_name: str = "backend-hotel-service"
-    environment: EnvironmentEnum = EnvironmentEnum.LOCAL
+    environment: EnvironmentEnum = EnvironmentEnum.DEV
 
 
 class SecuritySettings(BaseSettings):
@@ -16,15 +21,15 @@ class SecuritySettings(BaseSettings):
     token_expire_minutes: int
 
     class Config:
-        env_file = ".env"
+        env_file = BASE_DIR / ".env"
         case_sensitive = False
 
 
 class SMTPSettings(BaseSettings):
-    smtp_username: str
+    smtp_username: str = "HotelsApp"
     smtp_password: SecretStr = SecretStr("app_secret")
     smtp_use_credentials: bool = False
-    mail_from: str = "test@yandex.ru"
+    mail_from: str | EmailStr = "test@yandex.ru"
     mail_from_name: str = "Trips"
     smtp_server: str = "smtp.yandex.ru"
     smtp_port: int = 465

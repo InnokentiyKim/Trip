@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy.exc import IntegrityError
 from src.common.adapters.adapter import SQLAlchemyGateway
 from src.apps.hotel.hotels.domain.models import Hotel
@@ -27,6 +29,11 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
     async def get_hotel_by_id(self, hotel_id: int) -> Hotel | None:
         """Retrieve a hotel by its ID."""
         hotel = await self.get_item_by_id(Hotel, hotel_id)
+        return hotel
+
+    async def get_users_hotel(self, user_id: UUID, hotel_id: int) -> Hotel | None:
+        """Retrieve users hotel by its ID."""
+        hotel = await self.get_one_item(Hotel, id=hotel_id, owner_id=user_id)
         return hotel
 
     async def add_hotel(self, hotel: Hotel) -> int | None:

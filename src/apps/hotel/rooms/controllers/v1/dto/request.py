@@ -1,14 +1,15 @@
 from decimal import Decimal
 
-from src.common.controllers.dto.base import BaseResponseDTO
+from src.common.controllers.dto.base import BaseRequestDTO
 
 
-class GetRoomRequestDTO(BaseResponseDTO):
-    hotel_id: int
+class ListRoomsRequestDTO(BaseRequestDTO):
+    price_from: Decimal | None = None
+    price_to: Decimal | None = None
+    services: dict | None = None
 
 
-class UpdateRoomRequestDTO(BaseResponseDTO):
-    hotel_id: int
+class UpdateRoomRequestDTO(BaseRequestDTO):
     name: str | None = None
     price: Decimal | None = None
     quantity: float | None = None
@@ -17,5 +18,7 @@ class UpdateRoomRequestDTO(BaseResponseDTO):
     image_id: int | None = None
 
 
-class DeleteRoomRequestDTO(BaseResponseDTO):
+class DeleteRoomRequestDTO(BaseRequestDTO):
     hotel_id: int
+    room_id: int
+    user_id: str

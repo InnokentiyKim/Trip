@@ -14,7 +14,9 @@ class RoomAdapter(SQLAlchemyGateway, RoomGatewayProto):
         services = filters.get("services", [])
         price_from = filters.get("price_from", 0)
         price_to = filters.get("price_to", None)
-        criteria = [Room.services.in_(services), Room.price >= price_from]
+        criteria = [Room.price >= price_from]
+        if services:
+            criteria.append(Room.services.in_(services))
         if price_to is not None:
             criteria.append(Room.price <= price_to)
         stmt = select(Room).filter(*criteria)
