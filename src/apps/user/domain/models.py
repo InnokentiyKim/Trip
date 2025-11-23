@@ -52,7 +52,7 @@ class AuthStatus(UserBase):
 class OAuthAuth(UserBase):
     __tablename__ = "oauth_auths"
     __table_args__ = (
-        UniqueConstraint("provider", "provider_user_id", name="uq_provider_account")
+        UniqueConstraint("provider", "provider_user_id", name="uq_provider_account"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)

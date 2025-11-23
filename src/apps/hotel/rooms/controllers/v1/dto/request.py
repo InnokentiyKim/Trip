@@ -16,9 +16,3 @@ class UpdateRoomRequestDTO(BaseRequestDTO):
     description: str | None = None
     services: dict | None = None
     image_id: int | None = None
-
-
-class DeleteRoomRequestDTO(BaseRequestDTO):
-    hotel_id: int
-    room_id: int
-    user_id: str

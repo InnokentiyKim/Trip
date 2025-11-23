@@ -2,8 +2,7 @@ from fastapi import APIRouter
 
 from apps.hotel.rooms.controllers.v1.dto.response import UpdateRoomResponseDTO
 from src.apps.hotel.rooms.application.service import RoomService
-from src.apps.hotel.rooms.controllers.v1.dto.request import UpdateRoomRequestDTO, \
-    DeleteRoomRequestDTO, ListRoomsRequestDTO
+from src.apps.hotel.rooms.controllers.v1.dto.request import UpdateRoomRequestDTO, ListRoomsRequestDTO
 from src.apps.hotel.rooms.controllers.v1.dto.response import GetRoomResponseDTO, DeleteRoomResponseDTO
 from src.apps.hotel.rooms.domain import commands as room_commands
 from src.apps.user.domain import commands as user_commands
@@ -16,13 +15,13 @@ from src.common.utils.auth_scheme import auth_header
 
 
 router = APIRouter(
-    prefix="hotels/",
+    prefix="/hotels",
     tags=["rooms"],
 )
 
 
 @router.get(
-    "{hotel_id}/rooms",
+    "/{hotel_id}/rooms",
     responses=generate_responses(
         Unauthorized,
     )
@@ -49,7 +48,7 @@ async def list_rooms(
 
 
 @router.get(
-    "{hotel_id}/rooms/{room_id}",
+    "/{hotel_id}/rooms/{room_id}",
     responses=generate_responses(
         Unauthorized,
     )
@@ -72,7 +71,7 @@ async def get_room(
 
 
 @router.post(
-    "{hotel_id}/rooms/{room_id}",
+    "/{hotel_id}/rooms/{room_id}",
     responses=generate_responses(
         Unauthorized,
     )
@@ -106,15 +105,15 @@ async def update_room(
 
 
 @router.delete(
-    "/{room_id}",
+    "/{hotel_id}/rooms/{room_id}",
     responses=generate_responses(
         Unauthorized,
     )
 )
 @inject
 async def delete_room(
+    hotel_id: int,
     room_id: int,
-    dto: DeleteRoomRequestDTO,
     user_service: FromDishka[UserService],
     room_service: FromDishka[RoomService],
     token: str = auth_header
@@ -122,6 +121,6 @@ async def delete_room(
     user = await user_service.verify_user_by_token(
         user_commands.VerifyUserByTokenCommand(token=token)
     )
-    cmd = room_commands.DeleteRoomCommand(hotel_id=dto.hotel_id, room_id=room_id, user_id=user.id)
+    cmd = room_commands.DeleteRoomCommand(hotel_id=hotel_id, room_id=room_id, user_id=user.id)
     await room_service.delete_room(cmd)
     return DeleteRoomResponseDTO()

@@ -4,10 +4,10 @@ from src.common.domain.commands import Command
 class CreateUserCommand(Command):
     email: str
     password: str
-    name: str | None = None
-    phone: str | None = None
-    avatar_url: str | None = None
-    is_active: bool = True
+    name: str | None
+    phone: str | None
+    avatar_url: str | None
+    is_active: bool | None
 
 
 class LoginUserCommand(Command):
