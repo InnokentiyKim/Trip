@@ -36,7 +36,7 @@ async def register_user(
 
 
 @router.post(
-    "/login"
+    "/login",
 )
 @inject
 async def login_user(
@@ -67,6 +67,6 @@ async def logout_user(
     return LogoutUserResponseDTO()
 
 
-@router.get("/me")
-async def get_user_info():
-    ...
+# @router.get("/me")
+# async def get_user_info():
+#     ...

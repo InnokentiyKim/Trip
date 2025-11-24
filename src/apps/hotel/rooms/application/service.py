@@ -1,3 +1,4 @@
+from apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from src.apps.hotel.rooms.application.ensure import RoomServiceInsurance
 from src.apps.hotel.hotels.application.ensure import HotelServiceInsurance
 from src.apps.hotel.rooms.domain import commands
@@ -10,13 +11,12 @@ from src.common.application.service import ServiceBase
 class RoomService(ServiceBase):
     def __init__(
         self,
+        hotel_gateway: HotelGatewayProto,
         room_gateway: RoomGatewayProto,
-        hotel_ensure: HotelServiceInsurance,
-        room_ensure: RoomServiceInsurance,
     ) -> None:
         self._room_adapter = room_gateway
-        self._hotel_ensure = hotel_ensure
-        self._room_ensure = room_ensure
+        self._hotel_ensure = HotelServiceInsurance(hotel_gateway)
+        self._room_ensure = RoomServiceInsurance(room_gateway)
 
     async def list_rooms(self, cmd: commands.ListRoomsCommand) -> list[Room]:
         params = cmd.model_dump(exclude={'hotel_id'}, exclude_unset=True)

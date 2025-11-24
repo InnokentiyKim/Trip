@@ -12,7 +12,7 @@ app = typer.Typer()
 
 async def _start_app(port: int) -> None:
 
-    container = create_async_container(*get_providers())
+    container = create_async_container(get_providers())
 
     try:
         fastapi_app = create_fastapi_app()

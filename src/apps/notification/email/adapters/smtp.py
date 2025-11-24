@@ -8,18 +8,18 @@ from src.apps.notification.email.application.interfaces.gateway import EmailGate
 class SMTPAdapter(EmailGatewayProto):
     def __init__(
         self,
-        configs: Configs
+        config: Configs
     ) -> None:
         smtp_configs = ConnectionConfig(
-            MAIL_USERNAME=configs.smtp_email.smtp_username,
-            MAIL_PASSWORD=configs.smtp_email.smtp_password,
-            USE_CREDENTIALS=configs.smtp_email.use_credentials,
-            MAIL_FROM=configs.smtp_email.mail_from,
-            MAIL_FROM_NAME=configs.smtp_email.mail_from_name,
-            MAIL_SERVER=configs.smtp_email.smtp_server,
-            MAIL_PORT=configs.smtp_email.smtp_port,
-            MAIL_SSL_TLS=configs.smtp_email.smtp_ssl_tls,
-            MAIL_STARTTLS=configs.smtp_email.smtp_starttls,
+            MAIL_USERNAME=config.smtp_email.smtp_username,
+            MAIL_PASSWORD=config.smtp_email.smtp_password,
+            USE_CREDENTIALS=config.smtp_email.use_credentials,
+            MAIL_FROM=config.smtp_email.mail_from,
+            MAIL_FROM_NAME=config.smtp_email.mail_from_name,
+            MAIL_SERVER=config.smtp_email.smtp_server,
+            MAIL_PORT=config.smtp_email.smtp_port,
+            MAIL_SSL_TLS=config.smtp_email.smtp_ssl_tls,
+            MAIL_STARTTLS=config.smtp_email.smtp_starttls,
         )
         self.fastmail = FastMail(smtp_configs)
 

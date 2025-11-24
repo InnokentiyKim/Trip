@@ -70,7 +70,7 @@ async def get_room(
     return GetRoomResponseDTO.model_validate(room)
 
 
-@router.post(
+@router.patch(
     "/{hotel_id}/rooms/{room_id}",
     responses=generate_responses(
         Unauthorized,

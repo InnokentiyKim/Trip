@@ -1,6 +1,5 @@
 from dishka import Provider, Scope, provide, provide_all, AsyncContainer
 
-from config import Configs
 from src.apps.hotel.bookings.adapters.adapter import BookingAdapter
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.hotels.adapters.adapter import HotelAdapter
@@ -31,17 +30,17 @@ class GatewayProviders(Provider):
     _bookings_adapter = provide(BookingAdapter)
 
     @provide(provides=HotelGatewayProto)
-    async def provide_hotel_gateway(self, config: Configs, request_container: AsyncContainer) -> HotelGatewayProto:
+    async def provide_hotel_gateway(self, request_container: AsyncContainer) -> HotelGatewayProto:
         """"""
         return await request_container.get(HotelAdapter)
 
     @provide(provides=RoomGatewayProto)
-    async def provide_room_gateway(self, config: Configs, request_container: AsyncContainer) -> RoomGatewayProto:
+    async def provide_room_gateway(self, request_container: AsyncContainer) -> RoomGatewayProto:
         """"""
         return await request_container.get(RoomAdapter)
 
     @provide(provides=BookingGatewayProto)
-    async def provide_booking_gateway(self, config: Configs, request_container: AsyncContainer) -> BookingGatewayProto:
+    async def provide_booking_gateway(self, request_container: AsyncContainer) -> BookingGatewayProto:
         """"""
         return await request_container.get(BookingAdapter)
 

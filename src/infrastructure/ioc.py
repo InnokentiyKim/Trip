@@ -8,6 +8,7 @@ from src.config import Configs
 
 
 class ConfigProvider(Provider):
+
     config = context(provides=Configs, scope=Scope.APP)
 
 
