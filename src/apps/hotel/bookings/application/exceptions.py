@@ -1,4 +1,4 @@
-from common.exceptions.common import BaseError
+from src.common.exceptions.common import BaseError
 from fastapi import status
 
 
