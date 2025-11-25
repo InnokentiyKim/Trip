@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from dishka.integrations.fastapi import FromDishka, inject
 
-from apps.hotel.bookings.controllers.v1.dto.request import ListBookingsRequestDTO
+from src.apps.hotel.bookings.controllers.v1.dto.request import ListBookingsRequestDTO
 from src.common.utils.auth_scheme import auth_header
 from src.apps.user.domain import commands as user_commands
 from src.apps.hotel.bookings.domain import commands as booking_commands

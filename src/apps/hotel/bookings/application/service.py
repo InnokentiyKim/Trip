@@ -1,4 +1,4 @@
-from apps.hotel.bookings.domain.enums import BookingStatusEnum
+from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
 from src.apps.hotel.bookings.application import exceptions
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.bookings.domain import commands

@@ -68,6 +68,6 @@ class RoomAdapter(SQLAlchemyGateway, RoomGatewayProto):
         except IntegrityError:
             return None
 
-    async def delete_room(self, room: Room) -> int | None:
+    async def delete_room(self, room: Room) -> None:
         """Delete a room by its ID."""
         await self.delete_item(room)

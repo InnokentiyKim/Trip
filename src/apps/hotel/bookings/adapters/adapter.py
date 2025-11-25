@@ -48,7 +48,7 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
         return list(active_bookings.scalars())
 
     async def add_booking(
-        self, user_id: int, room_id: int, date_from: date, date_to: date
+        self, user_id: UUID, room_id: int, date_from: date, date_to: date
     ) -> int | None:
         """Add a new booking."""
         booked_rooms = (

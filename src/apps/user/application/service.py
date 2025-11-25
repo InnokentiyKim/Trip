@@ -24,6 +24,7 @@ class UserService(ServiceBase):
         if user:
             raise UserAlreadyExistsException
         hashed_password = self._auth.get_password_hash(cmd.password)
+        user_params = cmd.model_dump(exclude_none=True)
         new_user = User(
             email=cmd.email,
             hashed_password=hashed_password,

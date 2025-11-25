@@ -27,7 +27,7 @@ class RoomGatewayProto(GatewayProto):
         description: str | None = None,
         services: dict | None = None,
         image_id: int | None = None,
-    ) -> None:
+    ) -> int | None:
         """Add a new room."""
         ...
 

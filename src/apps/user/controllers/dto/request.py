@@ -2,7 +2,7 @@ from typing import Annotated
 
 from pydantic import EmailStr
 
-from common.controllers.dto.base import BaseRequestDTO
+from src.common.controllers.dto.base import BaseRequestDTO
 
 
 class LoginUserRequestDTO(BaseRequestDTO):

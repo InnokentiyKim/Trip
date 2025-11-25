@@ -10,7 +10,7 @@ from src.common.interfaces import GatewayProto
 class BookingGatewayProto(GatewayProto):
     @abstractmethod
     async def get_booking_by_id(
-        self, booking_id: int | UUID, **filters: dict | Any
+        self, booking_id: UUID, **filters: dict | Any
     ) -> Booking | None:
         """Retrieve a booking by its ID."""
         ...
@@ -27,8 +27,8 @@ class BookingGatewayProto(GatewayProto):
 
     @abstractmethod
     async def add_booking(
-        self, user_id: int, room_id: int, date_from: date, date_to: date
-    ) -> None:
+        self, user_id: UUID, room_id: int, date_from: date, date_to: date
+    ) -> int | None:
         """Add a new booking."""
         ...
 

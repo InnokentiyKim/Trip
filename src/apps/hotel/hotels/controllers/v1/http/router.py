@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from apps.hotel.hotels.controllers.v1.dto.request import (
+from src.apps.hotel.hotels.controllers.v1.dto.request import (
     ListHotelsRequestDTO,
     UpdateHotelRequestDTO,
 )
@@ -46,7 +46,7 @@ async def get_hotels(
         location=dto.location, services=dto.services, rooms_quantity=dto.rooms_quantity
     )
     hotels = await hotel_service.list_hotels(cmd)
-    return [GetHotelsResponseDTO.from_model(hotel) for hotel in hotels]
+    return [GetHotelsResponseDTO.model_validate(hotel) for hotel in hotels]
 
 
 @router.get(

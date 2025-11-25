@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, UTC
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship, MappedAsDataclass
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 from sqlalchemy import (
     Integer,
     String,
@@ -13,7 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 
-from apps.authentication.domain.results import OAuthProviderUser
+from src.apps.authentication.domain.results import OAuthProviderUser
 from src.apps.authentication.domain.enums import OAuthProviderEnum
 from src.apps.hotel.hotels.domain.models import Hotel
 from src.apps.hotel.bookings.domain.models import Booking

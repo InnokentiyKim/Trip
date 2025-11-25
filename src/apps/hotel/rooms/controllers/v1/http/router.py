@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from apps.hotel.rooms.controllers.v1.dto.response import UpdateRoomResponseDTO
+from src.apps.hotel.rooms.controllers.v1.dto.response import UpdateRoomResponseDTO
 from src.apps.hotel.rooms.application.service import RoomService
 from src.apps.hotel.rooms.controllers.v1.dto.request import (
     UpdateRoomRequestDTO,
