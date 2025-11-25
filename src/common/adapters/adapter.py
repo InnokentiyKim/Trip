@@ -12,6 +12,7 @@ from src.common.domain.models import ORM_OBJ, ORM_CLS
 
 class SQLAlchemyGateway(SQLAlchemyGatewayProto):
     """SQLAlchemy adapters implementing the gateway protocol."""
+
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -20,9 +21,13 @@ class SQLAlchemyGateway(SQLAlchemyGatewayProto):
         try:
             await self.session.commit()
         except IntegrityError:
-            raise BaseError(status_code=status.HTTP_409_CONFLICT, message="Item already exists") from None
+            raise BaseError(
+                status_code=status.HTTP_409_CONFLICT, message="Item already exists"
+            ) from None
 
-    async def get_item_by_id(self, orm_cls: ORM_CLS, item_id: int | UUID) -> ORM_OBJ | None:
+    async def get_item_by_id(
+        self, orm_cls: ORM_CLS, item_id: int | UUID
+    ) -> ORM_OBJ | None:
         item = await self.session.get(orm_cls, item_id)
         return item
 

@@ -13,13 +13,20 @@ class RoomGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def get_room(self, hotel_id: int, room_id: int) -> Room| None:
+    async def get_room(self, hotel_id: int, room_id: int) -> Room | None:
         """Retrieve a room by its ID."""
         ...
 
     @abstractmethod
-    async def add_room(self, hotel_id: int, name: str, price: Decimal, quantity: int | None,
-        description: str | None = None, services: dict | None = None, image_id: int | None = None
+    async def add_room(
+        self,
+        hotel_id: int,
+        name: str,
+        price: Decimal,
+        quantity: int | None,
+        description: str | None = None,
+        services: dict | None = None,
+        image_id: int | None = None,
     ) -> None:
         """Add a new room."""
         ...

@@ -1,6 +1,4 @@
-from apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from src.apps.hotel.rooms.application.ensure import RoomServiceInsurance
-from src.apps.hotel.hotels.application.ensure import HotelServiceInsurance
 from src.apps.hotel.rooms.domain import commands
 from src.apps.hotel.rooms.application import exceptions
 from src.apps.hotel.rooms.application.interfaces.gateway import RoomGatewayProto
@@ -19,7 +17,7 @@ class RoomService(ServiceBase):
         self._room_ensure = RoomServiceInsurance(room_gateway)
 
     async def list_rooms(self, cmd: commands.ListRoomsCommand) -> list[Room]:
-        params = cmd.model_dump(exclude={'hotel_id'}, exclude_unset=True)
+        params = cmd.model_dump(exclude={"hotel_id"}, exclude_unset=True)
         rooms = await self._room_adapter.list_rooms(cmd.hotel_id, **params)
         return rooms
 
@@ -32,7 +30,13 @@ class RoomService(ServiceBase):
     async def add_room(self, cmd: commands.AddRoomCommand) -> int | None:
         # hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
         room_id = await self._room_adapter.add_room(
-            cmd.hotel_id, cmd.name, cmd.price, cmd.quantity, cmd.description, cmd.services, cmd.image_id
+            cmd.hotel_id,
+            cmd.name,
+            cmd.price,
+            cmd.quantity,
+            cmd.description,
+            cmd.services,
+            cmd.image_id,
         )
         if room_id is None:
             raise exceptions.RoomAlreadyExistsException
@@ -42,7 +46,9 @@ class RoomService(ServiceBase):
         # hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
         room = await self._room_ensure.room_exists(cmd.hotel_id, cmd.room_id)
 
-        updating_params = cmd.model_dump(exclude={'hotel_id', 'room_id'}, exclude_unset=True)
+        updating_params = cmd.model_dump(
+            exclude={"hotel_id", "room_id"}, exclude_unset=True
+        )
         updated_room_id = await self._room_adapter.update_room(room, **updating_params)
         if updated_room_id is None:
             raise exceptions.RoomCannotBeUpdatedException

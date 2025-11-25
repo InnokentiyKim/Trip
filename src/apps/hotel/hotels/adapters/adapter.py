@@ -10,18 +10,18 @@ from sqlalchemy import select
 class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
     async def get_hotels(self, only_active: bool = True, **filters) -> list[Hotel]:
         """Retrieve a list of hotels."""
-        location = filters.get('location', None)
-        services = filters.get('services', None)
-        rooms_quantity = filters.get('rooms_quantity', None)
+        location = filters.get("location", None)
+        services = filters.get("services", None)
+        rooms_quantity = filters.get("rooms_quantity", None)
         criteria = []
         if only_active:
             criteria.append(Hotel.is_active.is_(True))
         if location:
-            criteria.append(Hotel.location==location)
+            criteria.append(Hotel.location == location)
         if services:
             criteria.append(Hotel.services.contains(services))
         if rooms_quantity:
-            criteria.append(Hotel.rooms_quantity>=rooms_quantity)
+            criteria.append(Hotel.rooms_quantity >= rooms_quantity)
         stmt = select(Hotel).where(**criteria)
         result = await self.session.execute(stmt)
         return list(result.scalars())

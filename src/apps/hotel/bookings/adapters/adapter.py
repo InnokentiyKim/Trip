@@ -12,16 +12,22 @@ from src.common.adapters.adapter import SQLAlchemyGateway
 
 
 class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
-    async def get_booking_by_id(self, booking_id: UUID, **filters: Any) -> Booking | None:
+    async def get_booking_by_id(
+        self, booking_id: UUID, **filters: Any
+    ) -> Booking | None:
         """Retrieve a booking by its ID."""
         booking = await self.get_one_item(Booking, id=booking_id, **filters)
         return booking
 
     async def get_bookings(self, **filters) -> list[Booking]:
         """Retrieve a list of bookings."""
-        if 'date_from' in filters:
-            date_from = filters.pop('date_from')
-            stmt = select(Booking).filter_by(**filters).where(Booking.date_from >= date_from)
+        if "date_from" in filters:
+            date_from = filters.pop("date_from")
+            stmt = (
+                select(Booking)
+                .filter_by(**filters)
+                .where(Booking.date_from >= date_from)
+            )
         else:
             stmt = select(Booking).filter_by(**filters)
         bookings = await self.session.execute(stmt)
@@ -30,36 +36,47 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
     async def get_active_bookings(self, **filters) -> list[Booking]:
         """Retrieve a list of active bookings."""
         active_bookings = await self.session.execute(
-            select(Booking).where(
-                or_(Booking.status == BookingStatusEnum.PENDING, Booking.status == BookingStatusEnum.CONFIRMED)
-            ).filter_by(**filters)
+            select(Booking)
+            .where(
+                or_(
+                    Booking.status == BookingStatusEnum.PENDING,
+                    Booking.status == BookingStatusEnum.CONFIRMED,
+                )
+            )
+            .filter_by(**filters)
         )
         return list(active_bookings.scalars())
 
-    async def add_booking(self, user_id: int, room_id: int, date_from: date, date_to: date) -> int | None:
+    async def add_booking(
+        self, user_id: int, room_id: int, date_from: date, date_to: date
+    ) -> int | None:
         """Add a new booking."""
-        booked_rooms = select(Booking).where(
-            and_(
-                Booking.room_id == room_id,
-                or_(
-                    and_(
-                        Booking.date_from >= date_from,
-                        Booking.date_from < date_to
-                    ),
-                    and_(
-                        Booking.date_from <= date_from,
-                        Booking.date_to > date_from
+        booked_rooms = (
+            select(Booking)
+            .where(
+                and_(
+                    Booking.room_id == room_id,
+                    or_(
+                        and_(
+                            Booking.date_from >= date_from, Booking.date_from < date_to
+                        ),
+                        and_(
+                            Booking.date_from <= date_from, Booking.date_to > date_from
+                        ),
                     ),
                 )
             )
-        ).cte("booked_rooms")
+            .cte("booked_rooms")
+        )
 
-        rooms_left_query = select(
-            (Room.quantity - func.count(booked_rooms.c.room_id)).label("room_left")
-        ).select_from(Room).join(
-            booked_rooms, booked_rooms.c.room_id == Room.id
-        ).where(Room.id == room_id).group_by(
-            Room.quantity, booked_rooms.c.room_id
+        rooms_left_query = (
+            select(
+                (Room.quantity - func.count(booked_rooms.c.room_id)).label("room_left")
+            )
+            .select_from(Room)
+            .join(booked_rooms, booked_rooms.c.room_id == Room.id)
+            .where(Room.id == room_id)
+            .group_by(Room.quantity, booked_rooms.c.room_id)
         )
 
         rooms_left = await self.session.execute(rooms_left_query)
@@ -74,13 +91,13 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
                 user_id=user_id,
                 date_from=date_from,
                 date_to=date_to,
-                price=price
+                price=price,
             )
             await self.add_item(new_booking)
             return room_id
 
     async def update_booking(
-        self, booking: Booking, only_active: bool=False, **updating_params: Any
+        self, booking: Booking, only_active: bool = False, **updating_params: Any
     ) -> UUID | None:
         """Update a booking."""
         active_statuses = [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED]

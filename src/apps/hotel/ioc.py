@@ -22,7 +22,6 @@ class ServiceProviders(Provider):
 
 
 class GatewayProviders(Provider):
-
     scope = Scope.REQUEST
 
     _hotels_adapter = provide(HotelAdapter)
@@ -30,20 +29,25 @@ class GatewayProviders(Provider):
     _bookings_adapter = provide(BookingAdapter)
 
     @provide(provides=HotelGatewayProto)
-    async def provide_hotel_gateway(self, request_container: AsyncContainer) -> HotelGatewayProto:
+    async def provide_hotel_gateway(
+        self, request_container: AsyncContainer
+    ) -> HotelGatewayProto:
         """"""
         return await request_container.get(HotelAdapter)
 
     @provide(provides=RoomGatewayProto)
-    async def provide_room_gateway(self, request_container: AsyncContainer) -> RoomGatewayProto:
+    async def provide_room_gateway(
+        self, request_container: AsyncContainer
+    ) -> RoomGatewayProto:
         """"""
         return await request_container.get(RoomAdapter)
 
     @provide(provides=BookingGatewayProto)
-    async def provide_booking_gateway(self, request_container: AsyncContainer) -> BookingGatewayProto:
+    async def provide_booking_gateway(
+        self, request_container: AsyncContainer
+    ) -> BookingGatewayProto:
         """"""
         return await request_container.get(BookingAdapter)
-
 
 
 def get_hotel_providers() -> list[Provider]:

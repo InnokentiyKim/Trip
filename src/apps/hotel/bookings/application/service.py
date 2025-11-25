@@ -8,10 +8,7 @@ from src.apps.hotel.bookings.application.ensure import BookingServiceInsurance
 
 
 class BookingService(ServiceBase):
-    def __init__(
-        self,
-        gateway: BookingGatewayProto
-    ) -> None:
+    def __init__(self, gateway: BookingGatewayProto) -> None:
         self._adapter = gateway
         self._ensure = BookingServiceInsurance(gateway)
 
@@ -19,16 +16,22 @@ class BookingService(ServiceBase):
         booking = await self._ensure.booking_exists(cmd.booking_id, cmd.user_id)
         return booking
 
-    async def get_active_bookings(self, cmd: commands.GetActiveBookingsCommand) -> list[Booking]:
+    async def get_active_bookings(
+        self, cmd: commands.GetActiveBookingsCommand
+    ) -> list[Booking]:
         bookings = await self._adapter.get_active_bookings(user_id=cmd.user_id)
         return bookings
 
-    async def get_bookings_by_status(self, cmd: commands.GetBookingsByStatusCommand) -> list[Booking]:
-        bookings = await self._adapter.get_bookings(status=cmd.status, user_id=cmd.user_id)
+    async def get_bookings_by_status(
+        self, cmd: commands.GetBookingsByStatusCommand
+    ) -> list[Booking]:
+        bookings = await self._adapter.get_bookings(
+            status=cmd.status, user_id=cmd.user_id
+        )
         return bookings
 
     async def list_bookings(self, cmd: commands.ListBookingsCommand) -> list[Booking]:
-        params = cmd.model_dump(exclude={'user_id'}, exclude_unset=True)
+        params = cmd.model_dump(exclude={"user_id"}, exclude_unset=True)
         bookings = await self._adapter.get_bookings(user_id=cmd.user_id, **params)
         return bookings
 
@@ -38,7 +41,10 @@ class BookingService(ServiceBase):
 
     async def create_booking(self, cmd: commands.CreateBookingCommand) -> int | None:
         result = await self._adapter.add_booking(
-            user_id=cmd.user_id, room_id=cmd.room_id, date_from=cmd.date_from, date_to=cmd.date_to
+            user_id=cmd.user_id,
+            room_id=cmd.room_id,
+            date_from=cmd.date_from,
+            date_to=cmd.date_to,
         )
         if result is None:
             raise exceptions.RoomCannotBeBookedException
@@ -50,8 +56,12 @@ class BookingService(ServiceBase):
         if not is_updated:
             raise exceptions.BookingCannotBeUpdatedException
 
-    async def cancel_active_booking(self, cmd: commands.CancelActiveBookingCommand) -> None:
+    async def cancel_active_booking(
+        self, cmd: commands.CancelActiveBookingCommand
+    ) -> None:
         booking = await self._ensure.booking_exists(cmd.booking_id, cmd.user_id)
-        is_cancelled = await self._adapter.update_booking(booking, only_active=True, status=BookingStatusEnum.CANCELLED)
+        is_cancelled = await self._adapter.update_booking(
+            booking, only_active=True, status=BookingStatusEnum.CANCELLED
+        )
         if is_cancelled is None:
             raise exceptions.BookingCannotBeCancelledException

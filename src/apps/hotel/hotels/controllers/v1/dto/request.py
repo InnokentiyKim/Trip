@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from src.common.controllers.dto.base import BaseRequestDTO
 
 

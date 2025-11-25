@@ -52,8 +52,5 @@ class MFAVerificationEmail(BaseEmail):
 
 
 EmailType = (
-    UserSingUpEmail
-    | ConfirmationEmail
-    | PasswordResetEmail
-    | MFAVerificationEmail
+    UserSingUpEmail | ConfirmationEmail | PasswordResetEmail | MFAVerificationEmail
 )

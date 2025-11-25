@@ -6,10 +6,8 @@ from src.apps.hotel.rooms.application import exceptions
 
 class RoomServiceInsurance(ServiceInsuranceBase):
     """Room service ensuring."""
-    def __init__(
-        self,
-        gateway: RoomGatewayProto
-    ) -> None:
+
+    def __init__(self, gateway: RoomGatewayProto) -> None:
         self._room = gateway
 
     async def room_exists(self, hotel_id: int, room_id: int) -> Room:

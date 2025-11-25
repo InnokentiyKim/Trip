@@ -8,10 +8,8 @@ from src.apps.hotel.hotels.application import exceptions
 
 class HotelServiceInsurance(ServiceInsuranceBase):
     """Hotel service ensuring."""
-    def __init__(
-        self,
-        gateway: HotelGatewayProto
-    ) -> None:
+
+    def __init__(self, gateway: HotelGatewayProto) -> None:
         self._hotel = gateway
 
     async def hotel_exists(self, hotel_id: int) -> Hotel:

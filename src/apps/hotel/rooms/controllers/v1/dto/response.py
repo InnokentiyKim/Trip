@@ -16,8 +16,7 @@ class GetRoomResponseDTO(BaseResponseDTO):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UpdateRoomResponseDTO(BaseResponseDTO):
-    ...
+class UpdateRoomResponseDTO(BaseResponseDTO): ...
 
 
 class DeleteRoomResponseDTO(BaseDTO):

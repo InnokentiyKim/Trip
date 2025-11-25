@@ -25,6 +25,7 @@ class InternalError(BaseError):
 
 class ExceptionBase(HTTPException):
     """Base class for all custom exceptions in the application."""
+
     status_code: int = 500
     detail: str = "An internal server error occurred"
     loc: str = ""

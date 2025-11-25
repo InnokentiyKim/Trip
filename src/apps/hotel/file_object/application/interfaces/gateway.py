@@ -11,7 +11,9 @@ class FileObjectGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def generate_download_pre_signed_url(self, key: str, file_name: str, content_type: str) -> str:
+    async def generate_download_pre_signed_url(
+        self, key: str, file_name: str, content_type: str
+    ) -> str:
         """Generate a pre-signed URL for accessing an object."""
         ...
 

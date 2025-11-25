@@ -10,7 +10,9 @@ class ErrorDetail(BaseModel):
 
     loc: str = Field(..., description="Location where the error occurred.")
     msg: str = Field(..., description="A human-readable message explaining the error.")
-    type: str = Field(..., description="A unique, machine-readable code for the error type.")
+    type: str = Field(
+        ..., description="A unique, machine-readable code for the error type."
+    )
 
 
 class ErrorResponse(BaseModel):
@@ -67,5 +69,9 @@ def general_exception_handler(request: Request, exc: Exception) -> ORJSONRespons
     if not isinstance(exc, BaseError):
         raise exc
 
-    response_model = ErrorResponse(detail=[ErrorDetail(loc=exc.loc, msg=exc.message, type=exc.__class__.__name__)])
-    return ORJSONResponse(status_code=exc.status_code, content=response_model.model_dump())
+    response_model = ErrorResponse(
+        detail=[ErrorDetail(loc=exc.loc, msg=exc.message, type=exc.__class__.__name__)]
+    )
+    return ORJSONResponse(
+        status_code=exc.status_code, content=response_model.model_dump()
+    )

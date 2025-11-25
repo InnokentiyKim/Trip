@@ -21,5 +21,9 @@ class Hotel(Base):
 
     user = relationship("User", back_populates="hotel", lazy="joined")
     rooms = relationship(
-        "Room", back_populates="hotel", lazy="selectin", uselist=True, cascade="all, delete-orphan"
+        "Room",
+        back_populates="hotel",
+        lazy="selectin",
+        uselist=True,
+        cascade="all, delete-orphan",
     )

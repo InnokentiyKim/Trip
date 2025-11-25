@@ -1,5 +1,5 @@
 from src.infrastructure.security.application.exceptions import InvalidTokenException
-from src.apps.user.application.exceptions import UserAlreadyExistsException, UserNotFoundException
+from src.apps.user.application.exceptions import UserAlreadyExistsException
 from src.infrastructure.security.adapters.adapter import SecurityAdapter
 from src.apps.user.adapters.adapter import UserAdapter
 from src.common.application.service import ServiceBase
@@ -13,7 +13,7 @@ class UserService(ServiceBase):
         self,
         user_adapter: UserAdapter,
         auth_adapter: SecurityAdapter,
-        user_ensure: UserServiceInsurance
+        user_ensure: UserServiceInsurance,
     ) -> None:
         self._user = user_adapter
         self._auth = auth_adapter
@@ -30,7 +30,7 @@ class UserService(ServiceBase):
             name=cmd.name,
             phone=cmd.phone,
             avatar_url=cmd.avatar_url,
-            is_active=cmd.is_active
+            is_active=cmd.is_active,
         )
         await self._user.add_user(new_user)
         return new_user
@@ -42,7 +42,9 @@ class UserService(ServiceBase):
         access_token = self._auth.create_access_token(data={"sub": str(user.id)})
         return access_token
 
-    async def verify_user_by_token(self, cmd: commands.VerifyUserByTokenCommand) -> User:
+    async def verify_user_by_token(
+        self, cmd: commands.VerifyUserByTokenCommand
+    ) -> User:
         user_id = self._auth.verify_access_token(cmd.token)
         user = await self._user_ensure.user_exists(user_id)
 

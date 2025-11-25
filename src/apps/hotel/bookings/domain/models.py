@@ -12,20 +12,33 @@ from sqlalchemy.dialects.postgresql import UUID
 class Booking(Base):
     __tablename__ = "bookings"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, primary_key=True)
-    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), nullable=False, primary_key=True
+    )
+    room_id: Mapped[int] = mapped_column(
+        ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     date_from: Mapped[date] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     date_to: Mapped[date] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     status: Mapped[BookingStatusEnum] = mapped_column(
         SAEnum(BookingStatusEnum, name="status", validate_strings=True),
-        nullable=False, default=BookingStatusEnum.PENDING
+        nullable=False,
+        default=BookingStatusEnum.PENDING,
     )
     price: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), nullable=False)
-    total_cost: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), Computed("price * (date_to - date_from)"))
+    total_cost: Mapped[Decimal] = mapped_column(
+        DECIMAL(10, 4), Computed("price * (date_to - date_from)")
+    )
     total_days: Mapped[int] = mapped_column(Integer, Computed("date_to - date_from"))
-    created_at: Mapped[datetime] = mapped_column(DATETIME(timezone=False), nullable=False, default=datetime.now(UTC))
-    updated_at: Mapped[date] = mapped_column(DATETIME(timezone=False), nullable=False, default=datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(
+        DATETIME(timezone=False), nullable=False, default=datetime.now(UTC)
+    )
+    updated_at: Mapped[date] = mapped_column(
+        DATETIME(timezone=False), nullable=False, default=datetime.now(UTC)
+    )
 
     user = relationship("User", back_populates="bookings", lazy="joined")
     room = relationship("Room", back_populates="bookings", lazy="joined")

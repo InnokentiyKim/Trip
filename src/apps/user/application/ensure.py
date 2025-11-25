@@ -6,10 +6,8 @@ from src.apps.user.application import exceptions
 
 class UserServiceInsurance(ServiceInsuranceBase):
     """User service ensuring."""
-    def __init__(
-        self,
-        gateway: UserGatewayProto
-    ) -> None:
+
+    def __init__(self, gateway: UserGatewayProto) -> None:
         self._user = gateway
 
     async def user_exists(self, user_id: int) -> User:

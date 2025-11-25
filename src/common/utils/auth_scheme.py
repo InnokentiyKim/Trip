@@ -14,7 +14,9 @@ class AuthHeaderToken(HTTPBearer):
         if not auth.startswith("Bearer"):
             auth = f"Bearer {auth.strip()}"
             request.headers.__dict__["_list"] = [
-                (b"authorization", auth.encode()) if key.lower() == b"authorization" else (key, value)
+                (b"authorization", auth.encode())
+                if key.lower() == b"authorization"
+                else (key, value)
                 for key, value in request.headers.raw
             ]
 
@@ -23,6 +25,7 @@ class AuthHeaderToken(HTTPBearer):
             raise Unauthorized
 
         return credentials.credentials
+
 
 bearer_scheme = AuthHeaderToken()
 auth_header = Security(bearer_scheme)

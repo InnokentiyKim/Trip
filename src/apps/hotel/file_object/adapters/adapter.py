@@ -1,7 +1,9 @@
 import asyncio
 
 from src.apps.hotel.file_object.domain.models import FileObject
-from src.apps.hotel.file_object.application.interfaces.gateway import FileObjectGatewayProto
+from src.apps.hotel.file_object.application.interfaces.gateway import (
+    FileObjectGatewayProto,
+)
 from aiobotocore.client import AioBaseClient
 from src.config import Configs
 from typing import Self
@@ -10,11 +12,7 @@ from botocore.exceptions import ClientError, EndpointConnectionError
 
 
 class S3FileObjectAdapter(FileObjectGatewayProto):
-    def __init__(
-        self,
-        client: AioBaseClient,
-        config: Configs
-    ) -> None:
+    def __init__(self, client: AioBaseClient, config: Configs) -> None:
         self.client = client
         self.config = config
         self.bucket_name = config.s3.bucket_name
@@ -33,7 +31,9 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
         """Exit async context manager."""
         return None
 
-    async def generate_download_pre_signed_url(self, key: str, file_name: str, content_type: str) -> str:
+    async def generate_download_pre_signed_url(
+        self, key: str, file_name: str, content_type: str
+    ) -> str:
         """
         Generate a pre-signed URL for uploading an object to S3.
 
@@ -137,14 +137,17 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
             size=real_object_size,
         )
 
-    async def delete_multiple_objects(self, keys: list[str]) -> None:
-        ...
+    async def delete_multiple_objects(self, keys: list[str]) -> None: ...
 
     async def check_availability(self) -> None:
         try:
-            await asyncio.wait_for(self.client.head_bucket(Bucket=self.bucket_name), timeout=10)
-        except TimeoutError as te:
-            raise EndpointConnectionError(endpoint_url=self.client.meta.endpoint_url) from None
+            await asyncio.wait_for(
+                self.client.head_bucket(Bucket=self.bucket_name), timeout=10
+            )
+        except TimeoutError:
+            raise EndpointConnectionError(
+                endpoint_url=self.client.meta.endpoint_url
+            ) from None
         except (ClientError, EndpointConnectionError) as exc:
             raise exc
 
@@ -160,8 +163,6 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
         except ClientError as exc:
             raise exc
 
-    async def list_objects_keys(self, prefix: str = "") -> list[str]:
-        ...
+    async def list_objects_keys(self, prefix: str = "") -> list[str]: ...
 
-    async def put_object(self, file_object: FileObject) -> None:
-        ...
+    async def put_object(self, file_object: FileObject) -> None: ...

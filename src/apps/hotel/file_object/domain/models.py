@@ -14,6 +14,7 @@ class FileObject:
         object_name (str): The key or name of the object within the S3 bucket.
         body (IOBase): The content of the object.
     """
+
     bucket_name: str
     object_name: str
     size: int

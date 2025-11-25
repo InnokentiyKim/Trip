@@ -8,7 +8,6 @@ from src.config import Configs
 
 
 class ConfigProvider(Provider):
-
     config = context(provides=Configs, scope=Scope.APP)
 
 
@@ -29,7 +28,9 @@ class DatabaseProvider(Provider):
         await engine.dispose()
 
     @provide(scope=Scope.REQUEST)
-    async def provide_db_session(self, engine: AsyncEngine, config: Configs) -> AsyncIterable[AsyncSession]:
+    async def provide_db_session(
+        self, engine: AsyncEngine, config: Configs
+    ) -> AsyncIterable[AsyncSession]:
         """Provides a database session for the duration of a request.
 
         Args:
@@ -40,7 +41,9 @@ class DatabaseProvider(Provider):
             AsyncIterable[AsyncSession]: An asynchronous session for database operations.
         """
         session_config = config.database.session
-        async with async_sessionmaker(engine, expire_on_commit=session_config.expire_on_commit)() as session:
+        async with async_sessionmaker(
+            engine, expire_on_commit=session_config.expire_on_commit
+        )() as session:
             yield session
 
 

@@ -4,7 +4,6 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Protocol, Any
 from uuid import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.common.domain.models import ORM_CLS, ORM_OBJ
 
 
@@ -130,8 +129,9 @@ class SecurityProto(Protocol):
 
 
 class GatewayProto(ABC):
-
-    def __call__(self, *args: Any, **kwargs: Any) -> AbstractAsyncContextManager[UowProto]:
+    def __call__(
+        self, *args: Any, **kwargs: Any
+    ) -> AbstractAsyncContextManager[UowProto]:
         """Return an async context manager for a unit of work."""
         ...
 
@@ -140,21 +140,18 @@ class SQLAlchemyGatewayProto(GatewayProto):
     # TODO: add __call__ method to return UoW instance
 
     @abstractmethod
-    async def add_item(self, item: ORM_OBJ) -> None:
-        ...
+    async def add_item(self, item: ORM_OBJ) -> None: ...
 
     @abstractmethod
-    async def get_item_by_id(self, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ:
-        ...
+    async def get_item_by_id(self, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ: ...
 
     @abstractmethod
-    async def get_one_item(self, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ:
-        ...
+    async def get_one_item(self, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ: ...
 
     @abstractmethod
-    async def get_items_list(self, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
-        ...
+    async def get_items_list(
+        self, orm_cls: ORM_CLS, **filters: Any
+    ) -> list[ORM_OBJ]: ...
 
     @abstractmethod
-    async def delete_item(self, orm_obj: ORM_OBJ) -> None:
-        ...
+    async def delete_item(self, orm_obj: ORM_OBJ) -> None: ...

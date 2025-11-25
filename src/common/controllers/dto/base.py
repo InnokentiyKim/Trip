@@ -2,12 +2,10 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class BaseDTO(BaseModel):
-    ...
+class BaseDTO(BaseModel): ...
 
 
-class BaseRequestDTO(BaseDTO):
-    ...
+class BaseRequestDTO(BaseDTO): ...
 
 
 class BaseResponseDTO(BaseDTO):

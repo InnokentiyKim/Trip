@@ -27,7 +27,7 @@ class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
         try:
             self.session.add(user)
             await self.session.commit()
-        except:
+        except Exception:
             raise UserAlreadyExistsException
 
     async def update_user(self, user: User, **params) -> UUID | None:

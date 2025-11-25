@@ -2,7 +2,15 @@ import uuid
 from datetime import datetime, UTC
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship, MappedAsDataclass
-from sqlalchemy import Integer, String, Boolean, TIMESTAMP, ForeignKey, UniqueConstraint, Enum as SAEnum
+from sqlalchemy import (
+    Integer,
+    String,
+    Boolean,
+    TIMESTAMP,
+    ForeignKey,
+    UniqueConstraint,
+    Enum as SAEnum,
+)
 from sqlalchemy.dialects.postgresql import UUID
 
 from apps.authentication.domain.results import OAuthProviderUser
@@ -21,7 +29,9 @@ class UserBase(MappedAsDataclass, Base):
 class AuthStatus(UserBase):
     __tablename__ = "auth_statuses"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, nullable=False
+    )
     user_id: Mapped[uuid.UUID] = mapped_column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -29,13 +39,21 @@ class AuthStatus(UserBase):
         unique=True,
     )
 
-    last_login_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    failed_login_attempts: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
 
-    mfa_email_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    mfa_sms_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    mfa_email_enabled: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    mfa_sms_enabled: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
 
     def __init__(self, user_id: uuid.UUID) -> None:
         self.id = uuid.uuid4()
@@ -71,11 +89,15 @@ class OAuthAuth(UserBase):
         )
     )
     provider_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=False
+    )
 
     user: Mapped["User"] = relationship("User", back_populates="oauth_auths")
 
-    def __init__(self, user_id: uuid.UUID, provider: OAuthProviderEnum, provider_user_id: str) -> None:
+    def __init__(
+        self, user_id: uuid.UUID, provider: OAuthProviderEnum, provider_user_id: str
+    ) -> None:
         self.id = uuid.uuid4()
         self.user_id = user_id
         self.provider = provider
@@ -86,25 +108,38 @@ class OAuthAuth(UserBase):
     def __eq__(self, other):
         if not isinstance(other, OAuthAuth):
             raise NotImplementedError
-        return self.provider_user_id == other.provider_user_id and self.provider == other.provider
+        return (
+            self.provider_user_id == other.provider_user_id
+            and self.provider == other.provider
+        )
 
 
 class User(UserBase):
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, nullable=False
+    )
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     phone: Mapped[str | None] = mapped_column(String(60), nullable=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=False
+    )
 
     hotel: Mapped["Hotel"] = relationship("Hotel", back_populates="user", lazy="joined")
     bookings: Mapped[list["Booking"]] = relationship(
-        "Booking", back_populates="user", lazy="joined", uselist=True, cascade="all, delete-orphan"
+        "Booking",
+        back_populates="user",
+        lazy="joined",
+        uselist=True,
+        cascade="all, delete-orphan",
     )
 
     auth_status: Mapped[AuthStatus] = relationship(
@@ -114,7 +149,10 @@ class User(UserBase):
         cascade="all, delete-orphan",
     )
     oauth_auths: Mapped[list[OAuthAuth]] = relationship(
-        "OAuthAuth", back_populates="user", lazy="selectin", cascade="all, delete-orphan"
+        "OAuthAuth",
+        back_populates="user",
+        lazy="selectin",
+        cascade="all, delete-orphan",
     )
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
@@ -144,12 +182,13 @@ class User(UserBase):
 
         super().__init__()
 
-
     def set_password(self, hashed_password: str) -> None:
         self.hashed_password = hashed_password
         self.updated_at = datetime.now(UTC)
 
-    def bind_oauth(self, oauth_user: OAuthProviderUser, provider: OAuthProviderEnum) -> OAuthAuth:
+    def bind_oauth(
+        self, oauth_user: OAuthProviderUser, provider: OAuthProviderEnum
+    ) -> OAuthAuth:
         if user_oauth := self.get_oauth(oauth_user, provider):
             return user_oauth
 
@@ -162,12 +201,15 @@ class User(UserBase):
         self.oauth_auths.append(oauth)
         return oauth
 
-    def get_oauth(self, oauth_user: OAuthProviderUser, provider: OAuthProviderEnum) -> OAuthAuth | None:
+    def get_oauth(
+        self, oauth_user: OAuthProviderUser, provider: OAuthProviderEnum
+    ) -> OAuthAuth | None:
         return next(
             (
                 user_oauth
                 for user_oauth in self.oauth_auths
-                if user_oauth.provider == provider and user_oauth.provider_user_id == oauth_user.id
+                if user_oauth.provider == provider
+                and user_oauth.provider_user_id == oauth_user.id
             ),
             None,
         )

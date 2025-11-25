@@ -10,8 +10,8 @@ import uvicorn
 
 app = typer.Typer()
 
-async def _start_app(port: int) -> None:
 
+async def _start_app(port: int) -> None:
     container = create_async_container(get_providers())
 
     try:
@@ -39,26 +39,30 @@ def start_app(port: int = 8000) -> None:
 @app.command()
 def run(
     port: Annotated[int, typer.Option(help="Port for the server to listen on.")] = 8000,
-    reload: Annotated[bool, typer.Option(help="Enable auto-reload on code changes (development only).")] = False,
+    reload: Annotated[
+        bool,
+        typer.Option(help="Enable auto-reload on code changes (development only)."),
+    ] = False,
 ) -> None:
-
     if reload:
         import subprocess
         import sys
 
-        subprocess.run([
-            sys.executable,
-            "-m",
-            "uvicorn",
-            "src.dev_app:app",
-            "--host",
-            "127.0.0.1",
-            "--port",
-            str(port),
-            "--reload",
-            "--reload-dir",
-            "src",
-        ])
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "uvicorn",
+                "src.dev_app:app",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                str(port),
+                "--reload",
+                "--reload-dir",
+                "src",
+            ]
+        )
 
     asyncio.run(_start_app(port=port))
 

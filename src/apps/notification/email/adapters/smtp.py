@@ -6,10 +6,7 @@ from src.apps.notification.email.application.interfaces.gateway import EmailGate
 
 
 class SMTPAdapter(EmailGatewayProto):
-    def __init__(
-        self,
-        config: Configs
-    ) -> None:
+    def __init__(self, config: Configs) -> None:
         smtp_configs = ConnectionConfig(
             MAIL_USERNAME=config.smtp_email.smtp_username,
             MAIL_PASSWORD=config.smtp_email.smtp_password,
@@ -27,7 +24,7 @@ class SMTPAdapter(EmailGatewayProto):
         message = MessageSchema(
             subject=email_data.subject,
             recipients=email_data.recipients,
-            body=email_data.rendered_content, # TODO: add rendered_content property to EmailType
+            body=email_data.rendered_content,  # TODO: add rendered_content property to EmailType
             subtype=MessageType.html,
         )
         await self.fastmail.send_message(message)

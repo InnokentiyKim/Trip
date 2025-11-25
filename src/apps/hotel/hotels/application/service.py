@@ -7,10 +7,7 @@ from src.apps.hotel.hotels.application.ensure import HotelServiceInsurance
 
 
 class HotelService(ServiceBase):
-    def __init__(
-        self,
-        gateway: HotelGatewayProto
-    ) -> None:
+    def __init__(self, gateway: HotelGatewayProto) -> None:
         self._adapter = gateway
         self._ensure = HotelServiceInsurance(gateway)
 
