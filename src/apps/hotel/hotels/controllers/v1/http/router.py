@@ -96,7 +96,7 @@ async def create_hotel(
     return  CreateHotelResponseDTO(id=hotel_id)
 
 
-@router.post(
+@router.patch(
     "",
     responses=generate_responses(
         Unauthorized,

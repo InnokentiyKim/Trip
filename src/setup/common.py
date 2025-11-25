@@ -21,4 +21,4 @@ def create_async_container(providers: Iterable[Provider], config: Configs = app_
     Returns:
         AsyncContainer: The created asynchronous container.
     """
-    return make_async_container(*providers)  # context={Configs: config}
+    return make_async_container(*providers, context={Configs: config})  # context={Configs: config}
