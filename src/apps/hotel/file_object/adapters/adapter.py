@@ -1,5 +1,7 @@
 import asyncio
 
+from aiobotocore.response import StreamingBody
+
 from src.apps.hotel.file_object.domain.models import FileObject
 from src.apps.hotel.file_object.application.interfaces.gateway import (
     FileObjectGatewayProto,
@@ -163,6 +165,20 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
         except ClientError as exc:
             raise exc
 
-    async def list_objects_keys(self, prefix: str = "") -> list[str]: ...
+    async def put_object(self, file_object: FileObject) -> None:
+        body = file_object.body
 
-    async def put_object(self, file_object: FileObject) -> None: ...
+        if isinstance(body, StreamingBody):
+            async with body as stream:
+                body = await stream.read()
+
+        kwargs = {
+            "Bucket": self.bucket_name,
+            "Key": file_object.object_name,
+            "Body": body,
+        }
+
+        if file_object.content_type != "":
+            kwargs["ContentType"] = file_object.content_type
+
+        await self.client.put_object(**kwargs)

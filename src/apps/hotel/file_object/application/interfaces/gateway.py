@@ -48,26 +48,6 @@ class FileObjectGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def list_objects_keys(self, prefix: str = "") -> list[str]:
-        """
-        Lists objects in storage, returning a complete list.
-
-        This method uses a paginator to automatically handle fetching all objects
-        matching a prefix. It collects all results into a list and returns it.
-
-        Args:
-            prefix: Prefix to filter objects by.
-
-        Returns:
-            list[str]: A list of all found file objects keys.
-
-        Raises:
-            ClientError: If there is an error with the S3 client, such as the bucket not existing
-            or the client not having permission to access it.
-        """
-        ...
-
-    @abstractmethod
     async def put_object(self, file_object: FileObject) -> None:
         """Put object to storage bucket."""
         ...
