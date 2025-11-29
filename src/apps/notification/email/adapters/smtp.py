@@ -10,7 +10,7 @@ class SMTPAdapter(EmailGatewayProto):
         smtp_configs = ConnectionConfig(
             MAIL_USERNAME=config.smtp_email.smtp_username,
             MAIL_PASSWORD=config.smtp_email.smtp_password,
-            USE_CREDENTIALS=config.smtp_email.use_credentials,
+            USE_CREDENTIALS=config.smtp_email.smtp_use_credentials,
             MAIL_FROM=config.smtp_email.mail_from,
             MAIL_FROM_NAME=config.smtp_email.mail_from_name,
             MAIL_SERVER=config.smtp_email.smtp_server,
@@ -24,7 +24,7 @@ class SMTPAdapter(EmailGatewayProto):
         message = MessageSchema(
             subject=email_data.subject,
             recipients=email_data.recipients,
-            body=email_data.rendered_content,  # TODO: add rendered_content property to EmailType
+            body=email_data.rendered_content,  # noqa: E501 TODO: add rendered_content property to EmailType
             subtype=MessageType.html,
         )
         await self.fastmail.send_message(message)

@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from uuid import UUID
 
 from src.common.interfaces import GatewayProto
 from src.apps.user.domain.models import User
@@ -26,7 +27,7 @@ class UserGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def update_user(self, user: User, **params) -> int | None:
+    async def update_user(self, user: User, **params) -> UUID | None:
         """Update an existing user."""
         ...
 

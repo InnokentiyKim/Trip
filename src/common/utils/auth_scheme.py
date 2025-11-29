@@ -24,7 +24,7 @@ class AuthHeaderToken(HTTPBearer):
         if credentials is None:
             raise Unauthorized
 
-        return credentials.credentials
+        return str(credentials.credentials)
 
 
 bearer_scheme = AuthHeaderToken()

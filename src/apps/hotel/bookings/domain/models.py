@@ -18,7 +18,7 @@ class Booking(Base):
     room_id: Mapped[int] = mapped_column(
         ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False
     )
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     date_from: Mapped[date] = mapped_column(TIMESTAMP(timezone=True), nullable=False)

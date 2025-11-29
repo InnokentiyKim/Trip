@@ -21,7 +21,7 @@ class BookingServiceInsurance(ServiceInsuranceBase):
     async def active_booking_exists(
         self, booking_id: UUID, user_id: int | UUID
     ) -> Booking:
-        booking: Booking = await self._booking.get_booking_by_id(
+        booking: Booking | None = await self._booking.get_booking_by_id(
             booking_id, user_id=user_id
         )
         active_statuses = [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED]

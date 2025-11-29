@@ -7,7 +7,7 @@ from src.apps.user.application.interfaces.gateway import UserGatewayProto
 
 
 class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
-    async def get_user_by_id(self, user_id) -> User:
+    async def get_user_by_id(self, user_id) -> User | None:
         """Retrieve a user by filters."""
         user = await self.get_item_by_id(User, user_id)
         return user

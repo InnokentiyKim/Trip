@@ -79,22 +79,23 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
             .group_by(Room.quantity, booked_rooms.c.room_id)
         )
 
-        rooms_left = await self.session.execute(rooms_left_query)
-        rooms_left = rooms_left.scalar()
+        rooms_left_res = await self.session.execute(rooms_left_query)
+        rooms_left = rooms_left_res.scalar()
 
         if rooms_left is not None and rooms_left > 0:
             price_query = select(Room.price).filter_by(id=room_id)
             price = await self.session.execute(price_query)
-            price = price.scalar()
+            finalized_price = price.scalar()
             new_booking = Booking(
                 room_id=room_id,
                 user_id=user_id,
                 date_from=date_from,
                 date_to=date_to,
-                price=price,
+                price=finalized_price,
             )
             await self.add_item(new_booking)
             return room_id
+        return None
 
     async def update_booking(
         self, booking: Booking, only_active: bool = False, **updating_params: Any

@@ -35,7 +35,7 @@ class BookingGatewayProto(GatewayProto):
     @abstractmethod
     async def update_booking(
         self, booking: Booking, only_active: bool = False, **updating_params: Any
-    ) -> UUID:
+    ) -> UUID | None:
         """Update a booking."""
         ...
 

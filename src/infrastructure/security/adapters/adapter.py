@@ -1,4 +1,6 @@
 from datetime import timedelta, datetime, UTC
+from uuid import UUID
+
 from jose import jwt, JWTError
 from src.infrastructure.security.application.interfaces.gateway import (
     SecurityGatewayProto,
@@ -35,7 +37,7 @@ class SecurityAdapter(SecurityGatewayProto):
         )
         return encoded_jwt
 
-    def verify_access_token(self, token: str) -> int:
+    def verify_access_token(self, token: str) -> UUID:
         """Verify a JWT access token."""
         try:
             payload = jwt.decode(
@@ -46,7 +48,7 @@ class SecurityAdapter(SecurityGatewayProto):
         expire = payload.get("exp")
         if (not expire) or (int(expire) < int(datetime.now(UTC).timestamp())):
             raise InvalidTokenException
-        user_id = int(payload.get("sub"))
+        user_id = UUID(payload.get("sub"))
         if not user_id:
             raise InvalidTokenException
         return user_id
