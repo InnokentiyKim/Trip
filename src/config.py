@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings
 from pydantic import Field, SecretStr
 from src.infrastructure.database.postgres.config import DatabaseSettings
 from src.common.domain.enums import EnvironmentEnum
+from src.apps.hotel.file_object.config import S3Settings
 from pydantic import EmailStr
 from pathlib import Path
 
@@ -42,6 +43,7 @@ class Configs(BaseSettings):
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     security: SecuritySettings = Field(default_factory=SecuritySettings)
     smtp_email: SMTPSettings = Field(default_factory=SMTPSettings)
+    s3: S3Settings = Field(default_factory=S3Settings)
 
 
 def create_configs() -> Configs:
