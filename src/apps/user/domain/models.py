@@ -22,7 +22,6 @@ from src.common.domain.models import Base
 
 class UserBase(MappedAsDataclass, Base):
     """Base class for SQLAlchemy user ORM models."""
-
     __abstract__ = True
 
 
@@ -33,7 +32,7 @@ class AuthStatus(UserBase):
         UUID(as_uuid=True), primary_key=True, nullable=False
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        Integer,
+        UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,
@@ -75,7 +74,7 @@ class OAuthAuth(UserBase):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     user_id: Mapped[uuid.UUID] = mapped_column(
-        Integer,
+        UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )

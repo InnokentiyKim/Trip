@@ -1,6 +1,8 @@
+import uuid
+
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 from sqlalchemy import Integer, String, ForeignKey, JSON, UniqueConstraint
-
+from sqlalchemy.dialects.postgresql import UUID
 from src.common.domain.models import Base
 
 
@@ -20,7 +22,7 @@ class Hotel(HotelBase):
     location: Mapped[str] = mapped_column(String, nullable=False)
     services: Mapped[dict] = mapped_column(JSON, nullable=True)
     rooms_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
-    owner: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    owner: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     image_id: Mapped[int] = mapped_column(Integer, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="hotel", lazy="joined")
