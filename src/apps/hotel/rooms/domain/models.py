@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 from sqlalchemy import Integer, String, JSON, ForeignKey, DECIMAL
 
 from src.common.domain.models import Base
@@ -8,7 +8,12 @@ from src.apps.hotel.bookings.domain.models import Booking  # noqa: F401
 from src.apps.hotel.hotels.domain.models import Hotel  # noqa: F401
 
 
-class Room(Base):
+class RoomBase(MappedAsDataclass, Base):
+    """Base class for room ORM models."""
+    __abstract__ = True
+
+
+class Room(RoomBase):
     __tablename__ = "rooms"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -19,7 +24,6 @@ class Room(Base):
     description: Mapped[str] = mapped_column(String, nullable=True)
     price: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), nullable=False)
     services: Mapped[dict] = mapped_column(JSON, nullable=True)
-    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     image_id: Mapped[int] = mapped_column(Integer, nullable=True)
 
     hotel: Mapped["Hotel"] = relationship(
@@ -33,8 +37,4 @@ class Room(Base):
         cascade="all, delete-orphan",
     )
 
-    def from_dict(self, data: dict) -> "Room":
-        for key, value in data.items():
-            if hasattr(self, key) and value is not None:
-                setattr(self, key, value)
-        return self
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
