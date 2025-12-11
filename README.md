@@ -1,4 +1,8 @@
-# Yettey Backend
+# Hotels Backend Service
+
+[![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.95.2-green.svg)](https://fastapi.tiangolo.com/)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/yettey/backend/ci.yml?branch=main)]()
 
 A comprehensive digital asset management backend service built with Clean Architecture principles, providing robust APIs for asset management, user authentication, authorization, and collaboration features.
 
@@ -7,7 +11,6 @@ A comprehensive digital asset management backend service built with Clean Archit
 1. **Clone the repository**
    ```bash
    git clone git@gl.cloudike.io:yettey/backend/backend.git
-   cd backend
    ```
 
 2. **Install dependencies**
@@ -20,12 +23,7 @@ A comprehensive digital asset management backend service built with Clean Archit
    alembic upgrade head
    ```
 
-4. **Run authorization migrations**
-   ```bash
-   python -m scripts.cli openfga model
-   ```
-
-5. **Start the development server**
+4. **Start the server locally**
    ```bash
    python src/main.py --port 8001
    ```
@@ -34,7 +32,7 @@ A comprehensive digital asset management backend service built with Clean Archit
 
 ### Development
 - `uv sync` - Install dependencies and sync lockfile
-- `python src/main.py --port 8001` - Run AMQP worker only
+- `python src/main.py --port 8001` - Run the server
 
 ### Code Quality
 - `ruff check --fix` - Run linter with auto-fix
@@ -54,16 +52,7 @@ A comprehensive digital asset management backend service built with Clean Archit
 
 ### CLI Tools
 - `python -m scripts.cli admin --help` - Admin CLI commands
-- `python -m scripts.cli openfga --help` - OpenFGA management commands
-- `python -m scripts.cli clickhouse init` - Initialize ClickHouse tables from schema
-- `python -m scripts.upload_sample_assets` - Upload sample assets to S3
-- `python -m scripts.generate_openapi_schema` - Generate OpenAPI schema
 
-### Billing Data Migration
-- `python -m scripts.cli_tools.migrate_plans_and_features features` - Migrate features to database
-- `python -m scripts.cli_tools.migrate_plans_and_features billing-periods` - Migrate billing periods to database
-- `python -m scripts.cli_tools.migrate_plans_and_features tariff-plans` - Migrate tariff plans to database
-- `python -m scripts.cli_tools.migrate_plans_and_features all` - Migrate all billing data (features → periods → plans)
 
 ## 📊 API Documentation
 
@@ -115,10 +104,8 @@ The application follows Clean Architecture principles with a clear separation of
 
 ### Infrastructure
 - **PostgreSQL** - Primary database
-- **ClickHouse** - Analytics and usage tracking database
 - **RabbitMQ** - Message broker with FastStream
 - **MinIO/S3** - Object storage for assets
-- **OpenFGA** - Relationship-based access control
 
 ### Authentication & Security
 - **JWT** - Token-based authentication
