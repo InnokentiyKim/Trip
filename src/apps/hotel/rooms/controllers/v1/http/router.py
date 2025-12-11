@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
+from typing import Annotated
 
 from src.apps.hotel.rooms.controllers.v1.dto.response import UpdateRoomResponseDTO
 from src.apps.hotel.rooms.application.service import RoomService
@@ -35,7 +36,7 @@ router = APIRouter(
 @inject
 async def list_rooms(
     hotel_id: int,
-    dto: ListRoomsRequestDTO,
+    filter_query: Annotated[ListRoomsRequestDTO, Query()],
     user_service: FromDishka[UserService],
     room_service: FromDishka[RoomService],
     token: str = auth_header,
@@ -45,9 +46,9 @@ async def list_rooms(
     )
     cmd = room_commands.ListRoomsCommand(
         hotel_id=hotel_id,
-        price_from=dto.price_from,
-        price_to=dto.price_to,
-        services=dto.services,
+        price_from=filter_query.price_from,
+        price_to=filter_query.price_to,
+        services=filter_query.services,
     )
     rooms = await room_service.list_rooms(cmd)
     return [GetRoomResponseDTO.model_validate(room) for room in rooms]

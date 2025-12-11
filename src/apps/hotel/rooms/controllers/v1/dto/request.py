@@ -12,7 +12,7 @@ class ListRoomsRequestDTO(BaseRequestDTO):
 class UpdateRoomRequestDTO(BaseRequestDTO):
     name: str | None = None
     price: Decimal | None = None
-    quantity: int| None = None
+    quantity: int | None = None
     description: str | None = None
     services: dict | None = None
     image_id: int | None = None

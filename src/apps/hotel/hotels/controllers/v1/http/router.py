@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from src.apps.hotel.hotels.controllers.v1.dto.request import (
     ListHotelsRequestDTO,
     UpdateHotelRequestDTO,
 )
+from typing import Annotated
 from src.apps.hotel.hotels.domain import commands as hotel_commands
 from src.apps.user.domain import commands as user_commands
 from src.apps.authentication.application.exceptions import Unauthorized
@@ -34,7 +35,7 @@ router = APIRouter(
 )
 @inject
 async def get_hotels(
-    dto: ListHotelsRequestDTO,
+    filter_query: Annotated[ListHotelsRequestDTO, Query()],
     user_service: FromDishka[UserService],
     hotel_service: FromDishka[HotelService],
     token: str = auth_header,
@@ -43,7 +44,7 @@ async def get_hotels(
         user_commands.VerifyUserByTokenCommand(token=token)
     )
     cmd = hotel_commands.ListHotelsCommand(
-        location=dto.location, services=dto.services, rooms_quantity=dto.rooms_quantity
+        location=filter_query.location, services=filter_query.services, rooms_quantity=filter_query.rooms_quantity
     )
     hotels = await hotel_service.list_hotels(cmd)
     return [GetHotelsResponseDTO.model_validate(hotel) for hotel in hotels]

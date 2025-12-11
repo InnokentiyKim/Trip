@@ -1,7 +1,8 @@
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from dishka.integrations.fastapi import FromDishka, inject
+from typing import Annotated
 
 from src.apps.hotel.bookings.controllers.v1.dto.request import ListBookingsRequestDTO
 from src.common.utils.auth_scheme import auth_header
@@ -30,7 +31,7 @@ router = APIRouter(
 )
 @inject
 async def get_bookings(
-    dto: ListBookingsRequestDTO,
+    filter_query: Annotated[ListBookingsRequestDTO, Query()],
     user_service: FromDishka[UserService],
     booking_service: FromDishka[BookingService],
     token: str = auth_header,
@@ -39,7 +40,7 @@ async def get_bookings(
         user_commands.VerifyUserByTokenCommand(token=token)
     )
     cmd = booking_commands.ListBookingsCommand(
-        user_id=user.id, room_id=dto.room_id, date_from=dto.date_from, status=dto.status
+        user_id=user.id, room_id=filter_query.room_id, date_from=filter_query.date_from, status=filter_query.status
     )
     bookings = await booking_service.list_bookings(cmd)
     return [BookingResponseDTO.from_model(booking) for booking in bookings]
