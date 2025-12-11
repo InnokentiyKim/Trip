@@ -11,6 +11,10 @@ class ConfigProvider(Provider):
     config = context(provides=Configs, scope=Scope.APP)
 
 
+class SecurityProvider(Provider):
+    pass
+
+
 class DatabaseProvider(Provider):
     @provide(scope=Scope.APP)
     async def provide_db_engine(self, configs: Configs) -> AsyncIterable[AsyncEngine]:

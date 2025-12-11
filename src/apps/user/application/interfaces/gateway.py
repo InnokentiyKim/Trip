@@ -7,7 +7,7 @@ from src.apps.user.domain.models import User
 
 class UserGatewayProto(GatewayProto):
     @abstractmethod
-    async def get_user_by_id(self, user_id) -> User:
+    async def get_user_by_id(self, user_id) -> User | None:
         """Retrieve a user by filters."""
         ...
 

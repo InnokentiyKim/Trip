@@ -23,6 +23,4 @@ def create_async_container(
     Returns:
         AsyncContainer: The created asynchronous container.
     """
-    return make_async_container(
-        *providers, context={Configs: config}
-    )  # context={Configs: config}
+    return make_async_container(*providers, context={Configs: config})

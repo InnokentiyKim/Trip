@@ -38,11 +38,11 @@ async def get_hotels(
     filter_query: Annotated[ListHotelsRequestDTO, Query()],
     user_service: FromDishka[UserService],
     hotel_service: FromDishka[HotelService],
-    token: str = auth_header,
+    # token: str = auth_header,
 ) -> list[GetHotelsResponseDTO]:
-    user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
-    )
+    # user = await user_service.verify_user_by_token(
+    #     user_commands.VerifyUserByTokenCommand(token=token)
+    # )
     cmd = hotel_commands.ListHotelsCommand(
         location=filter_query.location, services=filter_query.services, rooms_quantity=filter_query.rooms_quantity
     )

@@ -30,7 +30,7 @@ class SecurityAdapter(SecurityGatewayProto):
             minutes=self.config.security.token_expire_minutes
         )
         to_encode.update({"exp": expires})
-        encoded_jwt = jwt.encode(
+        encoded_jwt: str = jwt.encode(
             to_encode,
             self.config.security.secret_key,
             algorithm=self.config.security.algorithm,

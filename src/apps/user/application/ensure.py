@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from src.apps.user.application.interfaces.gateway import UserGatewayProto
 from src.apps.user.domain.models import User
 from src.common.application.ensure import ServiceInsuranceBase
@@ -10,7 +12,7 @@ class UserServiceInsurance(ServiceInsuranceBase):
     def __init__(self, gateway: UserGatewayProto) -> None:
         self._user = gateway
 
-    async def user_exists(self, user_id: int) -> User:
+    async def user_exists(self, user_id: UUID) -> User:
         user = await self._user.get_user_by_id(user_id)
         if user is None:
             raise exceptions.UserNotFoundException
