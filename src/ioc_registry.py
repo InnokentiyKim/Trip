@@ -1,5 +1,6 @@
 from dishka import Provider
 
+from src.apps.user.ioc import get_user_providers
 from src.infrastructure.ioc import get_infra_providers
 from src.apps.hotel.ioc import get_hotel_providers
 
@@ -17,4 +18,5 @@ def get_providers() -> list[Provider]:
     return [
         *get_infra_providers(),
         *get_hotel_providers(),
+        *get_user_providers(),
     ]
