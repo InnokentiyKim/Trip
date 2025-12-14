@@ -30,9 +30,6 @@ class Booking(BookingBase):
     date_from: Mapped[date] = mapped_column(Date, nullable=False)
     date_to: Mapped[date] = mapped_column(Date, nullable=False)
     price: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), nullable=False)
-    total_cost: Mapped[Decimal] = mapped_column(
-        DECIMAL(10, 4), Computed("price * (date_to - date_from)")
-    )
     total_days: Mapped[int] = mapped_column(Integer, Computed("(date_to - date_from)"))
 
     user: Mapped["User"] = relationship("User", back_populates="bookings", lazy="joined")
@@ -49,3 +46,25 @@ class Booking(BookingBase):
     updated_at: Mapped[date] = mapped_column(
         TIMESTAMP(timezone=False), nullable=False, default=datetime.now(UTC)
     )
+
+    def __init__(
+        self,
+        room_id: int = None,
+        date_from: date = None,
+        date_to: date = None,
+        price: Decimal = None,
+        total_days: int = None,
+        status: BookingStatusEnum = BookingStatusEnum.PENDING,
+    ) -> None:
+        self.id = uuid.uuid4()
+        self.room_id = room_id
+        self.user_id = uuid.uuid4()
+        self.date_from = date_from
+        self.date_to = date_to
+        self.price = price
+        self.total_days = total_days
+        self.status = status
+        now = datetime.now(UTC)
+        self.created_at = now
+        self.updated_at = now
+        super().__init__()
