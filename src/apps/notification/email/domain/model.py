@@ -9,9 +9,10 @@ class BaseEmail:
     recipients: list[str]
 
     from_email: str
-    company_name: str | None
-    company_website_url: str | None
-    company_logo_url: str | None
+    additional_data: dict[str, str] | None = None
+    company_name: str | None = None
+    company_website_url: str | None = None
+    company_logo_url: str | None = None
 
     _EXCLUDED_FIELDS = {"recipients", "template_name"}
     _BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,8 +30,8 @@ class ConfirmationEmail(BaseEmail):
     template_name: str = ""
     subject: str = ""
 
-    confirmation_link: str
-    link_lifetime_minutes: int
+    confirmation_link: str = ""
+    link_lifetime_minutes: int | None = None
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
