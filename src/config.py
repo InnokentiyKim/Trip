@@ -30,7 +30,7 @@ class SMTPSettings(BaseSettings):
     smtp_username: str = "HotelsApp"
     smtp_password: SecretStr = SecretStr("app_secret")
     smtp_use_credentials: bool = False
-    mail_from: str | EmailStr = "test@yandex.ru"
+    mail_from: str | EmailStr = "HotelsApp@yandex.ru"
     mail_from_name: str = "Hotels App"
     smtp_server: str = "smtp.yandex.ru"
     smtp_port: int = 465
