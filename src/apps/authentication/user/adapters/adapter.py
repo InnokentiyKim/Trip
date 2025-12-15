@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from src.apps.user.application.exceptions import UserAlreadyExistsException
-from src.apps.user.domain.models import User
+from src.apps.authentication.user.application.exceptions import UserAlreadyExistsException
+from src.apps.authentication.user.domain.models import User
 from src.common.adapters.adapter import SQLAlchemyGateway
-from src.apps.user.application.interfaces.gateway import UserGatewayProto
+from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
 
 
 class UserAdapter(SQLAlchemyGateway, UserGatewayProto):

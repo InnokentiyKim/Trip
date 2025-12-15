@@ -12,10 +12,10 @@ from src.apps.hotel.rooms.controllers.v1.dto.response import (
     DeleteRoomResponseDTO,
 )
 from src.apps.hotel.rooms.domain import commands as room_commands
-from src.apps.user.domain import commands as user_commands
-from src.apps.user.application.service import UserService
+from src.apps.authentication.user.domain import commands as user_commands
+from src.apps.authentication.user import UserService
 from dishka.integrations.fastapi import FromDishka, inject
-from src.apps.authentication.application.exceptions import Unauthorized
+from src.apps.authentication.user.application.exceptions import Unauthorized
 
 from src.common.exceptions.handlers import generate_responses
 from src.common.utils.auth_scheme import auth_header

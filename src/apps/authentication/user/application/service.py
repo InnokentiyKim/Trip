@@ -1,10 +1,10 @@
-from src.apps.user.application.interfaces.gateway import UserGatewayProto
+from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
 from src.infrastructure.security.application.exceptions import InvalidTokenException
-from src.apps.user.application.exceptions import UserAlreadyExistsException
+from src.apps.authentication.user.application.exceptions import UserAlreadyExistsException
 from src.common.application.service import ServiceBase
-from src.apps.user.domain.models import User
-from src.apps.user.application.ensure import UserServiceInsurance
-from src.apps.user.domain import commands
+from src.apps.authentication.user.domain.models import User
+from src.apps.authentication.user.application.ensure import UserServiceInsurance
+from src.apps.authentication.user.domain import commands
 from src.infrastructure.security.application.interfaces.gateway import SecurityGatewayProto
 
 

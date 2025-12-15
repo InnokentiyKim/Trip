@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class GeneralSettings(BaseSettings):
-    app_version: str = "0.0.1"
+    app_version: str = "1.0.0"
     app_name: str = "backend-hotel-service"
     environment: EnvironmentEnum = EnvironmentEnum.DEV
 
@@ -31,7 +31,7 @@ class SMTPSettings(BaseSettings):
     smtp_password: SecretStr = SecretStr("app_secret")
     smtp_use_credentials: bool = False
     mail_from: str | EmailStr = "test@yandex.ru"
-    mail_from_name: str = "Trips"
+    mail_from_name: str = "Hotels App"
     smtp_server: str = "smtp.yandex.ru"
     smtp_port: int = 465
     smtp_ssl_tls: bool = True

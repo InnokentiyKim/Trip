@@ -6,12 +6,12 @@ from typing import Annotated
 
 from src.apps.hotel.bookings.controllers.v1.dto.request import ListBookingsRequestDTO
 from src.common.utils.auth_scheme import auth_header
-from src.apps.user.domain import commands as user_commands
+from src.apps.authentication.user.domain import commands as user_commands
 from src.apps.hotel.bookings.domain import commands as booking_commands
 
-from src.apps.user.application.exceptions import UserNotFoundException
+from src.apps.authentication.user import UserNotFoundException
 from src.common.exceptions.handlers import generate_responses
-from src.apps.user.application.service import UserService
+from src.apps.authentication.user import UserService
 from src.apps.hotel.bookings.controllers.v1.dto.response import BookingResponseDTO
 from src.apps.hotel.bookings.application.service import BookingService
 from src.common.controllers.dto.base import BaseResponseDTO

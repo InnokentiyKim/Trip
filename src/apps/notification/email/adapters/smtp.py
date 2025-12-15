@@ -24,7 +24,7 @@ class SMTPAdapter(EmailGatewayProto):
         message = MessageSchema(
             subject=email_data.subject,
             recipients=email_data.recipients,
-            body=email_data.rendered_content,  # noqa: E501 TODO: add rendered_content property to EmailType
+            body=email_data.rendered_content,  # type: ignore[union-attr]
             subtype=MessageType.html,
         )
         await self.fastmail.send_message(message)

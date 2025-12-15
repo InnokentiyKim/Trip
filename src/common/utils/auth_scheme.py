@@ -1,5 +1,5 @@
 from fastapi import Request, Security
-from src.apps.authentication.application.exceptions import Unauthorized
+from src.apps.authentication.user.application.exceptions import Unauthorized
 from fastapi.security import HTTPBearer
 
 

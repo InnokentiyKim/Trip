@@ -13,8 +13,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 
-from src.apps.authentication.domain.results import OAuthProviderUser
-from src.apps.authentication.domain.enums import OAuthProviderEnum
+from src.apps.authentication.user.domain.results import OAuthProviderUser
+from src.apps.authentication.user.domain.enums import OAuthProviderEnum
 from src.apps.hotel.hotels.domain.models import Hotel
 from src.apps.hotel.bookings.domain.models import Booking
 from src.common.domain.models import Base

@@ -9,14 +9,21 @@ class InvalidCredentialsException(BaseError):
 
 
 class InvalidTokenException(BaseError):
-    """Exception raised for invalid or expired tokens."""
+    """Exception raised for invalid tokens."""
 
     status_code = 401
-    detail = "Invalid or expired token."
+    detail = "Invalid token."
+
+
+class ExpiredTokenException(BaseError):
+    """Exception raised for expired tokens."""
+
+    status_code = 401
+    detail = "Token is expired."
 
 
 class TokenIsMissingException(BaseError):
     """Exception raised when a token is missing."""
 
-    status_code = 401
+    status_code = 403
     detail = "Token is missing."

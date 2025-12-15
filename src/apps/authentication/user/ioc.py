@@ -1,9 +1,9 @@
 from dishka import Provider, Scope, provide, provide_all
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.apps.user.adapters.adapter import UserAdapter
-from src.apps.user.application.ensure import UserServiceInsurance
-from src.apps.user.application.interfaces.gateway import UserGatewayProto
-from src.apps.user.application.service import UserService
+from src.apps.authentication.user.adapters.adapter import UserAdapter
+from src.apps.authentication.user.application.ensure import UserServiceInsurance
+from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
+from src.apps.authentication.user.application.service import UserService
 from src.infrastructure.security.adapters.adapter import SecurityAdapter
 from src.infrastructure.security.application.interfaces.gateway import SecurityGatewayProto
 

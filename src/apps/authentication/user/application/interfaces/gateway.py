@@ -2,7 +2,7 @@ from abc import abstractmethod
 from uuid import UUID
 
 from src.common.interfaces import GatewayProto
-from src.apps.user.domain.models import User
+from src.apps.authentication.user.domain.models import User
 
 
 class UserGatewayProto(GatewayProto):

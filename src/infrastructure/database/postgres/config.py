@@ -21,7 +21,7 @@ class DatabaseSettings(BaseSettings):
     postgres_user: str = "postgres"
     postgres_password: SecretStr = SecretStr("postgres")
     postgres_host: str = "localhost"
-    postgres_port: str = "5432"
+    postgres_port: str = "5430"
     postgres_db: str = "hotels_db"
 
     engine: SqlEngineConfig = Field(default_factory=SqlEngineConfig)

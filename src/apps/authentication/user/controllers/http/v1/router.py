@@ -1,14 +1,14 @@
-from src.apps.user.controllers.dto.response import LogoutUserResponseDTO
-from src.apps.user.controllers.dto.response import (
+from src.apps.authentication.user.controllers.dto.response import LogoutUserResponseDTO
+from src.apps.authentication.user.controllers.dto.response import (
     RegisterUserResponseDTO,
     LoginUserResponseDTO,
 )
-from src.apps.user.controllers.dto.request import (
+from src.apps.authentication.user.controllers.dto.request import (
     AuthUserRequestDTO,
     LoginUserRequestDTO,
 )
-from src.apps.user.application.service import UserService
-from src.apps.user.domain import commands as user_commands
+from src.apps.authentication.user.application.service import UserService
+from src.apps.authentication.user.domain import commands as user_commands
 from src.common.utils.auth_scheme import auth_header
 from fastapi import APIRouter, Response
 from dishka.integrations.fastapi import inject, FromDishka

@@ -1,7 +1,7 @@
 import asyncio
 from typing import Annotated
 import typer
-from src.ioc_registry import get_providers
+from src.ioc.registry import get_providers
 from src.setup.common import create_async_container
 from src.setup.fastapi_app import create_fastapi_app
 from dishka.integrations.fastapi import setup_dishka as setup_fastapi_ioc

@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from src.apps.user.application.interfaces.gateway import UserGatewayProto
-from src.apps.user.domain.models import User
+from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
+from src.apps.authentication.user.domain.models import User
 from src.common.application.ensure import ServiceInsuranceBase
-from src.apps.user.application import exceptions
+from src.apps.authentication.user.application import exceptions
 
 
 class UserServiceInsurance(ServiceInsuranceBase):
