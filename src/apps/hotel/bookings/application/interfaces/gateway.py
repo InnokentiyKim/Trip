@@ -28,7 +28,7 @@ class BookingGatewayProto(GatewayProto):
     @abstractmethod
     async def add_booking(
         self, user_id: UUID, room_id: int, date_from: date, date_to: date
-    ) -> int | None:
+    ) -> Booking | None:
         """Add a new booking."""
         ...
 

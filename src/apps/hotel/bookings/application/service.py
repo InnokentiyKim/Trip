@@ -37,18 +37,22 @@ class BookingService(ServiceBase):
 
     async def delete_booking(self, cmd: commands.DeleteBookingCommand) -> None:
         booking = await self._ensure.booking_exists(cmd.booking_id, cmd.user_id)
-        await self._adapter.delete_booking(booking)
+        if booking.status == BookingStatusEnum.CANCELLED or BookingStatusEnum.COMPLETED:
+            await self._adapter.delete_booking(booking)
 
-    async def create_booking(self, cmd: commands.CreateBookingCommand) -> int | None:
-        result = await self._adapter.add_booking(
+    async def create_booking(self, cmd: commands.CreateBookingCommand) -> Booking | None:
+        if cmd.date_from > cmd.date_to:
+            raise exceptions.InvalidBookingDatesException
+
+        booking = await self._adapter.add_booking(
             user_id=cmd.user_id,
             room_id=cmd.room_id,
             date_from=cmd.date_from,
             date_to=cmd.date_to,
         )
-        if result is None:
+        if booking is None:
             raise exceptions.RoomCannotBeBookedException
-        return result
+        return booking
 
     async def update_booking_status(self, cmd: commands.UpdateBookingCommand) -> None:
         booking = await self._ensure.booking_exists(cmd.booking_id, cmd.user_id)

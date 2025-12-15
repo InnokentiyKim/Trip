@@ -1,8 +1,12 @@
 from datetime import date, datetime, UTC
 from decimal import Decimal
+
+from src.apps.authentication.user.domain.models import User
 from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 from sqlalchemy import ForeignKey, Integer, TIMESTAMP, Computed, DECIMAL, Date
+
+from src.apps.hotel.rooms.domain.models import Room
 from src.common.domain.models import Base
 import uuid
 from sqlalchemy import Enum as SAEnum
@@ -49,22 +53,23 @@ class Booking(BookingBase):
 
     def __init__(
         self,
-        room_id: int = None,
-        date_from: date = None,
-        date_to: date = None,
-        price: Decimal = None,
-        total_days: int = None,
+        room_id: int,
+        user_id: UUID,
+        date_from: date,
+        date_to: date,
+        price: Decimal,
         status: BookingStatusEnum = BookingStatusEnum.PENDING,
     ) -> None:
+        super().__init__()
         self.id = uuid.uuid4()
         self.room_id = room_id
-        self.user_id = uuid.uuid4()
+        self.user_id = user_id
         self.date_from = date_from
         self.date_to = date_to
         self.price = price
-        self.total_days = total_days
         self.status = status
+        days_count = (date_to - date_from).days
+        self.total_days = int(days_count)
         now = datetime.now(UTC)
         self.created_at = now
         self.updated_at = now
-        super().__init__()

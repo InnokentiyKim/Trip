@@ -38,3 +38,8 @@ class BookingProcessingErrorException(BaseError):
 class RoomCannotBeBookedException(BaseError):
     status_code = status.HTTP_400_BAD_REQUEST
     message = "Room cannot be booked."
+
+
+class InvalidBookingDatesException(BaseError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    message = "Invalid booking dates."
