@@ -1,4 +1,9 @@
-from typing import AsyncIterable
+from collections.abc import AsyncIterable, AsyncGenerator
+
+from aiobotocore.client import AioBaseClient
+from aiobotocore.config import AioConfig
+from aiobotocore.session import get_session
+from httpx import AsyncClient, Timeout
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from dishka import Provider, Scope, provide
 from dishka import from_context as context
@@ -57,10 +62,42 @@ class DatabaseProvider(Provider):
             yield session
 
 
+class S3Provider(Provider):
+    @provide(scope=Scope.APP)
+    async def provide_s3_client(self, config: Configs) -> AsyncIterable[AioBaseClient]:
+        """Provides an S3 client for the application scope."""
+        session = get_session()
+        botocore_config = AioConfig(max_pool_connections=config.s3.connection_pool_size)
+        async with session.create_client(
+            service_name="s3",
+            endpoint_url=config.s3.s3_endpoint,
+            aws_access_key_id=config.s3.s3_access_key,
+            aws_secret_access_key=config.s3.s3_secret_key.get_secret_value(),
+            config=botocore_config,
+        ) as client:
+            yield client
+
+
+class HttpProvider(Provider):
+    @provide(scope=Scope.APP, provides=AsyncClient)
+    async def provide_http_adapter(self) -> AsyncGenerator[AsyncClient]:
+        async with AsyncClient(
+            timeout=Timeout(
+                connect=5.0,
+                read=10.0,
+                write=5.0,
+                pool=5.0,
+            )
+        ) as client:
+            yield client
+
+
 def get_infra_providers() -> list[Provider]:
     """Returns a list of infrastructure providers for dependency injection."""
     return [
         ConfigProvider(),
-        SecurityProvider(),
         DatabaseProvider(),
+        S3Provider(),
+        SecurityProvider(),
+        HttpProvider(),
     ]
