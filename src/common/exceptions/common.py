@@ -1,10 +1,11 @@
-from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+from fastapi import status
 
 
 class BaseError(Exception):
     """Base class for application-specific errors."""
 
-    status_code: int = 500
+    status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
     message: str = "An internal server error occurred"
     loc: str = "general"
 
@@ -17,15 +18,13 @@ class BaseError(Exception):
         super().__init__(self.message)
 
 
+class UniqueConstraintError(BaseError, IntegrityError):
+    status_code: int = status.HTTP_409_CONFLICT
+    message: str = "Item already exists"
+    loc: str = ""
+
+
 class InternalError(BaseError):
-    status_code: int = 500
+    status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
     message: str = "Internal error"
-    loc: str = ""
-
-
-class ExceptionBase(HTTPException):
-    """Base class for all custom exceptions in the application."""
-
-    status_code: int = 500
-    detail: str = "An internal server error occurred"
-    loc: str = ""
+    loc: str = "general"
