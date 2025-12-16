@@ -5,6 +5,8 @@ from dishka import from_context as context
 
 from src.infrastructure.database.factory import create_database_adapter
 from src.config import Configs
+from src.infrastructure.security.adapters.adapter import SecurityAdapter
+from src.infrastructure.security.application.interfaces.gateway import SecurityGatewayProto
 
 
 class ConfigProvider(Provider):
@@ -12,7 +14,11 @@ class ConfigProvider(Provider):
 
 
 class SecurityProvider(Provider):
-    pass
+    scope = Scope.REQUEST
+
+    @provide(provides=SecurityGatewayProto)
+    def provide_security_adapter(self, config: Configs) -> SecurityGatewayProto:
+        return SecurityAdapter(config)
 
 
 class DatabaseProvider(Provider):
@@ -55,5 +61,6 @@ def get_infra_providers() -> list[Provider]:
     """Returns a list of infrastructure providers for dependency injection."""
     return [
         ConfigProvider(),
+        SecurityProvider(),
         DatabaseProvider(),
     ]

@@ -24,8 +24,6 @@ class UserGatewayProviders(Provider):
     def provide_user_adapter(self, session: AsyncSession) -> UserGatewayProto:
         return UserAdapter(session)
 
-    security_adapter = provide(SecurityAdapter, provides=SecurityGatewayProto)
-
 
 def get_user_providers() -> list[Provider]:
     return [UserServiceProviders(), UserGatewayProviders()]
