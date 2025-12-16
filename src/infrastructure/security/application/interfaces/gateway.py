@@ -16,7 +16,7 @@ class SecurityGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    def create_access_token(self, data: dict, expires_minutes: int) -> str:
+    def create_access_token(self, data: dict, expires_minutes: int | None = None) -> str:
         """Create a JWT access token."""
         ...
 

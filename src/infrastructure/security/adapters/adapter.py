@@ -23,17 +23,18 @@ class SecurityAdapter(SecurityGatewayProto):
         """Verify a password against its hash."""
         return self.pwd_context.verify(plain_password, hashed_password)
 
-    def create_access_token(self, data: dict, expires_minutes: int = 30) -> str:
+    def create_access_token(self, data: dict, expires_minutes: int | None = None) -> str:
         """Create a JWT access token."""
         to_encode = data.copy()
+        expires_minutes = expires_minutes or self.config.ACCESS_TOKEN_EXPIRE_MINUTES
         expires = datetime.now(UTC) + timedelta(
-            minutes=self.config.security.token_expire_minutes
+            minutes=expires_minutes
         )
         to_encode.update({"exp": expires})
         encoded_jwt: str = jwt.encode(
             to_encode,
-            self.config.security.secret_key,
-            algorithm=self.config.security.algorithm,
+            self.config.security.SECRET_KEY,
+            algorithm=self.config.security.ALGORITHM,
         )
         return encoded_jwt
 
