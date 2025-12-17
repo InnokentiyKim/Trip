@@ -5,9 +5,8 @@ from sqlalchemy import ForeignKey, Integer, DECIMAL, Enum as SAEnum
 from sqlalchemy.orm import MappedAsDataclass, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 
-from src.apps.billing.domain.enums import CurrencyEnum, BillingStatusEnum
+from src.apps.billing.bill.domain.enums import CurrencyEnum, BillingStatusEnum
 from src.common.domain.models import Base
-
 
 
 class BillingBase(MappedAsDataclass, Base):
@@ -42,3 +41,34 @@ class Bill(BillingBase):
     def total_cost(self) -> Decimal:
         return self.total_days * self.price
 
+    @property
+    def is_pending(self) -> bool:
+        return self.status == BillingStatusEnum.PENDING
+
+    @property
+    def is_paid(self) -> bool:
+        return self.status == BillingStatusEnum.PAID
+
+    @property
+    def is_cancelled(self) -> bool:
+        return self.status == BillingStatusEnum.CANCELED
+
+    @property
+    def is_failed(self) -> bool:
+        return self.status == BillingStatusEnum.FAILED
+
+    @property
+    def is_refunded(self) -> bool:
+        return self.status == BillingStatusEnum.REFUNDED
+
+    @property
+    def can_be_paid(self) -> bool:
+        return self.status  == BillingStatusEnum.PENDING
+
+    @property
+    def can_be_cancelled(self) -> bool:
+        return self.status == BillingStatusEnum.PENDING
+
+    @property
+    def can_be_refunded(self) -> bool:
+        return self.status == BillingStatusEnum.PAID
