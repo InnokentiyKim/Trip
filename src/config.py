@@ -38,12 +38,28 @@ class SMTPSettings(BaseSettings):
     smtp_starttls: bool = False
 
 
+class CelerySettings(BaseSettings):
+    # Celery broker and backend URLs
+    broker_url: str = "redis://localhost:6379/0"
+    result_backend: str = "redis://localhost:6379/0"
+    # Worker settings
+    worker_concurrency: int = 4
+    worker_prefetch_multiplier: int = 1
+    worker_max_tasks_per_child: int = 1000
+    # Timeouts
+    task_time_limit: int = 300
+    task_soft_time_limit: int = 240
+    # Results
+    result_expires: int = 3600
+
+
 class Configs(BaseSettings):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     security: SecuritySettings = Field(default_factory=SecuritySettings)
     smtp_email: SMTPSettings = Field(default_factory=SMTPSettings)
     s3: S3Settings = Field(default_factory=S3Settings)
+    celery: CelerySettings = Field(default_factory=CelerySettings)
 
 
 def create_configs() -> Configs:
