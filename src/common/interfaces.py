@@ -26,6 +26,14 @@ class UowProto(Protocol, AbstractAsyncContextManager[Any]):
 
 
 class CustomLoggerProto(Protocol):
+    def bind(self, *args: Any, **kwargs: Any) -> None:
+        """Bind additional context variables to the logger."""
+        ...
+
+    def unbind(self, *keys: str) -> None:
+        """Unbind (remove) previously bound keys from the logger's context."""
+        ...
+
     def debug(self, *args: Any, **kwargs: Any) -> None:
         """Log a DEBUG-level message."""
         ...
