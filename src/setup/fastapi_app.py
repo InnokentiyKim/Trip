@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from src.common.controllers.http.api_v1 import http_router_v1
 from src.common.exceptions.common import BaseError
 from src.common.exceptions.handlers import general_exception_handler
+from src.infrastructure.logger.factory import setup_logging
+from src.setup.common import app_config
 
 
 def create_fastapi_app() -> FastAPI:
@@ -15,9 +17,12 @@ def create_fastapi_app() -> FastAPI:
         The fully configured FastAPI application.
     """
     # Application Initialization
-    app = FastAPI()
+    app = FastAPI(
+        version=app_config.general.app_version,
+    )
 
-    # Logging setup:
+    # Logging setup
+    setup_logging(app_config)
 
     # CORS Configuration (allow frontend to access API)
     # app.add_middleware(
