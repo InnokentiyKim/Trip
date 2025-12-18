@@ -13,7 +13,7 @@ from src.apps.hotel.rooms.controllers.v1.dto.response import (
 )
 from src.apps.hotel.rooms.domain import commands as room_commands
 from src.apps.authentication.user.domain import commands as user_commands
-from src.apps.authentication.user import UserService
+from src.apps.authentication.user.application.service import UserService
 from dishka.integrations.fastapi import FromDishka, inject
 from src.apps.authentication.user.application.exceptions import Unauthorized
 
