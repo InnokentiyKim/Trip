@@ -7,9 +7,12 @@ from httpx import AsyncClient, Timeout
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from dishka import Provider, Scope, provide
 from dishka import from_context as context
+from structlog import BoundLogger, get_logger
 
+from src.common.interfaces import CustomLoggerProto
 from src.infrastructure.database.factory import create_database_adapter
 from src.config import Configs
+from src.infrastructure.logger.adapter import CustomLoggerAdapter
 from src.infrastructure.security.adapters.adapter import SecurityAdapter
 from src.infrastructure.security.application.interfaces.gateway import SecurityGatewayProto
 
@@ -24,6 +27,27 @@ class SecurityProvider(Provider):
     @provide(provides=SecurityGatewayProto)
     def provide_security_adapter(self, config: Configs) -> SecurityGatewayProto:
         return SecurityAdapter(config)
+
+
+class LoggingProvider(Provider):
+    logger = provide(
+        CustomLoggerAdapter,
+        provides=CustomLoggerProto,
+        scope=Scope.APP,
+    )
+
+    @provide(scope=Scope.APP)
+    def provide_logger(self, config: Configs) -> BoundLogger:
+        """
+        Provide a BoundLogger instance configured with the application logger name.
+
+        Args:
+            config (Configs): The configuration object containing logger settings.
+
+        Returns:
+            BoundLogger: An instance of BoundLogger configured with the application logger name.
+        """
+        return get_logger(config.logger.app_logger_name)
 
 
 class DatabaseProvider(Provider):
