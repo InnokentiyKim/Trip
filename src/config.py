@@ -10,23 +10,26 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-class GeneralSettings(BaseSettings):
-    app_version: str = "1.0.0"
-    app_name: str = "backend-hotel-service"
-    environment: EnvironmentEnum = EnvironmentEnum.DEV
-
-
-class SecuritySettings(BaseSettings):
-    secret_key: str
-    algorithm: str
-    token_expire_minutes: int
-
+class CustomBaseSettings(BaseSettings):
     class Config:
         env_file = BASE_DIR / ".env"
         case_sensitive = False
 
 
-class SMTPSettings(BaseSettings):
+class GeneralSettings(CustomBaseSettings):
+    app_version: str = "1.0.0"
+    app_name: str = "backend-hotel-service"
+    environment: EnvironmentEnum = EnvironmentEnum.DEV
+
+
+class SecuritySettings(CustomBaseSettings):
+    secret_key: SecretStr
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60
+    refresh_token_expire_minutes: int = 1440  # 1 day
+
+
+class SMTPSettings(CustomBaseSettings):
     smtp_username: str = "HotelsApp"
     smtp_password: SecretStr = SecretStr("app_secret")
     smtp_use_credentials: bool = False
@@ -38,7 +41,7 @@ class SMTPSettings(BaseSettings):
     smtp_starttls: bool = False
 
 
-class CelerySettings(BaseSettings):
+class CelerySettings(CustomBaseSettings):
     # Celery broker and backend URLs
     broker_url: str = "redis://localhost:6379/0"
     result_backend: str = "redis://localhost:6379/0"
@@ -53,6 +56,12 @@ class CelerySettings(BaseSettings):
     result_expires: int = 3600
 
 
+class LoggerSettings(BaseSettings):
+    log_level: str = "DEBUG"
+    app_logger_name: str = "hotels_backend.service_logs"
+    api_logger_name: str = "hotels_backend.api_logs"
+
+
 class Configs(BaseSettings):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
@@ -60,6 +69,7 @@ class Configs(BaseSettings):
     smtp_email: SMTPSettings = Field(default_factory=SMTPSettings)
     s3: S3Settings = Field(default_factory=S3Settings)
     celery: CelerySettings = Field(default_factory=CelerySettings)
+    logger: LoggerSettings = Field(default_factory=LoggerSettings)
 
 
 def create_configs() -> Configs:
