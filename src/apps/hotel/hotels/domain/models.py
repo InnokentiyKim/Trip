@@ -35,3 +35,22 @@ class Hotel(HotelBase):
     )
 
     is_active: Mapped[bool] = mapped_column(nullable=False, default=True)
+
+    def __init__(
+        self,
+        name: str,
+        location: str,
+        services: dict | None,
+        rooms_quantity: int,
+        owner: uuid.UUID,
+        is_active: bool = True,
+        image_id: int | None = None,
+    ) -> None:
+        super().__init__()
+        self.name = name
+        self.location = location
+        self.services = services
+        self.rooms_quantity = rooms_quantity
+        self.owner = owner
+        self.is_active = is_active
+        self.image_id = image_id

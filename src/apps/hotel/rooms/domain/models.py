@@ -38,3 +38,22 @@ class Room(RoomBase):
     )
 
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+
+    def __init__(
+        self,
+        hotel_id: int,
+        name: str,
+        price: Decimal,
+        description: str | None,
+        services: dict | None,
+        image_id: int | None,
+        quantity: int = 1,
+    ) -> None:
+        super().__init__()
+        self.hotel_id = hotel_id
+        self.name = name
+        self.description = description
+        self.price = price
+        self.services = services
+        self.image_id = image_id
+        self.quantity = quantity
