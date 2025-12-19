@@ -3,6 +3,7 @@ import logging
 import structlog.processors
 from structlog.typing import EventDict, Processor
 
+from src.common.domain.enums import EnvironmentEnum
 from src.config import Configs
 
 _debug_additional_info =  structlog.processors.CallsiteParameterAdder(
@@ -77,6 +78,12 @@ def setup_logging(config: Configs) -> None:
         processors=[
             # Remove internal structlog metadata so it doesn't show up in the final log.
             structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            # Choose the final renderer based on config (JSON or console).
+            (
+                structlog.dev.ConsoleRenderer()
+                if config.general.environment in (EnvironmentEnum.DEV, EnvironmentEnum.LOCAL)
+                else structlog.processors.JSONRenderer()
+            ),
         ],
     )
 

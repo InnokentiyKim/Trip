@@ -121,6 +121,7 @@ def get_infra_providers() -> list[Provider]:
     return [
         ConfigProvider(),
         DatabaseProvider(),
+        LoggingProvider(),
         S3Provider(),
         SecurityProvider(),
         HttpProvider(),

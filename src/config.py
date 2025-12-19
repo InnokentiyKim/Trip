@@ -14,6 +14,7 @@ class CustomBaseSettings(BaseSettings):
     class Config:
         env_file = BASE_DIR / ".env"
         case_sensitive = False
+        extra = 'ignore'
 
 
 class GeneralSettings(CustomBaseSettings):
