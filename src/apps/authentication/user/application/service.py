@@ -23,23 +23,28 @@ class UserService(ServiceBase):
         user = await self._user_ensure.user_with_email_exists(cmd.email)
         if user:
             raise UserAlreadyExistsException
+
         hashed_password = self._auth.get_password_hash(cmd.password)
-        user_params = cmd.model_dump(exclude_none=True)
         new_user = User(
             email=cmd.email,
             hashed_password=hashed_password,
-            name=cmd.name,
             phone=cmd.phone,
+            name=cmd.name,
             avatar_url=cmd.avatar_url,
             is_active=cmd.is_active,
         )
-        await self._user.add_user(new_user)
+        try:
+            await self._user.add_user(new_user)
+        except Exception as err:
+            raise UserAlreadyExistsException from None
+
         return new_user
 
     async def login_user(self, cmd: commands.LoginUserCommand) -> str:
         user = await self._user_ensure.user_with_email_exists(cmd.email)
         if not self._auth.verify_password(cmd.password, user.hashed_password):
             raise InvalidTokenException
+
         access_token = self._auth.create_access_token(data={"sub": str(user.id)})
         return access_token
 
