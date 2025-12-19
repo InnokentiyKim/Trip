@@ -5,12 +5,14 @@ from src.apps.hotel.bookings.domain import commands
 from src.apps.hotel.bookings.domain.models import Booking
 from src.common.application.service import ServiceBase
 from src.apps.hotel.bookings.application.ensure import BookingServiceInsurance
+from src.common.interfaces import CustomLoggerProto
 
 
 class BookingService(ServiceBase):
-    def __init__(self, gateway: BookingGatewayProto) -> None:
+    def __init__(self, gateway: BookingGatewayProto, logger: CustomLoggerProto) -> None:
         self._adapter = gateway
-        self._ensure = BookingServiceInsurance(gateway)
+        self._logger = logger
+        self._ensure = BookingServiceInsurance(gateway, logger)
 
     async def get_booking(self, cmd: commands.GetBookingCommand) -> Booking:
         booking = await self._ensure.booking_exists(cmd.booking_id, cmd.user_id)
@@ -37,11 +39,14 @@ class BookingService(ServiceBase):
 
     async def delete_booking(self, cmd: commands.DeleteBookingCommand) -> None:
         booking = await self._ensure.booking_exists(cmd.booking_id, cmd.user_id)
+
         if booking.status == BookingStatusEnum.CANCELLED or BookingStatusEnum.COMPLETED:
             await self._adapter.delete_booking(booking)
+            self._logger.info("Booking successfully deleted", booking_id=str(cmd.booking_id))
 
     async def create_booking(self, cmd: commands.CreateBookingCommand) -> Booking | None:
         if cmd.date_from > cmd.date_to:
+            self._logger.error("Date from/to must be before date", booking_id=cmd.booking_id)
             raise exceptions.InvalidBookingDatesException
 
         booking = await self._adapter.add_booking(
@@ -50,15 +55,25 @@ class BookingService(ServiceBase):
             date_from=cmd.date_from,
             date_to=cmd.date_to,
         )
+
         if booking is None:
+            self._logger.error(
+                "Room cannot be booked for the selected dates",
+                room_id=cmd.room_id, date_from=str(cmd.date_from), date_to=str(cmd.date_to)
+            )
             raise exceptions.RoomCannotBeBookedException
+
+        self._logger.info("New booking successfully created", booking_id=booking.id)
         return booking
 
     async def update_booking_status(self, cmd: commands.UpdateBookingCommand) -> None:
         booking = await self._ensure.booking_exists(cmd.booking_id, cmd.user_id)
         is_updated = await self._adapter.update_booking(booking, status=cmd.status)
         if not is_updated:
+            self._logger.error("Booking update failed", booking_id=cmd.booking_id)
             raise exceptions.BookingCannotBeUpdatedException
+
+        self._logger.info("Booking status updated", booking_id=booking.id, new_status=cmd.status.value)
 
     async def cancel_active_booking(
         self, cmd: commands.CancelActiveBookingCommand
@@ -68,4 +83,7 @@ class BookingService(ServiceBase):
             booking, only_active=True, status=BookingStatusEnum.CANCELLED
         )
         if is_cancelled is None:
+            self._logger.error("Booking cannot be cancelled", user_id=cmd.user_id, booking_id=cmd.booking_id)
             raise exceptions.BookingCannotBeCancelledException
+
+        self._logger.info("Booking successfully cancelled", user_id=cmd.user_id, booking_id=cmd.booking_id)
