@@ -1,9 +1,14 @@
 import uuid
 
+from typing import TYPE_CHECKING
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 from sqlalchemy import Integer, String, ForeignKey, JSON, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from src.common.domain.models import Base
+
+if TYPE_CHECKING:
+    from src.apps.authentication.user.domain.models import User
+    from src.apps.hotel.rooms.domain.models import Room
 
 
 class HotelBase(MappedAsDataclass, Base):
@@ -49,7 +54,7 @@ class Hotel(HotelBase):
         super().__init__()
         self.name = name
         self.location = location
-        self.services = services
+        self.services = services if services else {}
         self.rooms_quantity = rooms_quantity
         self.owner = owner
         self.is_active = is_active

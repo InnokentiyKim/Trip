@@ -6,11 +6,14 @@ from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 from sqlalchemy import ForeignKey, Integer, TIMESTAMP, Computed, DECIMAL, Date
 
-from src.apps.hotel.rooms.domain.models import Room
 from src.common.domain.models import Base
 import uuid
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.apps.hotel.rooms.domain.models import Room
 
 
 class BookingBase(MappedAsDataclass, Base):
@@ -54,7 +57,7 @@ class Booking(BookingBase):
     def __init__(
         self,
         room_id: int,
-        user_id: UUID,
+        user_id: uuid.UUID,
         date_from: date,
         date_to: date,
         price: Decimal,

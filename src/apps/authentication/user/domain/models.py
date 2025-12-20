@@ -12,12 +12,16 @@ from sqlalchemy import (
     Enum as SAEnum,
 )
 from sqlalchemy.dialects.postgresql import UUID
+from typing import TYPE_CHECKING
 
 from src.apps.authentication.user.domain.results import OAuthProviderUser
 from src.apps.authentication.user.domain.enums import OAuthProviderEnum
 from src.apps.hotel.hotels.domain.models import Hotel
-from src.apps.hotel.bookings.domain.models import Booking
+
 from src.common.domain.models import Base
+
+if TYPE_CHECKING:
+    from src.apps.hotel.bookings.domain.models import Booking
 
 
 class UserBase(MappedAsDataclass, Base):
