@@ -94,7 +94,7 @@ class SecurityAdapter(SecurityGatewayProto):
         def _generate_jwt() -> str:
             return jwt.encode(
                 claims=jwt_claims,
-                key=self.config.security.SECRET_KEY,
+                key=self.config.security.SECRET_KEY.get_secret_value(),
                 algorithm=self.config.security.ALGORITHM,
                 headers={"kid": self.config.security.JWT_KEY_ID}
             )

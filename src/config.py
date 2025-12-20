@@ -24,10 +24,11 @@ class GeneralSettings(CustomBaseSettings):
 
 
 class SecuritySettings(CustomBaseSettings):
-    secret_key: SecretStr
+    secret_key: SecretStr = SecretStr("some_secret_key")
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
     refresh_token_expire_minutes: int = 1440  # 1 day
+    jwt_key_id: str = "primary"
 
 
 class SMTPSettings(CustomBaseSettings):
