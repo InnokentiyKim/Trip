@@ -59,7 +59,7 @@ class CustomLoggerProto(Protocol):
         ...
 
 
-class SecurityProto(Protocol):
+class SecurityGatewayProto(Protocol):
     @abstractmethod
     async def hash_password(self, plain_password: str) -> str:
         """
@@ -74,7 +74,7 @@ class SecurityProto(Protocol):
         ...
 
     @abstractmethod
-    async def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+    async def verify_hashed_password(self, plain_password: str, hashed_password: str) -> bool:
         """
         Verify a plain text password against a hashed password.
 
@@ -88,10 +88,10 @@ class SecurityProto(Protocol):
         ...
 
     @abstractmethod
-    async def generate_jwt(
+    async def create_jwt_token(
         self,
         token_type: TokenTypeEnum,
-        user_id: str | UUID,
+        user_id: UUID,
         created_at: datetime,
         expires_at: datetime,
     ) -> str:
@@ -99,10 +99,10 @@ class SecurityProto(Protocol):
         Generate a JSON Web Token (JWT).
 
         Args:
-            token_type (TokenTypeEnum): The type of token to generate (e.g., access, refresh).
-            user_id (str | UUID): The unique identifier of the user.
-            created_at (datetime): The timestamp when the token is created.
-            expires_at (datetime): The timestamp when the token expires.
+            token_type (TokenTypeEnum): The type of the token (e.g., access, refresh).
+            user_id (UUID): The user ID for whom the token is generated.
+            created_at (datetime): The creation time of the token.
+            expires_at (datetime): The expiration time of the token.
 
         Returns:
             str: The generated JWT as a string.
@@ -110,7 +110,7 @@ class SecurityProto(Protocol):
         ...
 
     @abstractmethod
-    async def decode_jwt(self, token: str) -> Any:
+    async def decode_jwt_token(self, token: str) -> Any:
         """
         Decode a JSON Web Token (JWT).
 
@@ -125,21 +125,11 @@ class SecurityProto(Protocol):
         """
         ...
 
-    @abstractmethod
-    async def generate_otp_code(self) -> str:
-        """
-        Generate a one-time password (OTP) code.
-
-        Returns:
-            str: The generated OTP code.
-        """
-        ...
-
 
 class GatewayProto(ABC):
     def __call__(
         self, *args: Any, **kwargs: Any
-    ) -> AbstractAsyncContextManager[UowProto]:
+    ) -> AbstractAsyncContextManager[UowProto]: #  noqa: E501
         """Return an async context manager for a unit of work."""
         ...
 
