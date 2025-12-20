@@ -4,8 +4,6 @@ from src.apps.authentication.user.adapters.adapter import UserAdapter
 from src.apps.authentication.user.application.ensure import UserServiceInsurance
 from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
 from src.apps.authentication.user.application.service import UserService
-from src.infrastructure.security.adapters.adapter import SecurityAdapter
-from src.infrastructure.security.application.interfaces.gateway import SecurityGatewayProto
 
 
 class UserServiceProviders(Provider):

@@ -13,11 +13,12 @@ from src.common.interfaces import CustomLoggerProto
 from src.infrastructure.database.factory import create_database_adapter
 from src.config import Configs
 from src.infrastructure.logger.adapter import CustomLoggerAdapter
-from src.infrastructure.security.adapters.adapter import SecurityAdapter
-from src.infrastructure.security.application.interfaces.gateway import SecurityGatewayProto
+from src.infrastructure.security.adapter import SecurityAdapter
+from src.common.interfaces import SecurityGatewayProto
 
 
 class ConfigProvider(Provider):
+    """Provides application configuration."""
     config = context(provides=Configs, scope=Scope.APP)
 
 
@@ -25,8 +26,9 @@ class SecurityProvider(Provider):
     scope = Scope.REQUEST
 
     @provide(provides=SecurityGatewayProto)
-    def provide_security_adapter(self, config: Configs) -> SecurityGatewayProto:
-        return SecurityAdapter(config)
+    def provide_security_adapter(self, config: Configs, logger: CustomLoggerProto) -> SecurityGatewayProto:
+        """Provides a SecurityAdapter instance configured with application settings."""
+        return SecurityAdapter(config, logger)
 
 
 class LoggingProvider(Provider):
