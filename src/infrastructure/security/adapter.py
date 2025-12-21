@@ -12,7 +12,8 @@ from fastapi.concurrency import run_in_threadpool
 from src.common.interfaces import CustomLoggerProto, TokenTypeEnum
 from src.common.interfaces import SecurityGatewayProto
 from src.config import Configs
-from src.infrastructure.security.exceptions import InvalidTokenException, ExpiredTokenException
+from src.infrastructure.security.exceptions import InvalidTokenException, ExpiredTokenException, \
+    InvalidTokenTypeException
 
 
 class SecurityAdapter(SecurityGatewayProto):
@@ -75,10 +76,10 @@ class SecurityAdapter(SecurityGatewayProto):
         Generate a JSON Web Token (JWT).
 
         Args:
-            token_type (TokenTypeEnum): The type of the token (e.g., access, refresh).
-            user_id (UUID): The user ID for whom the token is generated.
-            created_at (datetime): The creation time of the token.
-            expires_at (datetime): The expiration time of the token.
+            token_type (TokenTypeEnum): The type of the access_token (e.g., access, refresh).
+            user_id (UUID): The user ID for whom the access_token is generated.
+            created_at (datetime): The creation time of the access_token.
+            expires_at (datetime): The expiration time of the access_token.
 
         Returns:
             str: The generated JWT as a string.
@@ -103,19 +104,19 @@ class SecurityAdapter(SecurityGatewayProto):
 
     async def decode_jwt_token(self, token: str) -> Any:
         """
-        Decodes a JWT token.
+        Decodes a JWT access_token.
 
         This method verifies and decodes a JSON Web Token (JWT) using the configured
-        secret key and algorithm. If the token format is invalid, an exception is raised.
+        secret key and algorithm. If the access_token format is invalid, an exception is raised.
 
         Args:
-            token (str): The JWT token to decode.
+            token (str): The JWT access_token to decode.
 
         Returns:
-            Any: The decoded payload of the JWT token.
+            Any: The decoded payload of the JWT access_token.
 
         Raises:
-            JWTError: If the token is invalid or cannot be decoded.
+            JWTError: If the access_token is invalid or cannot be decoded.
         """
         def _decode_jwt() -> Any:
             try:
@@ -125,25 +126,32 @@ class SecurityAdapter(SecurityGatewayProto):
                     algorithms=[self.config.security.algorithm],
                 )
             except JWTError as err:
-                self.logger.info("[Security Adapter] Invalid JWT token attempt while decoding", error=f"{err}")
+                self.logger.info("[Security Adapter] Invalid JWT access_token attempt while decoding", error=f"{err}")
                 raise InvalidTokenException
 
         return await run_in_threadpool(_decode_jwt)
 
-    async def verify_token(self, token: str) -> UUID:
+    async def verify_token(self, token: str, token_type: TokenTypeEnum) -> UUID:
         """
         Verify a JWT token.
         This method decodes the token and checks its expiration. If the token is valid, it returns the user ID.
 
         Args:
             token (str): The JWT token to verify.
+            token_type (TokenTypeEnum): The type of the access_token (e.g., access, refresh).
 
         Returns:
             UUID: The user ID extracted from the token if valid.
         """
         payload = await self.decode_jwt_token(token)
+
+        jwt_type = payload.get("token_type")
         expire = payload.get("exp")
         user_id = UUID(payload.get("sub"))
+
+        if token_type != jwt_type:
+            self.logger.info("[SecurityAdapter] Invalid token type attempt")
+            raise InvalidTokenTypeException
 
         if not expire or not user_id:
             self.logger.info("[SecurityAdapter] Invalid token attempt")
@@ -158,15 +166,15 @@ class SecurityAdapter(SecurityGatewayProto):
     @staticmethod
     def generate_urlsafe_token(nbytes: int = 32) -> str:
         """
-        Generate a URL-safe token.
+        Generate a URL-safe access_token.
 
-        This method creates a random URL-safe token using the specified number of bytes.
+        This method creates a random URL-safe access_token using the specified number of bytes.
 
         Args:
-            nbytes (int): The number of random bytes to use for the token generation. Default is 32.
+            nbytes (int): The number of random bytes to use for the access_token generation. Default is 32.
 
         Returns:
-            str: A URL-safe token string.
+            str: A URL-safe access_token string.
         """
         return secrets.token_urlsafe(nbytes)
 

@@ -22,7 +22,7 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
             criteria.append(Hotel.services.contains(services))
         if rooms_quantity:
             criteria.append(Hotel.rooms_quantity >= rooms_quantity)
-        stmt = select(Hotel).where(*criteria)
+        stmt = select(Hotel).filter(*criteria)
         result = await self.session.execute(stmt)
         return list(result.scalars())
 
