@@ -50,7 +50,8 @@ async def login_user(
     user_service: FromDishka[UserService],
 ) -> LoginUserResponseDTO:
     cmd = user_commands.LoginUserCommand(email=dto.email, password=dto.password)
-    access_token = await user_service.login_user(cmd)
+    tokens = await user_service.login_user(cmd)
+    access_token = tokens.access_token.get_secret_value()
     response.set_cookie("access_token", access_token, expires=3600, httponly=True)
     return LoginUserResponseDTO(access_token=access_token)
 
@@ -63,7 +64,7 @@ async def logout_user(
     response: Response, user_service: FromDishka[UserService], token: str = auth_header
 ) -> LogoutUserResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     response.delete_cookie("access_token")
     return LogoutUserResponseDTO()

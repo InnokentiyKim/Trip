@@ -39,7 +39,7 @@ async def get_bookings(
     token: str = auth_header,
 ) -> list[BookingResponseDTO]:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     cmd = booking_commands.ListBookingsCommand(
         user_id=user.id, room_id=filter_query.room_id, date_from=filter_query.date_from, status=filter_query.status
@@ -62,7 +62,7 @@ async def get_booking(
     token: str = auth_header,
 ) -> BookingResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     cmd = booking_commands.GetBookingCommand(user_id=user.id, booking_id=booking_id)
     booking = await booking_service.get_booking(cmd)
@@ -83,7 +83,7 @@ async def add_booking(
     token: str = auth_header,
 ) -> BookingResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     cmd = booking_commands.CreateBookingCommand(
         user_id=user.id, room_id=dto.room_id, date_from=dto.date_from, date_to=dto.date_to,
@@ -110,7 +110,7 @@ async def cancel_active_booking(
     token: str = auth_header,
 ) -> BaseResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     cmd = booking_commands.CancelActiveBookingCommand(
         user_id=user.id, booking_id=booking_id
@@ -133,7 +133,7 @@ async def delete_booking(
     token: str = auth_header,
 ) -> BaseResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     cmd = booking_commands.DeleteBookingCommand(user_id=user.id, booking_id=booking_id)
     await booking_service.delete_booking(cmd)

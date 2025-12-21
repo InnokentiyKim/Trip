@@ -42,7 +42,7 @@ async def list_rooms(
     token: str = auth_header,
 ) -> list[GetRoomResponseDTO]:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     cmd = room_commands.ListRoomsCommand(
         hotel_id=hotel_id,
@@ -69,7 +69,7 @@ async def get_room(
     token: str = auth_header,
 ) -> GetRoomResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     room = await room_service.get_room(
         room_commands.GetRoomCommand(hotel_id=hotel_id, room_id=room_id)
@@ -93,7 +93,7 @@ async def update_room(
     token: str = auth_header,
 ) -> UpdateRoomResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     cmd = room_commands.UpdateRoomCommand(
         hotel_id=hotel_id,
@@ -126,7 +126,7 @@ async def delete_room(
     token: str = auth_header,
 ) -> DeleteRoomResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     cmd = room_commands.DeleteRoomCommand(
         hotel_id=hotel_id, room_id=room_id, user_id=user.id

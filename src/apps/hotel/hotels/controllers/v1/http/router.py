@@ -78,7 +78,7 @@ async def create_hotel(
     token: str = auth_header,
 ) -> CreateHotelResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     cmd = hotel_commands.CreateHotelCommand(
         name=dto.name,
@@ -109,7 +109,7 @@ async def upload_hotel_image(
     token: str = auth_header,
 ) -> UploadHotelImageResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     hotel = await hotel_service.get_hotel(
         hotel_commands.GetHotelCommand(hotel_id=hotel_id)
@@ -132,7 +132,7 @@ async def update_hotel(
     token: str = auth_header,
 ) -> UpdateHotelResponseDTO:
     user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(token=token)
+        user_commands.VerifyUserByTokenCommand(access_token=token)
     )
     cmd = hotel_commands.UpdateHotelCommand(
         hotel_id=dto.hotel_id,
