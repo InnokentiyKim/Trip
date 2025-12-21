@@ -8,6 +8,12 @@ class UserNotFoundException(BaseError):
     message = "User not found."
 
 
+class InvalidCredentialsException(BaseError):
+    """Exception raised for invalid login credentials."""
+    status_code = status.HTTP_401_UNAUTHORIZED
+    detail = "Invalid email or password."
+
+
 class UserAlreadyExistsException(UniqueConstraintError):
     """Exception raised when trying to create a user that already exists."""
     status_code = status.HTTP_409_CONFLICT
