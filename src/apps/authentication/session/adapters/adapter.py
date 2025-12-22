@@ -4,7 +4,7 @@ from src.apps.authentication.session.application.interfaces.gateway import AuthS
 from src.apps.authentication.session.domain.models import AuthSession
 from src.common.adapters.adapter import SQLAlchemyGateway
 from uuid import UUID
-from sqlalchemy import select, func
+from sqlalchemy import select, delete, func
 
 
 class AuthSessionAdapter(SQLAlchemyGateway, AuthSessionGatewayProto):
@@ -53,3 +53,13 @@ class AuthSessionAdapter(SQLAlchemyGateway, AuthSessionGatewayProto):
         )
         result = await self.session.execute(stmt)
         return result.scalar_one()
+
+    async def remove_refresh_sessions_by_user_id(self, user_id: UUID) -> None:
+        """
+        Removes all refresh sessions for a user.
+
+        Args:
+            user_id (UUID): The unique identifier of the user.
+        """
+        stmt = delete(AuthSession).where(AuthSession.user_id == user_id)
+        await self.session.execute(stmt)
