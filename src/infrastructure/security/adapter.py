@@ -1,3 +1,4 @@
+import hashlib
 import secrets
 import uuid
 from datetime import datetime, UTC
@@ -189,3 +190,31 @@ class SecurityAdapter(SecurityGatewayProto):
             str: A 6-digit OTP code as a string.
         """
         return f"{secrets.randbelow(1_000_000):06d}"
+
+    @staticmethod
+    def hash_string(plain_string: str) -> str:
+        """
+        Hashes a string.
+
+        Args:
+            plain_string (str): The plain string to be hashed.
+
+        Returns:
+            str: The hashed string.
+        """
+        return hashlib.sha256(plain_string.encode()).hexdigest()
+
+    @staticmethod
+    def verify_hashed_string(plain_string: str, hashed_string: str) -> bool:
+        """
+        Verifies a string against its hashed counterpart.
+
+        Args:
+            plain_string (str): The plain string to verify.
+            hashed_string (str): The hashed string to verify against.
+
+        Returns:
+            bool: True if the string matches the hash, otherwise False.
+        """
+        plain_hashed_string = hashlib.sha256(plain_string.encode()).hexdigest()
+        return secrets.compare_digest(plain_hashed_string, hashed_string)
