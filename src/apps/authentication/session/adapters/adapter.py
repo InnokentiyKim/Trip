@@ -1,10 +1,11 @@
 from datetime import datetime, UTC
 
 from src.apps.authentication.session.application.interfaces.gateway import AuthSessionGatewayProto
-from src.apps.authentication.session.domain.models import AuthSession
+from src.apps.authentication.session.domain.enums import PasswordResetTokenStatusEnum
+from src.apps.authentication.session.domain.models import AuthSession, PasswordResetToken
 from src.common.adapters.adapter import SQLAlchemyGateway
 from uuid import UUID
-from sqlalchemy import select, delete, func
+from sqlalchemy import select, delete, update, func
 
 
 class AuthSessionAdapter(SQLAlchemyGateway, AuthSessionGatewayProto):
@@ -63,3 +64,48 @@ class AuthSessionAdapter(SQLAlchemyGateway, AuthSessionGatewayProto):
         """
         stmt = delete(AuthSession).where(AuthSession.user_id == user_id)
         await self.session.execute(stmt)
+
+
+class PasswordResetTokenAdapter(SQLAlchemyGateway):
+    async def add(self, password_reset_token: PasswordResetToken):
+        """Adds a password reset token to the database."""
+        self.session.add(password_reset_token)
+
+    async def get_valid_password_reset_token(self, hashed_token: str) -> PasswordResetToken | None:
+        """
+        Retrieves a valid password reset token by its hashed value.
+
+        Args:
+            hashed_token (str): The hashed password reset token.
+
+        Returns:
+            PasswordResetToken | None: The password reset token object if found, otherwise None.
+        """
+        stmt = (
+            select(PasswordResetToken).where(
+                PasswordResetToken.hashed_refresh_token == hashed_token,
+                PasswordResetToken.status == PasswordResetTokenStatusEnum.CREATED,
+                PasswordResetToken.expires_at > datetime.now(UTC),
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def invalidate_unused_password_reset_tokens(self, user_id: UUID) -> None:
+        """
+        Invalidates all unused password reset tokens for a user by setting their status as SUPERSEDED.
+
+        Args:
+            user_id (UUID): The unique identifier of the user.
+        """
+        stmt = (
+            update(PasswordResetToken)
+            .where(
+                PasswordResetToken.user_id == user_id,
+                PasswordResetToken.status == PasswordResetTokenStatusEnum.CREATED
+            )
+            .values(PasswordResetTokenStatusEnum.SUPERSEDED)
+        )
+        await self.session.execute(stmt)
+
+
