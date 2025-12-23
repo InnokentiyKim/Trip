@@ -2,7 +2,7 @@ from datetime import datetime, UTC
 
 from src.apps.authentication.session.application.interfaces.gateway import AuthSessionGatewayProto
 from src.apps.authentication.session.domain.enums import PasswordResetTokenStatusEnum
-from src.apps.authentication.session.domain.models import AuthSession, PasswordResetToken
+from src.apps.authentication.session.domain.models import AuthSession, PasswordResetToken, OTPCode
 from src.common.adapters.adapter import SQLAlchemyGateway
 from uuid import UUID
 from sqlalchemy import select, delete, update, func
@@ -109,3 +109,32 @@ class PasswordResetTokenAdapter(SQLAlchemyGateway):
         await self.session.execute(stmt)
 
 
+class OTPCodeAdapter(SQLAlchemyGateway):
+    async def add(self, otp_code: OTPCode) -> None:
+        """Adds an OTP code to the database."""
+        self.session.add(otp_code)
+
+    async def get_valid_otp_code(self, user_id: UUID) -> OTPCode | None:
+        stmt = (
+            select(OTPCode)
+            .where(
+                OTPCode.user_id == user_id,
+                OTPCode.status == PasswordResetTokenStatusEnum.CREATED,
+                OTPCode.expires_at > datetime.now(UTC),
+            )
+            .order_by(OTPCode.created_at.desc())
+            .limit(1)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def invalidate_unused_otp_codes(self, user_id: UUID) -> None:
+        stmt = (
+            update(OTPCode)
+            .where(
+                OTPCode.user_id == user_id,
+                OTPCode.status == PasswordResetTokenStatusEnum.CREATED
+            )
+            .values(status=PasswordResetTokenStatusEnum.SUPERSEDED)
+        )
+        await self.session.execute(stmt)
