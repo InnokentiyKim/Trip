@@ -10,7 +10,8 @@ from argon2.exceptions import VerifyMismatchError, InvalidHashError, Verificatio
 from jose import jwt, JWTError
 from fastapi.concurrency import run_in_threadpool
 
-from src.common.interfaces import CustomLoggerProto, TokenTypeEnum
+from src.common.interfaces import CustomLoggerProto
+from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
 from src.common.interfaces import SecurityGatewayProto
 from src.config import Configs
 from src.infrastructure.security.exceptions import InvalidTokenException, ExpiredTokenException, \
@@ -68,7 +69,7 @@ class SecurityAdapter(SecurityGatewayProto):
 
     async def create_jwt_token(
         self,
-        token_type: TokenTypeEnum,
+        token_type: AuthTokenTypeEnum,
         user_id: uuid.UUID,
         created_at: datetime,
         expires_at: datetime,
@@ -77,7 +78,7 @@ class SecurityAdapter(SecurityGatewayProto):
         Generate a JSON Web Token (JWT).
 
         Args:
-            token_type (TokenTypeEnum): The type of the access_token (e.g., access, refresh).
+            token_type (AuthTokenTypeEnum): The type of the access_token (e.g., access, refresh).
             user_id (UUID): The user ID for whom the access_token is generated.
             created_at (datetime): The creation time of the access_token.
             expires_at (datetime): The expiration time of the access_token.
@@ -132,14 +133,14 @@ class SecurityAdapter(SecurityGatewayProto):
 
         return await run_in_threadpool(_decode_jwt)
 
-    async def verify_token(self, token: str, token_type: TokenTypeEnum) -> UUID:
+    async def verify_token(self, token: str, token_type: AuthTokenTypeEnum) -> UUID:
         """
         Verify a JWT token.
         This method decodes the token and checks its expiration. If the token is valid, it returns the user ID.
 
         Args:
             token (str): The JWT token to verify.
-            token_type (TokenTypeEnum): The type of the access_token (e.g., access, refresh).
+            token_type (AuthTokenTypeEnum): The type of the access_token (e.g., access, refresh).
 
         Returns:
             UUID: The user ID extracted from the token if valid.
@@ -164,8 +165,7 @@ class SecurityAdapter(SecurityGatewayProto):
 
         return user_id
 
-    @staticmethod
-    def generate_urlsafe_token(nbytes: int = 32) -> str:
+    def generate_urlsafe_token(self, nbytes: int = 32) -> str:
         """
         Generate a URL-safe access_token.
 
@@ -179,8 +179,7 @@ class SecurityAdapter(SecurityGatewayProto):
         """
         return secrets.token_urlsafe(nbytes)
 
-    @staticmethod
-    def generate_otp_code():
+    def generate_otp_code(self) -> str:
         """
         Generate a 6-digit OTP code.
 
@@ -191,8 +190,7 @@ class SecurityAdapter(SecurityGatewayProto):
         """
         return f"{secrets.randbelow(1_000_000):06d}"
 
-    @staticmethod
-    def hash_string(plain_string: str) -> str:
+    def hash_string(self, plain_string: str) -> str:
         """
         Hashes a string.
 
@@ -204,8 +202,7 @@ class SecurityAdapter(SecurityGatewayProto):
         """
         return hashlib.sha256(plain_string.encode()).hexdigest()
 
-    @staticmethod
-    def verify_hashed_string(plain_string: str, hashed_string: str) -> bool:
+    def verify_hashed_string(self, plain_string: str, hashed_string: str) -> bool:
         """
         Verifies a string against its hashed counterpart.
 

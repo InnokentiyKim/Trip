@@ -65,6 +65,15 @@ class AuthSessionAdapter(SQLAlchemyGateway, AuthSessionGatewayProto):
         stmt = delete(AuthSession).where(AuthSession.user_id == user_id)
         await self.session.execute(stmt)
 
+    async def remove(self, auth_session: AuthSession) -> None:
+        """
+        Removes an auth session from the database.
+
+        Args:
+            auth_session (AuthSession): The auth session object.
+        """
+        await self.session.delete(auth_session)
+
 
 class PasswordResetTokenAdapter(SQLAlchemyGateway):
     async def add(self, password_reset_token: PasswordResetToken):
