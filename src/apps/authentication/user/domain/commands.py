@@ -16,4 +16,4 @@ class LoginUserCommand(Command):
 
 
 class VerifyUserByTokenCommand(Command):
-    token: str
+    access_token: str
