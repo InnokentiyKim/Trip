@@ -1,16 +1,11 @@
 from abc import abstractmethod, ABC
 from contextlib import AbstractAsyncContextManager
 from datetime import datetime
-from enum import StrEnum
 from typing import Protocol, Any
 from uuid import UUID
+
+from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
 from src.common.domain.models import ORM_CLS, ORM_OBJ
-
-
-class TokenTypeEnum(StrEnum):
-    ACCESS = "access"
-    REFRESH = "refresh"
-    MFA = "mfa"
 
 
 class UowProto(Protocol, AbstractAsyncContextManager[Any]):
@@ -90,7 +85,7 @@ class SecurityGatewayProto(Protocol):
     @abstractmethod
     async def create_jwt_token(
         self,
-        token_type: TokenTypeEnum,
+        token_type: AuthTokenTypeEnum,
         user_id: UUID,
         created_at: datetime,
         expires_at: datetime,
@@ -99,10 +94,10 @@ class SecurityGatewayProto(Protocol):
         Generate a JSON Web Token (JWT).
 
         Args:
-            token_type (TokenTypeEnum): The type of the token (e.g., access, refresh).
-            user_id (UUID): The user ID for whom the token is generated.
-            created_at (datetime): The creation time of the token.
-            expires_at (datetime): The expiration time of the token.
+            token_type (AuthTokenTypeEnum): The type of the access_token (e.g., access, refresh).
+            user_id (UUID): The user ID for whom the access_token is generated.
+            created_at (datetime): The creation time of the access_token.
+            expires_at (datetime): The expiration time of the access_token.
 
         Returns:
             str: The generated JWT as a string.
@@ -121,7 +116,76 @@ class SecurityGatewayProto(Protocol):
             Any: The decoded payload of the JWT.
 
         Raises:
-            JWTDecodeError: If the token is invalid or cannot be decoded.
+            JWTDecodeError: If the access_token is invalid or cannot be decoded.
+        """
+        ...
+
+    @abstractmethod
+    async def verify_token(self, token: str, token_type: AuthTokenTypeEnum) -> UUID:
+        """
+        Verify a JWT token.
+        This method decodes the token and checks its expiration. If the token is valid, it returns the user ID.
+
+        Args:
+            token (str): The JWT token to verify.
+            token_type (AuthTokenTypeEnum): The type of the access_token (e.g., access, refresh).
+
+        Returns:
+            UUID: The user ID extracted from the token if valid.
+        """
+        ...
+
+    @abstractmethod
+    def generate_urlsafe_token(self, nbytes: int = 32) -> str:
+        """
+        Generate a URL-safe access_token.
+
+        This method creates a random URL-safe access_token using the specified number of bytes.
+
+        Args:
+            nbytes (int): The number of random bytes to use for the access_token generation. Default is 32.
+
+        Returns:
+            str: A URL-safe access_token string.
+        """
+        ...
+
+    @abstractmethod
+    def generate_otp_code(self) -> str:
+        """
+        Generate a 6-digit OTP code.
+
+        This method creates a random 6-digit one-time password (OTP) code.
+
+        Returns:
+            str: A 6-digit OTP code as a string.
+        """
+        ...
+
+    @abstractmethod
+    def hash_string(self, plain_string: str) -> str:
+        """
+        Hashes a string.
+
+        Args:
+            plain_string (str): The plain string to be hashed.
+
+        Returns:
+            str: The hashed string.
+        """
+        ...
+
+    @abstractmethod
+    def verify_hashed_string(self, plain_string: str, hashed_string: str) -> bool:
+        """
+        Verifies a string against its hashed counterpart.
+
+        Args:
+            plain_string (str): The plain string to verify.
+            hashed_string (str): The hashed string to verify against.
+
+        Returns:
+            bool: True if the string matches the hash, otherwise False.
         """
         ...
 

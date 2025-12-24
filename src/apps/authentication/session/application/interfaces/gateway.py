@@ -7,6 +7,16 @@ from src.apps.authentication.session.domain.models import AuthSession, PasswordR
 
 class AuthSessionGatewayProto(GatewayProto):
     @abstractmethod
+    async def add(self, auth_session: AuthSession) -> None:
+        """
+        Adds a new authentication session to the database.
+
+        Args:
+            auth_session (AuthSession): The authentication session object to be added.
+        """
+        ...
+
+    @abstractmethod
     async def get_refresh_session(
         self,
         hashed_refresh_token: str,
@@ -47,8 +57,23 @@ class AuthSessionGatewayProto(GatewayProto):
         """
         ...
 
+    @abstractmethod
+    async def remove(self, auth_session: AuthSession) -> None:
+        """
+        Removes an auth session from the database.
+
+        Args:
+            auth_session (AuthSession): The auth session object.
+        """
+        ...
+
 
 class PasswordResetTokenGatewayProto(GatewayProto):
+    @abstractmethod
+    async def add(self, password_reset_token: PasswordResetToken):
+        """Adds a password reset token to the database."""
+        ...
+
     @abstractmethod
     async def get_valid_password_reset_token(self, hashed_token: str) -> PasswordResetToken | None:
         """
@@ -74,6 +99,11 @@ class PasswordResetTokenGatewayProto(GatewayProto):
 
 
 class OTPCodeGatewayProto(GatewayProto):
+    @abstractmethod
+    async def add(self, otp_code: OTPCode) -> None:
+        """Adds an OTP code to the database."""
+        ...
+
     @abstractmethod
     async def get_valid_otp_code(self, user_id: UUID) -> OTPCode | None:
         """
