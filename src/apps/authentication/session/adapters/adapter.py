@@ -115,6 +115,15 @@ class OTPCodeAdapter(SQLAlchemyGateway):
         self.session.add(otp_code)
 
     async def get_valid_otp_code(self, user_id: UUID) -> OTPCode | None:
+        """
+        Retrieves a valid OTP code by user ID and purpose.
+
+        Args:
+            user_id (UUID): The unique identifier of the user.
+
+        Returns:
+            OTPCode | None: The OTP code object if found, otherwise None.
+        """
         stmt = (
             select(OTPCode)
             .where(
@@ -129,6 +138,12 @@ class OTPCodeAdapter(SQLAlchemyGateway):
         return result.scalar_one_or_none()
 
     async def invalidate_unused_otp_codes(self, user_id: UUID) -> None:
+        """
+        Invalidates all unused OTP codes with the same purpose for a user by setting their status as SUPERSEDED.
+
+        Args:
+            user_id (UUID): The unique identifier of the user.
+        """
         stmt = (
             update(OTPCode)
             .where(
