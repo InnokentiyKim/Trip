@@ -1,4 +1,4 @@
-from starlette import status
+from fastapi import status
 from src.common.exceptions.common import BaseError, UniqueConstraintError
 
 

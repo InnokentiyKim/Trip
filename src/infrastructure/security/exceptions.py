@@ -5,7 +5,7 @@ class InvalidTokenException(BaseError):
     """Exception raised for invalid tokens."""
 
     status_code = 401
-    detail = "Invalid access_token."
+    detail = "Invalid token."
 
 
 class InvalidTokenTypeException(BaseError):
