@@ -52,6 +52,7 @@ class AuthInfo:
 class UserInfo:
     id: UUID
     email: str
+    role: UUID
     phone: str | None
     name: str | None
     avatar_url: str | None
@@ -75,6 +76,7 @@ class UserInfo:
         return cls(
             id=model.id,
             email=model.email,
+            role=model.role,
             phone=model.phone,
             name=model.name,
             avatar_url=model.avatar_url,

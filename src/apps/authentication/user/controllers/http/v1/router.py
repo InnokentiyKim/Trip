@@ -1,75 +1,23 @@
-from src.apps.authentication.user.controllers.dto.response import LogoutUserResponseDTO
-from src.apps.authentication.user.controllers.dto.response import (
-    RegisterUserResponseDTO,
-    LoginUserResponseDTO,
-)
-from src.apps.authentication.user.controllers.dto.request import (
-    AuthUserRequestDTO,
-    LoginUserRequestDTO,
-)
+from dishka import FromDishka
+from dishka.integrations.aiogram import inject
+
+from src.apps.authentication.session.controllers.v1.http.router import router
 from src.apps.authentication.user.application.service import UserService
-from src.apps.authentication.user.domain import commands as user_commands
-from src.common.utils.auth_scheme import auth_header
-from fastapi import APIRouter, Response
-from dishka.integrations.fastapi import inject, FromDishka
+from src.apps.authentication.user.controllers.dto.request import GetUserInfoRequestDTO
+from src.apps.authentication.user.controllers.dto.response import UserInfoResponseDTO
+from src.apps.authentication.user.domain import fetches
 
 
-router = APIRouter(
-    prefix="/users",
-    tags=["users"],
-)
-
-
-@router.post(
-    "/register",
+@router.get(
+    "/info",
 )
 @inject
-async def register_user(
-    dto: AuthUserRequestDTO,
+async def get_info(
+    dto: GetUserInfoRequestDTO,
     user_service: FromDishka[UserService],
-) -> RegisterUserResponseDTO:
-    cmd = user_commands.CreateUserCommand(
-        email=dto.email,
-        password=dto.password,
-        name=dto.name,
-        phone=dto.phone,
-        avatar_url=dto.avatar_url,
-        is_active=dto.is_active,
+) -> UserInfoResponseDTO:
+    user = await user_service.get_user_info(
+        fetch=fetches.GetUserInfo(user_id=dto.user_id)
     )
-    user = await user_service.register_user(cmd)
-    return RegisterUserResponseDTO.from_model(user)
 
-
-@router.post(
-    "/login",
-)
-@inject
-async def login_user(
-    response: Response,
-    dto: LoginUserRequestDTO,
-    user_service: FromDishka[UserService],
-) -> LoginUserResponseDTO:
-    cmd = user_commands.LoginUserCommand(email=dto.email, password=dto.password)
-    tokens = await user_service.login_user(cmd)
-    access_token = tokens.access_token.get_secret_value()
-    response.set_cookie("access_token", access_token, expires=3600, httponly=True)
-    return LoginUserResponseDTO(access_token=access_token)
-
-
-@router.post(
-    "/logout",
-)
-@inject
-async def logout_user(
-    response: Response, user_service: FromDishka[UserService], token: str = auth_header
-) -> LogoutUserResponseDTO:
-    user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(access_token=token)
-    )
-    response.delete_cookie("access_token")
-    return LogoutUserResponseDTO()
-
-
-# @router.get("/me")
-# async def get_user_info():
-#     ...
+    return UserInfoResponseDTO(id=user.id, email=user.email, user_type=user.role.name, is_active=user.is_active)
