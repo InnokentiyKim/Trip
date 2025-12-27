@@ -5,6 +5,9 @@ from pydantic import SecretStr
 from src.apps.authentication.user.domain import results
 from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
 from src.apps.authentication.user.application.exceptions import UserAlreadyExistsException, InvalidCredentialsException
+from src.apps.authentication.user.domain.fetches import GetUserInfo
+from src.apps.authorization.role.application.service import RoleManagementService
+from src.apps.authorization.role.domain.fetches import GetRoleInfoByName
 from src.common.application.service import ServiceBase
 from src.apps.authentication.user.domain.models import User
 from src.apps.authentication.user.application.ensure import UserServiceInsurance
@@ -18,14 +21,16 @@ class UserService(ServiceBase):
     def __init__(
         self,
         user_adapter: UserGatewayProto,
-        auth_adapter: SecurityGatewayProto,
+        security_adapter: SecurityGatewayProto,
         user_ensure: UserServiceInsurance,
+        role_management: RoleManagementService,
         logger: CustomLoggerProto,
         config: Configs,
     ) -> None:
         self._user = user_adapter
-        self._security = auth_adapter
+        self._security = security_adapter
         self._user_ensure = user_ensure
+        self._role_management = role_management
         self._logger = logger
         self._config = config
 
@@ -49,9 +54,14 @@ class UserService(ServiceBase):
             raise UserAlreadyExistsException
 
         hashed_password = await self._security.hash_password(cmd.password)
+        role = await self._role_management.get_role_info_by_name(
+            fetch=GetRoleInfoByName(role_name=cmd.user_type)
+        )
+
         new_user = User(
             email=cmd.email,
             hashed_password=hashed_password,
+            role=role.id,
             phone=cmd.phone,
             name=cmd.name,
             avatar_url=cmd.avatar_url,
@@ -64,6 +74,23 @@ class UserService(ServiceBase):
             raise UserAlreadyExistsException from None
 
         return results.UserInfo.from_model(new_user)
+
+    async def get_user_info(self, fetch: GetUserInfo):
+        """
+        Retrieve user information by user ID.
+
+        Args:
+            fetch (GetUserInfo): Object containing the user ID to fetch.
+
+        Returns:
+            UserInfo: The user object corresponding to the provided user ID.
+
+        Raises:
+            UserIsNotFoundError: If the user does not exist.
+        """
+        user = await self._user_ensure.user_exists(fetch.user_id)
+        return results.UserInfo.from_model(user)
+
 
     async def login_user(self, cmd: commands.LoginUserCommand) -> results.AuthTokens:
         """
@@ -105,22 +132,3 @@ class UserService(ServiceBase):
         self._logger.info("User logged in successfully", user_id=user.id)
 
         return results.AuthTokens(access_token=SecretStr(access_token), refresh_token=SecretStr(refresh_token))
-
-    async def verify_user_by_token(self, cmd: commands.VerifyUserByTokenCommand) -> results.UserInfo:
-        """
-        Verify a user by their access token.
-        This method decodes and verifies the provided access token, and retrieves the corresponding user.
-
-        Args:
-            cmd (commands.VerifyUserByTokenCommand): Command object containing the access token.
-
-        Returns:
-            UserInfo: The user object corresponding to the verified token.
-
-        Raises:
-            InvalidTokenException: If the token is invalid or cannot be verified.
-        """
-        user_id = await self._security.verify_token(cmd.access_token, AuthTokenTypeEnum.ACCESS)
-        user = await self._user_ensure.user_exists(user_id)
-
-        return results.UserInfo.from_model(user)
