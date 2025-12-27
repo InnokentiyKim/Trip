@@ -1,3 +1,4 @@
+from src.apps.authorization.role.domain.enums import UserRoleEnum
 from src.common.controllers.dto.base import BaseResponseDTO
 from src.common.controllers.dto.base import BaseDTO
 
@@ -27,4 +28,5 @@ class LogoutUserResponseDTO(BaseDTO):
 class UserInfoResponseDTO(BaseDTO):
     id: int
     email: str
+    user_type: UserRoleEnum
     is_active: bool
