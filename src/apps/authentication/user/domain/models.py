@@ -136,6 +136,13 @@ class User(UserBase):
         TIMESTAMP(timezone=True), nullable=False
     )
 
+    role: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("roles.id", ondelete="RESTRICT"),
+        nullable=False,
+        primary_key=True,
+    )
+
     hotel: Mapped["Hotel"] = relationship("Hotel", back_populates="user", lazy="joined")
     bookings: Mapped[list["Booking"]] = relationship(
         "Booking",
@@ -164,6 +171,7 @@ class User(UserBase):
         self,
         email: str,
         hashed_password: str,
+        role: UUID,
         phone: str | None = None,
         name: str | None = None,
         avatar_url: str | None = None,
@@ -175,6 +183,7 @@ class User(UserBase):
         self.phone = phone
         self.name = name
         self.avatar_url = avatar_url
+        self.role = role
         self.hashed_password = hashed_password
         now = datetime.now(UTC)
         self.created_at = now

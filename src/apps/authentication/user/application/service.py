@@ -1,16 +1,21 @@
 from datetime import datetime, UTC, timedelta
+from typing import Annotated
 
 from pydantic import SecretStr
 
 from src.apps.authentication.user.domain import results
 from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
-from src.apps.authentication.user.application.exceptions import UserAlreadyExistsException, InvalidCredentialsException
+from src.apps.authentication.user.application.exceptions import UserAlreadyExistsException, InvalidCredentialsException, \
+    InvalidInputValuesException
+from src.apps.authentication.user.domain.enums import UserTypeEnum
 from src.apps.authentication.user.domain.fetches import GetUserInfo
 from src.apps.authorization.role.application.service import RoleManagementService
+from src.apps.authorization.role.domain.enums import UserRoleEnum
 from src.apps.authorization.role.domain.fetches import GetRoleInfoByName
+from src.apps.authorization.role.domain.results import RoleInfo
 from src.common.application.service import ServiceBase
 from src.apps.authentication.user.domain.models import User
-from src.apps.authentication.user.application.ensure import UserServiceInsurance
+from src.apps.authentication.user.application.ensure import UserServiceEnsurance
 from src.apps.authentication.user.domain import commands
 from src.common.interfaces import SecurityGatewayProto, CustomLoggerProto
 from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
@@ -22,7 +27,7 @@ class UserService(ServiceBase):
         self,
         user_adapter: UserGatewayProto,
         security_adapter: SecurityGatewayProto,
-        user_ensure: UserServiceInsurance,
+        user_ensure: UserServiceEnsurance,
         role_management: RoleManagementService,
         logger: CustomLoggerProto,
         config: Configs,
@@ -33,6 +38,21 @@ class UserService(ServiceBase):
         self._role_management = role_management
         self._logger = logger
         self._config = config
+
+    async def _get_role_from_user_type(self, user_type: UserTypeEnum) -> RoleInfo:
+        allowed_types = {UserTypeEnum.USER, UserTypeEnum.MANAGER}
+
+        if user_type not in allowed_types:
+            self._logger.error("Invalid user type provided", user_type=user_type)
+            raise InvalidInputValuesException
+
+        role_name: Annotated[UserRoleEnum, UserTypeEnum] = UserRoleEnum(user_type.value)
+        role_info = await self._role_management.get_role_info_by_name(
+            fetch=GetRoleInfoByName(role_name=role_name)
+        )
+
+        return role_info
+
 
     async def create_new_user(self, cmd: commands.CreateUserCommand) -> results.UserInfo:
         """
@@ -54,24 +74,18 @@ class UserService(ServiceBase):
             raise UserAlreadyExistsException
 
         hashed_password = await self._security.hash_password(cmd.password)
-        role = await self._role_management.get_role_info_by_name(
-            fetch=GetRoleInfoByName(role_name=cmd.user_type)
-        )
+        role_info = await self._get_role_from_user_type(cmd.user_type)
 
         new_user = User(
             email=cmd.email,
             hashed_password=hashed_password,
-            role=role.id,
+            role=role_info.id,
             phone=cmd.phone,
             name=cmd.name,
             avatar_url=cmd.avatar_url,
             is_active=cmd.is_active,
         )
-        try:
-            await self._user.add_user(new_user)
-        except Exception as err:
-            self._logger.info("User with this email already exists", email=cmd.email)
-            raise UserAlreadyExistsException from None
+        await self._user.add_user(new_user)
 
         return results.UserInfo.from_model(new_user)
 
@@ -90,7 +104,6 @@ class UserService(ServiceBase):
         """
         user = await self._user_ensure.user_exists(fetch.user_id)
         return results.UserInfo.from_model(user)
-
 
     async def login_user(self, cmd: commands.LoginUserCommand) -> results.AuthTokens:
         """

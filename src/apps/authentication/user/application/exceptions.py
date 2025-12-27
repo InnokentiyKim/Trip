@@ -14,6 +14,12 @@ class InvalidCredentialsException(BaseError):
     detail = "Invalid email or password."
 
 
+class InvalidInputValuesException(BaseError):
+    """Exception raised for invalid input values."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Invalid input values."
+
+
 class UserAlreadyExistsException(UniqueConstraintError):
     """Exception raised when trying to create a user that already exists."""
     status_code = status.HTTP_409_CONFLICT
