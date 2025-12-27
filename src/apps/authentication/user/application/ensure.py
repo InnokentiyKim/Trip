@@ -6,7 +6,7 @@ from src.common.application.ensure import ServiceInsuranceBase
 from src.apps.authentication.user.application import exceptions
 
 
-class UserServiceInsurance(ServiceInsuranceBase):
+class UserServiceEnsurance(ServiceInsuranceBase):
     """User service ensuring."""
 
     def __init__(self, gateway: UserGatewayProto) -> None:
