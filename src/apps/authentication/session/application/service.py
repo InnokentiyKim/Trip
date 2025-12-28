@@ -11,6 +11,7 @@ from src.apps.authentication.session.domain.commands import CreateAuthSessionCom
     ConsumeOTPCodeCommand, CreateMFATokenCommand, ValidateMFATokenCommand
 from src.apps.authentication.session.domain.enums import OTPStatusEnum, AuthTokenTypeEnum, PasswordResetTokenStatusEnum
 from src.apps.authentication.session.domain.models import OTPCode, AuthSession, PasswordResetToken
+from src.apps.authentication.user.domain import results
 from src.common.application.service import ServiceBase
 from src.common.interfaces import SecurityGatewayProto, CustomLoggerProto
 from src.config import Configs
@@ -105,7 +106,7 @@ class AuthenticationService(ServiceBase):
             duration=timedelta(minutes=self._config.security.refresh_token_expire_minutes),
             created_at=now,
         )
-        await self._auth_sessions.add(auth_session)
+        await self._auth_sessions.add_refresh_session(auth_session)
         return results.AuthTokens(
             access_token=SecretStr(access_token),
             refresh_token=SecretStr(refresh_token),

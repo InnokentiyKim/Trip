@@ -10,6 +10,7 @@ from sqlalchemy import select, delete, update, func
 
 class AuthSessionAdapter(SQLAlchemyGateway, AuthSessionGatewayProto):
     async def add_refresh_session(self, refresh_session: AuthSession):
+        """Adds a refresh session to the database."""
         self.session.add(refresh_session)
 
     async def get_refresh_session(

@@ -44,3 +44,8 @@ class CreateMFATokenCommand(Command):
 
 class ValidateMFATokenCommand(Command):
     mfa_token: SecretStr
+
+
+class LoginUserCommand(Command):
+    email: str
+    password: str

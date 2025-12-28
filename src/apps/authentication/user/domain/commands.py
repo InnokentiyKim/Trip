@@ -1,3 +1,5 @@
+from pydantic import SecretStr
+
 from src.apps.authentication.user.domain.enums import UserTypeEnum
 from src.common.domain.commands import Command
 
@@ -12,6 +14,6 @@ class CreateUserCommand(Command):
     is_active: bool | None
 
 
-class LoginUserCommand(Command):
+class VerifyUserCredentialsCommand(Command):
     email: str
-    password: str
+    password: SecretStr
