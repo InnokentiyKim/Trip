@@ -1,12 +1,9 @@
-from datetime import datetime, UTC, timedelta
 from typing import Annotated
-
-from pydantic import SecretStr
 
 from src.apps.authentication.user.domain import results
 from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
-from src.apps.authentication.user.application.exceptions import UserAlreadyExistsException, InvalidCredentialsException, \
-    InvalidInputValuesException
+from src.apps.authentication.user.application.exceptions import UserAlreadyExistsException, InvalidInputValuesException, \
+    InvalidCredentialsException
 from src.apps.authentication.user.domain.enums import UserTypeEnum
 from src.apps.authentication.user.domain.fetches import GetUserInfo
 from src.apps.authorization.role.application.service import RoleManagementService
@@ -18,7 +15,6 @@ from src.apps.authentication.user.domain.models import User
 from src.apps.authentication.user.application.ensure import UserServiceEnsurance
 from src.apps.authentication.user.domain import commands
 from src.common.interfaces import SecurityGatewayProto, CustomLoggerProto
-from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
 from src.config import Configs
 
 
@@ -73,7 +69,7 @@ class UserService(ServiceBase):
             self._logger.error("User with this email already exists", email=cmd.email)
             raise UserAlreadyExistsException
 
-        hashed_password = await self._security.hash_password(cmd.password)
+        hashed_password = await self._security.hash_password(cmd.password.get_secret_value())
         role_info = await self._get_role_from_user_type(cmd.user_type)
 
         new_user = User(
@@ -88,6 +84,33 @@ class UserService(ServiceBase):
         await self._user.add_user(new_user)
 
         return results.UserInfo.from_model(new_user)
+
+    async def verify_user_credentials(self, cmd: commands.VerifyUserCredentialsCommand) -> results.UserInfo:
+        """
+        Validates password authentication credentials and returns the user ID.
+
+        Args:
+            cmd (commands.ValidatePasswordCredentials): The command containing the credentials to validate.
+
+        Returns:
+            results.UserID: A data structure containing the ID of the successfully authenticated user.
+
+        Raises:
+            InvalidCredentialsError: If no user is found for the provided email, or if the password verification fails.
+        """
+        user = await self._user_ensure.user_with_email_exists(email=cmd.email)
+
+        if not user.hashed_password:
+            raise InvalidCredentialsException
+
+        if not await self._security.verify_hashed_password(
+            plain_password=cmd.password.get_secret_value(),
+            hashed_password=user.hashed_password,
+        ):
+            self._logger.warning("Incorrect password for user", user_id=user.id)
+            raise InvalidCredentialsException
+
+        return results.UserInfo.from_model(user)
 
     async def get_user_info(self, fetch: GetUserInfo):
         """
@@ -104,44 +127,3 @@ class UserService(ServiceBase):
         """
         user = await self._user_ensure.user_exists(fetch.user_id)
         return results.UserInfo.from_model(user)
-
-    async def login_user(self, cmd: commands.LoginUserCommand) -> results.AuthTokens:
-        """
-        Log in a user and generate authentication tokens.
-        This method verifies the user's credentials and, upon successful verification,
-        generates access and refresh tokens for the user.
-
-        Args:
-            cmd (commands.LoginUserCommand): Command object containing login credentials.
-
-        Returns:
-            AuthTokens: An object containing the access and refresh tokens.
-
-        Raises:
-            InvalidCredentialsException: If the provided credentials are invalid.
-        """
-        user = await self._user_ensure.user_with_email_exists(cmd.email)
-
-        if not await self._security.verify_hashed_password(cmd.password, user.hashed_password):
-            self._logger.info("Invalid credentials provided", email=cmd.email)
-            raise InvalidCredentialsException
-
-        created_at = datetime.now(UTC)
-        access_expires_at = created_at + timedelta(minutes=self._config.security.access_token_expire_minutes)
-        refresh_expires_at = created_at + timedelta(minutes=self._config.security.refresh_token_expire_minutes)
-
-        access_token = await self._security.create_jwt_token(
-            token_type=AuthTokenTypeEnum.ACCESS,
-            user_id=user.id,
-            created_at=created_at,
-            expires_at=access_expires_at,
-        )
-        refresh_token = await self._security.create_jwt_token(
-            token_type=AuthTokenTypeEnum.REFRESH,
-            user_id=user.id,
-            created_at=created_at,
-            expires_at=refresh_expires_at,
-        )
-        self._logger.info("User logged in successfully", user_id=user.id)
-
-        return results.AuthTokens(access_token=SecretStr(access_token), refresh_token=SecretStr(refresh_token))
