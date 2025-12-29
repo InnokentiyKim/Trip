@@ -2,6 +2,7 @@ from abc import abstractmethod
 from uuid import UUID
 
 from src.apps.authorization.access.domain.models import Role, Permission
+from src.apps.authorization.role.domain.enums import UserRoleEnum
 from src.common.interfaces import GatewayProto
 
 
@@ -26,6 +27,19 @@ class RoleGatewayProto(GatewayProto):
 
         Args:
             role_id (str): The unique code of the role.
+
+        Returns:
+            Role | None: The Role object if found, otherwise None.
+        """
+        ...
+
+    @abstractmethod
+    async def get_by_name(self, role_name: UserRoleEnum) -> Role | None:
+        """
+        Retrieves a role from the database by its unique name.
+
+        Args:
+            role_name (str): The unique name of the role.
 
         Returns:
             Role | None: The Role object if found, otherwise None.

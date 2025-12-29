@@ -1,7 +1,8 @@
 import uuid
 
 from src.apps.authorization.access.domain.models import Role
-from src.apps.authorization.role.application.ensure import RoleInteractorEnsurance
+from src.apps.authorization.role.application.ensure import RoleServiceEnsurance
+from src.apps.authorization.role.application.exceptions import RoleIsNotFoundError
 from src.apps.authorization.role.application.interfaces.gateway import RoleGatewayProto, PermissionGatewayProto
 from src.common.interfaces import CustomLoggerProto
 from src.apps.authorization.role.domain import commands
@@ -19,7 +20,7 @@ class RoleManagementService:  # noqa: WPS214
         self._gateway = gateway
         self._permissions = permissions
         self._logger = logger
-        self._ensure = RoleInteractorEnsurance(gateway, logger)
+        self._ensure = RoleServiceEnsurance(gateway, logger)
 
     async def create_role(
         self, cmd: commands.CreateCustomRole
@@ -89,6 +90,28 @@ class RoleManagementService:  # noqa: WPS214
             RoleIsNotFoundError: If the role does not exist.
         """
         role = await self._ensure.role_exists(fetch.role_id)
+
+        self._logger.debug("Role info retrieved", role_id=role.id, role_name=role.name)
+        return results.RoleInfo.from_model(role)
+
+    async def get_role_info_by_name(self, fetch: fetches.GetRoleInfoByName) -> results.RoleInfo:
+        """
+        Retrieves detailed information about a role, including its permissions.
+
+        Args:
+            fetch (GetRoleInfoByName): Object containing the role ID to fetch.
+
+        Returns:
+            RoleFullInfo: Information about the role and its permissions.
+
+        Raises:
+            RoleIsNotFoundError: If the role does not exist.
+        """
+        role = await self._gateway.get_by_name(fetch.role_name)
+
+        if role is None:
+            self._logger.error("Role is not found", role_name=fetch.role_name)
+            raise RoleIsNotFoundError from None
 
         self._logger.debug("Role info retrieved", role_id=role.id, role_name=role.name)
         return results.RoleInfo.from_model(role)

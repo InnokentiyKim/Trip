@@ -7,7 +7,7 @@ from src.common.interfaces import CustomLoggerProto
 from src.apps.authorization.role.application import exceptions
 
 
-class RoleInteractorEnsurance:
+class RoleServiceEnsurance:
     def __init__(self, roles: RoleGatewayProto, logger: CustomLoggerProto) -> None:
         self._roles = roles
         self._logger = logger

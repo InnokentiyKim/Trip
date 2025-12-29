@@ -3,6 +3,7 @@ from uuid import UUID
 from src.apps.authentication.user.domain.models import User
 from src.apps.authorization.access.domain.models import Role, Permission
 from src.apps.authorization.role.application.interfaces.gateway import RoleGatewayProto, PermissionGatewayProto
+from src.apps.authorization.role.domain.enums import UserRoleEnum
 from src.common.adapters.adapter import SQLAlchemyGateway
 from sqlalchemy import select, delete
 
@@ -31,6 +32,19 @@ class RoleAdapter(SQLAlchemyGateway, RoleGatewayProto):
             Role | None: The Role object if found, otherwise None.
         """
         query_result = await self.session.execute(select(Role).filter_by(id=role_id))
+        return query_result.scalars().first()
+
+    async def get_by_name(self, role_name: UserRoleEnum) -> Role | None:
+        """
+        Retrieves a role from the database by its unique name.
+
+        Args:
+            role_name (str): The unique name of the role.
+
+        Returns:
+            Role | None: The Role object if found, otherwise None.
+        """
+        query_result = await self.session.execute(select(Role).filter_by(name=role_name))
         return query_result.scalars().first()
 
     async def get_all_users_granted_to_role(self, role_id: UUID) -> list[UUID]:

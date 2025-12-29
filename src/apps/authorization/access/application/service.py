@@ -1,4 +1,4 @@
-from src.apps.authentication.user.application.ensure import UserServiceInsurance
+from src.apps.authentication.user.application.ensure import UserServiceEnsurance
 from src.apps.authorization.access.application.interfaces.gateway import AccessGatewayProto
 from src.apps.authorization.access.domain import commands
 from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
@@ -15,7 +15,7 @@ class AccessService(ServiceBase):
         self,
         security_adapter: SecurityGatewayProto,
         access_adapter: AccessGatewayProto,
-        user_ensure: UserServiceInsurance,
+        user_ensure: UserServiceEnsurance,
         logger: CustomLoggerProto,
         config: Configs,
     ) -> None:
