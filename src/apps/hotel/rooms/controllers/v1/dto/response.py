@@ -19,5 +19,8 @@ class GetRoomResponseDTO(BaseResponseDTO):
 class UpdateRoomResponseDTO(BaseResponseDTO): ...
 
 
+class AddRoomResponseDTO(BaseResponseDTO):
+    hotel_id: int
+
 class DeleteRoomResponseDTO(BaseDTO):
     status_code: int = status.HTTP_204_NO_CONTENT

@@ -1,14 +1,17 @@
 from fastapi import APIRouter, Query
 
-from src.apps.hotel.hotels.application.exceptions import HotelNotFoundException
+from src.apps.authorization.access.application.service import AccessService
+from src.apps.authorization.access.domain.commands import Authorize
+from src.apps.authorization.access.domain.enums import HotelPermissionEnum, ResourceTypeEnum
+from src.apps.hotel.hotels.application.exceptions import HotelNotFoundException, HotelAlreadyExistsException
 from src.apps.hotel.hotels.controllers.v1.dto.request import (
     ListHotelsRequestDTO,
     UpdateHotelRequestDTO,
 )
 from typing import Annotated
 from src.apps.hotel.hotels.domain import commands as hotel_commands
-from src.apps.authentication.user.domain import commands as user_commands
-from src.apps.authentication.user.application.exceptions import Unauthorized, Forbidden
+from src.apps.authentication.user.application.exceptions import Unauthorized, UserNotFoundException
+from src.apps.authorization.access.domain.exceptions import Forbidden
 from src.apps.hotel.hotels.controllers.v1.dto.request import CreateHotelRequestDTO
 from src.common.exceptions.handlers import generate_responses
 from src.common.utils.auth_scheme import auth_header
@@ -19,7 +22,6 @@ from src.apps.hotel.hotels.controllers.v1.dto.response import (
     UpdateHotelResponseDTO,
     UploadHotelImageResponseDTO,
 )
-from src.apps.authentication.user.application.service import UserService
 from dishka.integrations.fastapi import FromDishka, inject
 
 
@@ -33,13 +35,26 @@ router = APIRouter(
     "",
     responses=generate_responses(
         Unauthorized,
+        Forbidden,
+        UserNotFoundException,
     ),
 )
 @inject
 async def get_hotels(
     filter_query: Annotated[ListHotelsRequestDTO, Query()],
     hotel_service: FromDishka[HotelService],
+    access_service: FromDishka[AccessService],
+    token: str = auth_header,
 ) -> list[GetHotelsResponseDTO]:
+    # Authorize user
+    await access_service.authorize(
+        Authorize(
+            access_token=token,
+            permission=HotelPermissionEnum.CAN_VIEW,
+            resource_type=ResourceTypeEnum.HOTEL,
+        )
+    )
+
     cmd = hotel_commands.ListHotelsCommand(
         location=filter_query.location, services=filter_query.services, rooms_quantity=filter_query.rooms_quantity
     )
@@ -51,13 +66,27 @@ async def get_hotels(
     "/{hotel_id}",
     responses=generate_responses(
         Unauthorized,
+        Forbidden,
+        UserNotFoundException,
+        HotelNotFoundException,
     ),
 )
 @inject
 async def get_hotel(
     hotel_id: int,
     hotel_service: FromDishka[HotelService],
+    access_service: FromDishka[AccessService],
+    token: str = auth_header,
 ) -> GetHotelsResponseDTO:
+    # Authorize user
+    await access_service.authorize(
+        Authorize(
+            access_token=token,
+            permission=HotelPermissionEnum.CAN_VIEW,
+            resource_type=ResourceTypeEnum.HOTEL,
+        )
+    )
+
     hotel = await hotel_service.get_hotel(
         hotel_commands.GetHotelCommand(hotel_id=hotel_id)
     )
@@ -68,27 +97,37 @@ async def get_hotel(
     "",
     responses=generate_responses(
         Unauthorized,
+        Forbidden,
+        UserNotFoundException,
+        HotelAlreadyExistsException,
     ),
 )
 @inject
 async def create_hotel(
     dto: CreateHotelRequestDTO,
-    user_service: FromDishka[UserService],
+    access_service: FromDishka[AccessService],
     hotel_service: FromDishka[HotelService],
     token: str = auth_header,
 ) -> CreateHotelResponseDTO:
-    user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(access_token=token)
+    # Authorize user
+    authorization_info = await access_service.authorize(
+        Authorize(
+            access_token=token,
+            permission=HotelPermissionEnum.CAN_CREATE,
+            resource_type=ResourceTypeEnum.HOTEL,
+        )
     )
+
     cmd = hotel_commands.CreateHotelCommand(
         name=dto.name,
         location=dto.location,
         rooms_quantity=dto.rooms_quantity,
-        owner=user.id,
+        owner=authorization_info.user_id,
         is_active=dto.is_active,
         services=dto.services,
         image_id=dto.image_id,
     )
+
     hotel_id = await hotel_service.create_hotel(cmd)
     return CreateHotelResponseDTO(id=hotel_id)
 
@@ -97,20 +136,28 @@ async def create_hotel(
     "/{hotel_id}/upload-image",
     responses=generate_responses(
         Unauthorized,
-        HotelNotFoundException,
         Forbidden,
+        UserNotFoundException,
+        HotelNotFoundException,
     ),
 )
 @inject
 async def upload_hotel_image(
     hotel_id: int,
-    user_service: FromDishka[UserService],
+    access_service: FromDishka[AccessService],
     hotel_service: FromDishka[HotelService],
     token: str = auth_header,
 ) -> UploadHotelImageResponseDTO:
-    user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(access_token=token)
+    # Authorize user
+    await access_service.authorize(
+        Authorize(
+            access_token=token,
+            permission=HotelPermissionEnum.CAN_EDIT,
+            resource_type=ResourceTypeEnum.HOTEL,
+            resource_id=hotel_id,
+        )
     )
+
     hotel = await hotel_service.get_hotel(
         hotel_commands.GetHotelCommand(hotel_id=hotel_id)
     )
@@ -122,24 +169,34 @@ async def upload_hotel_image(
     "",
     responses=generate_responses(
         Unauthorized,
+        Forbidden,
+        UserNotFoundException,
+        HotelNotFoundException,
     ),
 )
 @inject
 async def update_hotel(
     dto: UpdateHotelRequestDTO,
-    user_service: FromDishka[UserService],
+    access_service: FromDishka[AccessService],
     hotel_service: FromDishka[HotelService],
     token: str = auth_header,
 ) -> UpdateHotelResponseDTO:
-    user = await user_service.verify_user_by_token(
-        user_commands.VerifyUserByTokenCommand(access_token=token)
+    # Authorize user
+    authorization_info = await access_service.authorize(
+        Authorize(
+            access_token=token,
+            permission=HotelPermissionEnum.CAN_EDIT,
+            resource_type=ResourceTypeEnum.HOTEL,
+            resource_id=dto.hotel_id,
+        )
     )
+
     cmd = hotel_commands.UpdateHotelCommand(
         hotel_id=dto.hotel_id,
         name=dto.name,
         location=dto.location,
         rooms_quantity=dto.rooms_quantity,
-        owner=user.id,
+        owner=authorization_info.user_id,
         is_active=dto.is_active,
         services=dto.services,
         image_id=dto.image_id,

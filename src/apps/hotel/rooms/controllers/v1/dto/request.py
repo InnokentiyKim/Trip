@@ -16,3 +16,12 @@ class UpdateRoomRequestDTO(BaseRequestDTO):
     description: str | None = None
     services: dict | None = None
     image_id: int | None = None
+
+
+class AddRoomRequestDTO(BaseRequestDTO):
+    name: str
+    price: Decimal
+    quantity: int | None = None
+    description: str | None = None
+    services: dict | None = None
+    image_id: int | None = None

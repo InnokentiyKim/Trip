@@ -1,3 +1,4 @@
+import uuid
 from abc import abstractmethod
 from decimal import Decimal
 from typing import Any
@@ -21,6 +22,7 @@ class RoomGatewayProto(GatewayProto):
     async def add_room(
         self,
         hotel_id: int,
+        owner: uuid.UUID,
         name: str,
         price: Decimal,
         quantity: int | None,

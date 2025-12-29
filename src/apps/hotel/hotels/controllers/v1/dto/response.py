@@ -14,4 +14,10 @@ class GetHotelsResponseDTO(BaseDTO):
 class CreateHotelResponseDTO(BaseResponseDTO): ...
 
 
+class UploadHotelImageResponseDTO(BaseDTO):
+    url: str
+    hotel_id: int
+    content_type: str = "multipart/form-data"
+
+
 class UpdateHotelResponseDTO(BaseResponseDTO): ...

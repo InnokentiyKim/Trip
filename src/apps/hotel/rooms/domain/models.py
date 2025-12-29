@@ -1,7 +1,8 @@
+import uuid
 from decimal import Decimal
 
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
-from sqlalchemy import Integer, String, JSON, ForeignKey, DECIMAL
+from sqlalchemy import Integer, String, JSON, ForeignKey, DECIMAL, UUID
 
 from src.common.domain.models import Base
 from src.apps.hotel.bookings.domain.models import Booking  # noqa: F401
@@ -20,6 +21,8 @@ class Room(RoomBase):
     hotel_id: Mapped[int] = mapped_column(
         ForeignKey("hotels.id", ondelete="CASCADE"), nullable=False
     )
+    owner: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=True)
     price: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), nullable=False)
@@ -42,6 +45,7 @@ class Room(RoomBase):
     def __init__(
         self,
         hotel_id: int,
+        owner: uuid.UUID,
         name: str,
         price: Decimal,
         description: str | None,
@@ -51,6 +55,7 @@ class Room(RoomBase):
     ) -> None:
         super().__init__()
         self.hotel_id = hotel_id
+        self.owner = owner
         self.name = name
         self.description = description
         self.price = price

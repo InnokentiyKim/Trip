@@ -43,7 +43,7 @@ class FileObjectGatewayProto(GatewayProto):
 
         Raises:
             ClientError: If there is an error with the S3 client, such as the bucket not existing
-            or the client not having permission to access it.
+            or the client not having access to access it.
         """
         ...
 

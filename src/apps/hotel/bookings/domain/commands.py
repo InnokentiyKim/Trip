@@ -38,6 +38,11 @@ class CreateBookingCommand(Command):
     date_to: date
 
 
+class ConfirmBookingCommand(Command):
+    user_id: UUID
+    booking_id: UUID
+
+
 class UpdateBookingCommand(Command):
     user_id: int
     booking_id: UUID

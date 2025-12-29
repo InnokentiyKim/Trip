@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 from typing import Any
 
@@ -31,6 +32,7 @@ class RoomAdapter(SQLAlchemyGateway, RoomGatewayProto):
     async def add_room(
         self,
         hotel_id: int,
+        owner: uuid.UUID,
         name: str,
         price: Decimal,
         quantity: int | None,
@@ -41,6 +43,7 @@ class RoomAdapter(SQLAlchemyGateway, RoomGatewayProto):
         """Add a new room."""
         room = Room(
             hotel_id=hotel_id,
+            owner=owner,
             name=name,
             price=price,
             description=description,

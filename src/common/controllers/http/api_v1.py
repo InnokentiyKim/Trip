@@ -1,7 +1,7 @@
 from src.apps.hotel.hotels.controllers.v1.http.router import router as hotel_router
 from src.apps.hotel.rooms.controllers.v1.http.router import router as room_router
 from src.apps.hotel.bookings.controllers.v1.http.router import router as booking_router
-from src.apps.authentication.user.controllers.http.v1.router import router as user_router
+from src.apps.authentication.session.controllers.v1.http.router import router as user_router
 from fastapi import APIRouter
 
 

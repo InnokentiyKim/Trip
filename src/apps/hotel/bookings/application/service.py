@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
 from src.apps.hotel.bookings.application import exceptions
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
@@ -66,6 +68,19 @@ class BookingService(ServiceBase):
         self._logger.info("New booking successfully created", booking_id=booking.id)
         return booking
 
+    async def confirm_booking(self, cmd: commands) -> UUID:
+        booking = await self._ensure.booking_exists(cmd.booking_id, cmd.user_id)
+        if not booking.status.PENDING:
+            self._logger.error("Booking confirmation failed", booking_id=cmd.booking_id)
+            raise exceptions.BookingCannotBeConfirmedException
+
+        booking_id = await self._adapter.update_booking(booking, only_active=True, status=BookingStatusEnum.CONFIRMED)
+        if not booking_id:
+            self._logger.error("Booking confirmation failed", booking_id=cmd.booking_id)
+            raise exceptions.BookingCannotBeConfirmedException
+
+        return booking_id
+
     async def update_booking_status(self, cmd: commands.UpdateBookingCommand) -> None:
         booking = await self._ensure.booking_exists(cmd.booking_id, cmd.user_id)
         is_updated = await self._adapter.update_booking(booking, status=cmd.status)
@@ -77,13 +92,20 @@ class BookingService(ServiceBase):
 
     async def cancel_active_booking(
         self, cmd: commands.CancelActiveBookingCommand
-    ) -> None:
+    ) -> UUID:
         booking = await self._ensure.booking_exists(cmd.booking_id, cmd.user_id)
-        is_cancelled = await self._adapter.update_booking(
+
+        if booking.status != BookingStatusEnum.PENDING:
+            self._logger.error("Booking cancellation failed", user_id=cmd.user_id, booking_id=cmd.booking_id)
+            raise exceptions.BookingCannotBeCancelledException
+
+        cancelled_id = await self._adapter.update_booking(
             booking, only_active=True, status=BookingStatusEnum.CANCELLED
         )
-        if is_cancelled is None:
-            self._logger.error("Booking cannot be cancelled", user_id=cmd.user_id, booking_id=cmd.booking_id)
+
+        if cancelled_id is None:
+            self._logger.error("Booking cancellation failed", user_id=cmd.user_id, booking_id=cmd.booking_id)
             raise exceptions.BookingCannotBeCancelledException
 
         self._logger.info("Booking successfully cancelled", user_id=cmd.user_id, booking_id=cmd.booking_id)
+        return cancelled_id

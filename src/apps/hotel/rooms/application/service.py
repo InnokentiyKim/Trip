@@ -36,6 +36,7 @@ class RoomService(ServiceBase):
         # hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
         room_id = await self._room_adapter.add_room(
             cmd.hotel_id,
+            cmd.user_id,
             cmd.name,
             cmd.price,
             cmd.quantity,
@@ -55,7 +56,7 @@ class RoomService(ServiceBase):
         room = await self._room_ensure.room_exists(cmd.hotel_id, cmd.room_id)
 
         updating_params = cmd.model_dump(
-            exclude={"hotel_id", "room_id"}, exclude_unset=True
+            exclude={"hotel_id", "room_id", "user_id"}, exclude_unset=True
         )
         updated_room_id = await self._room_adapter.update_room(room, **updating_params)
         if updated_room_id is None:

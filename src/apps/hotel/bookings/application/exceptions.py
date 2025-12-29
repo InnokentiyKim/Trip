@@ -16,6 +16,13 @@ class BookingCannotBeUpdatedException(BaseError):
     message = "Booking cannot be updated."
 
 
+class BookingCannotBeConfirmedException(BaseError):
+    """Exception raised when a booking can not be confirmed."""
+
+    status_code = status.HTTP_400_BAD_REQUEST
+    message = "Only active pending bookings can be confirmed."
+
+
 class BookingCannotBeCancelledException(BaseError):
     """Exception raised when a booking is not found."""
 

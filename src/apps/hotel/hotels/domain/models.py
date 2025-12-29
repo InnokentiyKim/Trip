@@ -25,10 +25,10 @@ class Hotel(HotelBase):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     location: Mapped[str] = mapped_column(String, nullable=False)
-    services: Mapped[dict] = mapped_column(JSON, nullable=True)
+    services: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     rooms_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     owner: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    image_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    image_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="hotel", lazy="joined")
     rooms: Mapped[list["Room"]] = relationship(
