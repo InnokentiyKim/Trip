@@ -1,4 +1,4 @@
-from src.apps.authorization.role.domain.enums import UserRoleEnum
+from uuid import UUID
 from src.common.controllers.dto.base import BaseResponseDTO
 from src.common.controllers.dto.base import BaseDTO
 
@@ -6,6 +6,9 @@ from src.common.controllers.dto.base import BaseDTO
 class RegisterUserResponseDTO(BaseResponseDTO):
     email: str
     is_active: bool
+    access_token: str
+    refresh_token: str
+
 
     @classmethod
     def from_model(cls, model) -> "RegisterUserResponseDTO":
@@ -13,6 +16,8 @@ class RegisterUserResponseDTO(BaseResponseDTO):
             id=model.id,
             email=model.email,
             is_active=model.is_active,
+            access_token=model.access_token,
+            refresh_token=model.refresh_token,
         )
 
 
@@ -27,7 +32,8 @@ class LogoutUserResponseDTO(BaseDTO):
 
 
 class UserInfoResponseDTO(BaseDTO):
-    id: int
+    id: UUID
     email: str
-    user_type: UserRoleEnum
+    is_mfa_enabled: bool
+    user_type: str
     is_active: bool
