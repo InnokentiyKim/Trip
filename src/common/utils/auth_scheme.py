@@ -4,10 +4,10 @@ from fastapi.security import HTTPBearer
 
 
 class AuthHeaderToken(HTTPBearer):
-    """Custom HTTP Bearer authentication scheme to extract token from Authorization header."""
+    """Custom HTTP Bearer authentication scheme to extract access_token from Authorization header."""
 
     async def __call__(self, request: Request) -> str:
-        auth = request.headers.get("Authorization") or request.cookies.get("token")
+        auth = request.headers.get("Authorization") or request.cookies.get("access_token")
         if not auth:
             raise Unauthorized
 
