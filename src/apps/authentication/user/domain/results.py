@@ -1,10 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from pydantic import SecretStr
 
-from src.apps.authentication.user.domain.models import User, AuthStatus
+
+if TYPE_CHECKING:
+    from src.apps.authentication.user.domain.models import User, AuthStatus
 
 
 @dataclass(slots=True, frozen=True)
@@ -27,7 +30,7 @@ class AuthInfo:
     mfa_sms_enabled: bool = False
 
     @classmethod
-    def from_model(cls, model: AuthStatus) -> "AuthInfo":
+    def from_model(cls, model: "AuthStatus") -> "AuthInfo":
         """
         Converts `User` domain entity to the `AuthInfo` structure.
 
@@ -58,11 +61,12 @@ class UserInfo:
     avatar_url: str | None
     created_at: datetime
     updated_at: datetime
+    is_active: bool
 
     auth_info: AuthInfo
 
     @classmethod
-    def from_model(cls, model: User) -> "UserInfo":
+    def from_model(cls, model: "User") -> "UserInfo":
         """
         Converts `User` domain entity to the `UserInfo` structure.
 
@@ -82,5 +86,6 @@ class UserInfo:
             avatar_url=model.avatar_url,
             created_at=model.created_at,
             updated_at=model.updated_at,
+            is_active=model.is_active,
             auth_info=auth_info,
         )

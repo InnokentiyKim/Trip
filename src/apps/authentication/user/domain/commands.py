@@ -6,7 +6,7 @@ from src.common.domain.commands import Command
 
 class CreateUserCommand(Command):
     email: str
-    password: str
+    password: SecretStr
     user_type: UserTypeEnum
     name: str | None
     phone: str | None
