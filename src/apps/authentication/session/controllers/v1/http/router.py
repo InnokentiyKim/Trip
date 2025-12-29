@@ -3,13 +3,13 @@ from dishka.integrations.fastapi import inject
 from fastapi import APIRouter
 from pydantic import SecretStr
 
-import src.apps.authentication.session.domain.commands
+from src.apps.authorization.access.domain import commands as access_commands
 from src.apps.authentication.session.application.exceptions import InvalidRefreshSessionError
 from src.apps.authentication.session.application.service import AuthenticationService
 from src.apps.authentication.session.controllers.v1.dto.request import AuthRefreshSessionRequestDTO
-from src.apps.authentication.session.controllers.v1.dto.response import AuthTokensResponseDTO
-from src.apps.authentication.user.application.ensure import UserServiceEnsurance
-from src.apps.authentication.user.application.exceptions import UserNotFoundException
+from src.apps.authentication.session.controllers.v1.dto.response import AuthTokensResponseDTO, AuthInfoResponseDTO
+from src.apps.authentication.user.application.exceptions import UserNotFoundException, Unauthorized, \
+    UserAlreadyExistsException, InvalidCredentialsException
 from src.apps.authentication.user.application.service import UserService
 from src.apps.authentication.user.controllers.dto.request import AuthUserRequestDTO, LoginUserRequestDTO, \
     LogoutUserRequestDTO
@@ -17,7 +17,9 @@ from src.apps.authentication.user.controllers.dto.response import RegisterUserRe
     LogoutUserResponseDTO
 from src.apps.authentication.user.domain import commands as user_commands
 from src.apps.authentication.session.domain import commands as auth_commands
+from src.apps.authorization.access.application.service import AccessService
 from src.common.exceptions.handlers import generate_responses
+from src.common.utils.auth_scheme import auth_header
 
 
 router = APIRouter(
@@ -26,13 +28,39 @@ router = APIRouter(
 )
 
 
+@router.get(
+    "/info",
+    responses=generate_responses(
+        Unauthorized,
+    )
+)
+@inject
+async def get_auth_info(
+    access_service: FromDishka[AccessService],
+    token: str = auth_header,
+) -> AuthInfoResponseDTO:
+    user_info = await access_service.verify_user_by_token(
+        cmd=access_commands.VerifyUserByTokenCommand(access_token=token)
+    )
+    auth_info = user_info.auth_info
+    return AuthInfoResponseDTO(
+        is_mfa_enabled=auth_info.is_mfa_enabled,
+        mfa_email_enabled=auth_info.mfa_email_enabled,
+        mfa_sms_enabled=auth_info.mfa_sms_enabled,
+    )
+
+
 @router.post(
     "/signup",
+    responses=generate_responses(
+        UserAlreadyExistsException,
+    )
 )
 @inject
 async def signup(
     dto: AuthUserRequestDTO,
     user_service: FromDishka[UserService],
+    auth_service: FromDishka[AuthenticationService],
 ) -> RegisterUserResponseDTO:
     cmd = user_commands.CreateUserCommand(
         email=dto.email,
@@ -44,26 +72,36 @@ async def signup(
         is_active=dto.is_active,
     )
 
-    user = await user_service.create_new_user(cmd)
+    user_info = await user_service.create_new_user(cmd)
+    auth_tokens = await auth_service.create_auth_session(
+        cmd=auth_commands.CreateAuthSessionCommand(
+            user_id=user_info.id
+        )
+    )
 
-    return RegisterUserResponseDTO.from_model(user)
+    return RegisterUserResponseDTO(
+        id=user_info.id,
+        email=user_info.email,
+        is_active=user_info.is_active,
+        access_token=auth_tokens.access_token.get_secret_value(),
+        refresh_token=auth_tokens.refresh_token.get_secret_value(),
+    )
 
 
 @router.post(
     "/login",
     responses=generate_responses(
         UserNotFoundException,
+        InvalidCredentialsException,
     )
 )
 @inject
 async def login_user(
     dto: LoginUserRequestDTO,
     user_service: FromDishka[UserService],
-    user_ensure: FromDishka[UserServiceEnsurance],
     auth_service: FromDishka[AuthenticationService],
 ) -> LoginUserResponseDTO:
-    cmd = src.apps.authentication.session.domain.commands.LoginUserCommand(email=dto.email, password=dto.password)
-    user = await user_ensure.user_with_email_exists(cmd.email)
+    cmd = auth_commands.LoginUserCommand(email=dto.email, password=dto.password)
 
     user_info = await user_service.verify_user_credentials(
         cmd=user_commands.VerifyUserCredentialsCommand(
@@ -90,6 +128,9 @@ async def login_user(
 
 @router.post(
     "/logout",
+    responses=generate_responses(
+        InvalidRefreshSessionError,
+    )
 )
 @inject
 async def logout_user(
@@ -106,11 +147,11 @@ async def logout_user(
 @router.post(
     "/refresh",
     responses=generate_responses(
-        InvalidRefreshSessionError
+        InvalidRefreshSessionError,
     )
 )
 @inject
-async def refresh_token(
+async def refresh_session(
     dto: AuthRefreshSessionRequestDTO,
     auth_service: FromDishka[AuthenticationService],
 ) -> AuthTokensResponseDTO:

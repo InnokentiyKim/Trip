@@ -16,7 +16,7 @@ class InvalidOTPCodeError(BaseError):
 
 class InvalidRefreshSessionError(BaseError):
     status_code = status.HTTP_401_UNAUTHORIZED
-    message = "Invalid refresh session"
+    message = "Invalid refresh token"
     loc = "refresh_token"
 
 
