@@ -7,6 +7,7 @@ class ResourceTypeEnum(StrEnum):
     HOTEL = "hotel"
     ROOM = "room"
     BOOKING = "booking"
+    COMMENT = "comment"
 
 
 type PermissionEnum = (
@@ -16,6 +17,7 @@ type PermissionEnum = (
     | HotelPermissionEnum
     | RoomPermissionEnum
     | BookingPermissionEnum
+    | CommentPermissionEnum
 )
 
 
@@ -61,4 +63,11 @@ class RoomPermissionEnum(StrEnum):
 class BookingPermissionEnum(StrEnum):
     CAN_CREATE = BasePermissionEnum.CAN_CREATE
     CAN_EDIT = BasePermissionEnum.CAN_EDIT
+    CAN_VIEW = BasePermissionEnum.CAN_VIEW
+
+
+class CommentPermissionEnum(StrEnum):
+    CAN_CREATE = BasePermissionEnum.CAN_CREATE
+    CAN_EDIT = BasePermissionEnum.CAN_EDIT
+    CAN_DELETE = BasePermissionEnum.CAN_DELETE
     CAN_VIEW = BasePermissionEnum.CAN_VIEW
