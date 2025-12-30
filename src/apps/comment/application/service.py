@@ -2,15 +2,14 @@ from uuid import UUID
 
 from src.apps.authentication.user.application.ensure import UserServiceEnsurance
 from src.apps.comment.application.interfaces.gateway import CommentGatewayProto
-from src.apps.comment.domain.commands import AddCommentCommand, ListUserCommentsCommand, ListHotelCommentsCommand, \
-    UpdateCommentInfoCommand, DeleteCommentCommand
+from src.apps.comment.domain.commands import AddCommentCommand, UpdateCommentInfoCommand, DeleteCommentCommand
+from src.apps.comment.domain.fetches import ListUserComments, ListHotelComments, GetCommentInfo
 from src.apps.comment.domain.excepitions import CommentNotFoundException
 from src.apps.comment.domain.models import Comment
 from src.apps.comment.domain.results import CommentInfo
 from src.apps.hotel.hotels.application.ensure import HotelServiceEnsurance
 from src.common.application.service import ServiceBase
 from src.common.interfaces import CustomLoggerProto
-from src.config import Configs
 
 
 class CommentService(ServiceBase):
@@ -41,14 +40,25 @@ class CommentService(ServiceBase):
 
         return comment.id
 
-    async def list_user_comments(self, cmd: ListUserCommentsCommand) -> list[CommentInfo]:
-        user = await self._user_ensure.user_exists(cmd.user_id)
+    async def get_comment(self, fetch: GetCommentInfo) -> CommentInfo:
+        comment = await self._comment.get_comment_by_id(fetch.comment_id)
+
+        if comment is None:
+            self._logger.info("Comment not found", comment_id=fetch.comment_id)
+            raise CommentNotFoundException
+
+        return CommentInfo.from_model(comment)
+
+    async def list_user_comments(self, fetch: ListUserComments) -> list[CommentInfo]:
+        user = await self._user_ensure.user_exists(fetch.user_id)
         comments = await self._comment.get_comments_by_user_id(user.id)
+
         return [CommentInfo.from_model(comment) for comment in comments]
 
-    async def list_hotel_comments(self, cmd: ListHotelCommentsCommand) -> list[CommentInfo]:
-        hotel = await self._hotel_ensure.hotel_exists(cmd.hotel_id)
+    async def list_hotel_comments(self, fetch: ListHotelComments) -> list[CommentInfo]:
+        hotel = await self._hotel_ensure.hotel_exists(fetch.hotel_id)
         comments = await self._comment.get_comments_by_hotel_id(hotel.id)
+
         return [CommentInfo.from_model(comment) for comment in comments]
 
     async def update_comment_info(self, cmd: UpdateCommentInfoCommand) -> None:

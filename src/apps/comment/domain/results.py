@@ -9,6 +9,7 @@ class CommentInfo:
     user_id: UUID
     hotel_id: int
     content: str
+    rating: int | None
     created_at: datetime
     updated_at: datetime
 
@@ -28,6 +29,7 @@ class CommentInfo:
             user_id=model.user_id,
             hotel_id=model.hotel_id,
             content=model.content,
+            rating=model.rating,
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
