@@ -16,7 +16,12 @@ class CommentAdapter(SQLAlchemyGateway, CommentGatewayProto):
         except Exception:
             raise CommentAlreadyExistsException
 
-    async def list_user_comments(self, user_id: UUID) -> list[Comment]:
+    async def get_comment_by_id(self, comment_id: UUID) -> Comment:
+        """Retrieve a comment by its ID."""
+        comment = await self.get_item_by_id(Comment, comment_id)
+        return comment
+
+    async def get_comments_by_user_id(self, user_id: UUID) -> list[Comment]:
         """Retrieve a list of comments made by a specific user."""
         result = await self.session.execute(
             select(Comment).where(Comment.user_id == user_id)
@@ -24,7 +29,7 @@ class CommentAdapter(SQLAlchemyGateway, CommentGatewayProto):
 
         return list(result.scalars())
 
-    async def list_hotel_comments(self, hotel_id: int) -> list[Comment]:
+    async def get_comments_by_hotel_id(self, hotel_id: int) -> list[Comment]:
         """Retrieve a list of comments for a specific hotel."""
         result = await self.session.execute(
             select(Comment).where(Comment.hotel_id == hotel_id)
