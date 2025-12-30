@@ -16,7 +16,7 @@ class RoomService(ServiceBase):
     ) -> None:
         self._room_adapter = room_gateway
         self._logger = logger
-        # self._hotel_ensure = HotelServiceInsurance(hotel_gateway)
+        # self._hotel_ensure = HotelServiceEnsurance(hotel_gateway)
         self._room_ensure = RoomServiceInsurance(room_gateway, logger)
         super().__init__()
 

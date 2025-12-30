@@ -1,11 +1,11 @@
 from src.apps.hotel.rooms.application.interfaces.gateway import RoomGatewayProto
 from src.apps.hotel.rooms.domain.models import Room
-from src.common.application.ensure import ServiceInsuranceBase
+from src.common.application.ensure import ServiceEnsuranceBase
 from src.apps.hotel.rooms.application import exceptions
 from src.common.interfaces import CustomLoggerProto
 
 
-class RoomServiceInsurance(ServiceInsuranceBase):
+class RoomServiceInsurance(ServiceEnsuranceBase):
     """Room service ensuring."""
 
     def __init__(self, gateway: RoomGatewayProto, logger: CustomLoggerProto) -> None:

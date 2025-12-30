@@ -2,12 +2,12 @@ from uuid import UUID
 
 from src.apps.hotel.hotels.domain.models import Hotel
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
-from src.common.application.ensure import ServiceInsuranceBase
+from src.common.application.ensure import ServiceEnsuranceBase
 from src.apps.hotel.hotels.application import exceptions
 from src.common.interfaces import CustomLoggerProto
 
 
-class HotelServiceInsurance(ServiceInsuranceBase):
+class HotelServiceEnsurance(ServiceEnsuranceBase):
     """Hotel service ensuring."""
 
     def __init__(self, gateway: HotelGatewayProto, logger: CustomLoggerProto) -> None:

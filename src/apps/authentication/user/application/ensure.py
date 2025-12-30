@@ -2,11 +2,11 @@ from uuid import UUID
 
 from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
 from src.apps.authentication.user.domain.models import User
-from src.common.application.ensure import ServiceInsuranceBase
+from src.common.application.ensure import ServiceEnsuranceBase
 from src.apps.authentication.user.application import exceptions
 
 
-class UserServiceEnsurance(ServiceInsuranceBase):
+class UserServiceEnsurance(ServiceEnsuranceBase):
     """User service ensuring."""
 
     def __init__(self, gateway: UserGatewayProto) -> None:

@@ -2,12 +2,12 @@ from uuid import UUID
 from src.apps.hotel.bookings.domain.models import Booking
 from src.apps.hotel.bookings.application import exceptions
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
-from src.common.application.ensure import ServiceInsuranceBase
+from src.common.application.ensure import ServiceEnsuranceBase
 from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
 from src.common.interfaces import CustomLoggerProto
 
 
-class BookingServiceInsurance(ServiceInsuranceBase):
+class BookingServiceInsurance(ServiceEnsuranceBase):
     """Booking service ensuring."""
 
     def __init__(self, gateway: BookingGatewayProto, logger: CustomLoggerProto) -> None:

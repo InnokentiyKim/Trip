@@ -3,7 +3,7 @@ from src.apps.hotel.hotels.application import exceptions
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from src.apps.hotel.hotels.domain.models import Hotel
 from src.common.application.service import ServiceBase
-from src.apps.hotel.hotels.application.ensure import HotelServiceInsurance
+from src.apps.hotel.hotels.application.ensure import HotelServiceEnsurance
 from src.common.interfaces import CustomLoggerProto
 
 
@@ -11,7 +11,7 @@ class HotelService(ServiceBase):
     def __init__(self, gateway: HotelGatewayProto, logger: CustomLoggerProto) -> None:
         self._adapter = gateway
         self._logger = logger
-        self._ensure = HotelServiceInsurance(gateway, logger)
+        self._ensure = HotelServiceEnsurance(gateway, logger)
 
     async def list_hotels(self, cmd: commands.ListHotelsCommand) -> list[Hotel]:
         params = cmd.model_dump(exclude_unset=True)
