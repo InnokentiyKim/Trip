@@ -4,6 +4,7 @@ from src.apps.comment.application.interfaces.gateway import CommentGatewayProto
 from src.apps.comment.domain.excepitions import CommentAlreadyExistsException
 from src.apps.comment.domain.models import Comment
 from src.common.adapters.adapter import SQLAlchemyGateway
+from sqlalchemy import select
 
 
 class CommentAdapter(SQLAlchemyGateway, CommentGatewayProto):
@@ -14,6 +15,22 @@ class CommentAdapter(SQLAlchemyGateway, CommentGatewayProto):
             await self.session.commit()
         except Exception:
             raise CommentAlreadyExistsException
+
+    async def list_user_comments(self, user_id: UUID) -> list[Comment]:
+        """Retrieve a list of comments made by a specific user."""
+        result = await self.session.execute(
+            select(Comment).where(Comment.user_id == user_id)
+        )
+
+        return list(result.scalars())
+
+    async def list_hotel_comments(self, hotel_id: int) -> list[Comment]:
+        """Retrieve a list of comments for a specific hotel."""
+        result = await self.session.execute(
+            select(Comment).where(Comment.hotel_id == hotel_id)
+        )
+
+        return list(result.scalars())
 
     async def update_comment(self, comment: Comment, **params) -> UUID | None:
         """Update an existing comment."""
