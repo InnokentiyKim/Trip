@@ -81,7 +81,7 @@ class UserService(ServiceBase):
             avatar_url=cmd.avatar_url,
             is_active=cmd.is_active,
         )
-        await self._user.add_user(new_user)
+        await self._user.add(new_user)
 
         return results.UserInfo.from_model(new_user)
 

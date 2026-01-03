@@ -9,6 +9,11 @@ from src.common.interfaces import GatewayProto
 
 class BookingGatewayProto(GatewayProto):
     @abstractmethod
+    async def add(self, booking: Booking) -> None:
+        """Add a new booking."""
+        ...
+
+    @abstractmethod
     async def get_booking_by_id(
         self, booking_id: UUID, **filters: dict | Any
     ) -> Booking | None:

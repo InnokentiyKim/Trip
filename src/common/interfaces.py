@@ -197,12 +197,17 @@ class GatewayProto(ABC):
         """Return an async context manager for a unit of work."""
         ...
 
+    @abstractmethod
+    async def add(self, model: Any) -> None:
+        """Add a model instance to the gateway."""
+        ...
+
 
 class SQLAlchemyGatewayProto(GatewayProto):
     # TODO: add __call__ method to return UoW instance
 
     @abstractmethod
-    async def add_item(self, item: ORM_OBJ) -> None: ...
+    async def add(self, item: ORM_OBJ) -> None: ...
 
     @abstractmethod
     async def get_item_by_id(self, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ: ...

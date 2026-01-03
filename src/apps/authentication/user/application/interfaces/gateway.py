@@ -22,7 +22,7 @@ class UserGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def add_user(self, user: User) -> None:
+    async def add(self, user: User) -> None:
         """Add a new user."""
         ...
 

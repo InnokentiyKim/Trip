@@ -35,7 +35,7 @@ class HotelService(ServiceBase):
         if cmd.is_active:
             hotel.is_active = cmd.is_active
 
-        new_hotel_id = await self._adapter.add_hotel(hotel)
+        new_hotel_id = await self._adapter.add(hotel)
         if new_hotel_id is None:
             self._logger.error("Hotel creation failed, hotel already exists", name=cmd.name, location=cmd.location)
             raise exceptions.HotelAlreadyExistsException

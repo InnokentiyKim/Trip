@@ -16,7 +16,7 @@ class SQLAlchemyGateway(SQLAlchemyGatewayProto):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def add_item(self, item: ORM_OBJ) -> None:
+    async def add(self, item: ORM_OBJ) -> None:
         self.session.add(item)
         try:
             await self.session.commit()

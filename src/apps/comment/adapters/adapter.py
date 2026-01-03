@@ -41,7 +41,7 @@ class CommentAdapter(SQLAlchemyGateway, CommentGatewayProto):
         """Update an existing comment."""
         for key, value in params.items():
             setattr(comment, key, value)
-        await self.add_item(comment)
+        await self.add(comment)
         return comment.id
 
     async def delete_comment(self, comment: Comment) -> None:

@@ -22,7 +22,7 @@ class HotelGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def add_hotel(self, hotel: Hotel) -> int | None:
+    async def add(self, hotel: Hotel) -> int | None:
         """Add a new hotel."""
         ...
 

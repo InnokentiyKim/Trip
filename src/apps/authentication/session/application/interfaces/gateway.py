@@ -7,7 +7,7 @@ from src.apps.authentication.session.domain.models import AuthSession, PasswordR
 
 class AuthSessionGatewayProto(GatewayProto):
     @abstractmethod
-    async def add_refresh_session(self, refresh_session: AuthSession):
+    async def add(self, refresh_session: AuthSession):
         """Adds a refresh session to the database."""
         ...
 

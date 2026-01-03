@@ -36,7 +36,7 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         hotel = await self.get_one_item(Hotel, id=hotel_id, owner_id=user_id)
         return hotel
 
-    async def add_hotel(self, hotel: Hotel) -> int | None:
+    async def add(self, hotel: Hotel) -> int | None:
         """Add a new hotel."""
         self.session.add(hotel)
         try:
@@ -49,7 +49,7 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         """Update an existing hotel."""
         for key, value in params.items():
             setattr(hotel, key, value)
-        await self.add_item(hotel)
+        await self.add(hotel)
         return hotel.id
 
     async def delete_hotel(self, hotel: Hotel) -> None:

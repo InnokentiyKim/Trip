@@ -12,6 +12,11 @@ from src.common.adapters.adapter import SQLAlchemyGateway
 
 
 class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
+    async def add(self, booking: Booking) -> None:
+        """Add a new booking."""
+        self.session.add(booking)
+        await self.session.commit()
+
     async def get_booking_by_id(
         self, booking_id: UUID, **filters: Any
     ) -> Booking | None:
@@ -94,7 +99,7 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
                 price=finalized_price,
             )
 
-            await self.add_item(new_booking)
+            await self.add(new_booking)
             return new_booking
 
     async def update_booking(
@@ -106,7 +111,7 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
             return None
         for key, value in updating_params.items():
             setattr(booking, key, value)
-        await self.add_item(booking)
+        await self.add(booking)
         return booking.id
 
     async def delete_booking(self, booking: Booking) -> None:

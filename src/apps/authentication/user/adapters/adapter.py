@@ -22,7 +22,7 @@ class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
         users = await self.get_items_list(User, **filters)
         return users
 
-    async def add_user(self, user: User) -> None:
+    async def add(self, user: User) -> None:
         """Add a new user."""
         try:
             self.session.add(user)
@@ -34,7 +34,7 @@ class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
         """Update an existing user."""
         for key, value in params.items():
             setattr(user, key, value)
-        await self.add_item(user)
+        await self.add(user)
         return user.id
 
     async def delete_user(self, user: User) -> None:
