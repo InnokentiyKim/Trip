@@ -1,3 +1,4 @@
+from src.apps.hotel.hotels.application.ensure import HotelServiceEnsurance
 from src.apps.hotel.rooms.application.ensure import RoomServiceInsurance
 from src.apps.hotel.rooms.domain import commands
 from src.apps.hotel.rooms.application import exceptions
@@ -10,13 +11,13 @@ from src.common.interfaces import CustomLoggerProto
 class RoomService(ServiceBase):
     def __init__(
         self,
-        # hotel_gateway: HotelGatewayProto,
+        hotel_ensure: HotelServiceEnsurance,
         room_gateway: RoomGatewayProto,
         logger: CustomLoggerProto,
     ) -> None:
         self._room_adapter = room_gateway
         self._logger = logger
-        # self._hotel_ensure = HotelServiceEnsurance(hotel_gateway)
+        self._hotel_ensure = hotel_ensure
         self._room_ensure = RoomServiceInsurance(room_gateway, logger)
         super().__init__()
 
@@ -33,9 +34,9 @@ class RoomService(ServiceBase):
         return room
 
     async def add_room(self, cmd: commands.AddRoomCommand) -> int | None:
-        # hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
+        hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
         room_id = await self._room_adapter.add_room(
-            cmd.hotel_id,
+            hotel.id,
             cmd.user_id,
             cmd.name,
             cmd.price,
@@ -52,23 +53,23 @@ class RoomService(ServiceBase):
         return room_id
 
     async def update_room(self, cmd: commands.UpdateRoomCommand) -> int:
-        # hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
-        room = await self._room_ensure.room_exists(cmd.hotel_id, cmd.room_id)
+        hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
+        room = await self._room_ensure.room_exists(hotel.id, cmd.room_id)
 
         updating_params = cmd.model_dump(
             exclude={"hotel_id", "room_id", "user_id"}, exclude_unset=True
         )
         updated_room_id = await self._room_adapter.update_room(room, **updating_params)
         if updated_room_id is None:
-            self._logger.error("Room cannot be updated", hotel_id=cmd.hotel_id, room_id=cmd.room_id)
+            self._logger.error("Room cannot be updated", hotel_id=hotel.id, room_id=cmd.room_id)
             raise exceptions.RoomCannotBeUpdatedException
 
-        self._logger.info("Room successfully updated", hotel_id=cmd.hotel_id, room_id=cmd.room_id)
+        self._logger.info("Room successfully updated", hotel_id=hotel.id, room_id=cmd.room_id)
         return updated_room_id
 
     async def delete_room(self, cmd: commands.DeleteRoomCommand) -> None:
-        # hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
-        room = await self._room_ensure.room_exists(cmd.hotel_id, cmd.room_id)
+        hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
+        room = await self._room_ensure.room_exists(hotel.id, cmd.room_id)
 
         await self._room_adapter.delete_room(room)
-        self._logger.info("Room successfully deleted", hotel_id=cmd.hotel_id, room_id=cmd.room_id)
+        self._logger.info("Room successfully deleted", hotel_id=hotel.id, room_id=cmd.room_id)

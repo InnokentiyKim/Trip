@@ -3,6 +3,7 @@ from dishka import Provider, Scope, provide, provide_all
 from src.apps.hotel.bookings.adapters.adapter import BookingAdapter
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.hotels.adapters.adapter import HotelAdapter
+from src.apps.hotel.hotels.application.ensure import HotelServiceEnsurance
 from src.apps.hotel.rooms.adapters.adapter import RoomAdapter
 from src.apps.hotel.rooms.application.interfaces.gateway import RoomGatewayProto
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
@@ -16,6 +17,7 @@ class ServiceProviders(Provider):
 
     services = provide_all(
         HotelService,
+        HotelServiceEnsurance,
         RoomService,
         BookingService,
     )

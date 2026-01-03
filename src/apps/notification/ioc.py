@@ -3,7 +3,7 @@ from dishka import Provider, provide, provide_all, Scope
 from src.apps.notification.email.adapters.smtp import SMTPAdapter
 from src.apps.notification.email.application.interfaces.gateway import EmailGatewayProto
 from src.apps.notification.email.application.service import EmailService
-from src.apps.notification.sms.application.service import SMSService
+# from src.apps.notification.sms.application.service import SMSService
 from src.config import Configs
 
 
@@ -12,7 +12,7 @@ class ServiceProviders(Provider):
 
     notification_services = provide_all(
         EmailService,
-        SMSService,
+        # SMSService,
     )
 
 
