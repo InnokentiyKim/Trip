@@ -8,7 +8,6 @@ from src.apps.authentication.session.application.interfaces.gateway import AuthS
 from src.apps.authentication.session.domain.models import AuthSession, PasswordResetToken, OTPCode
 from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
 from src.apps.authentication.user.domain.models import User
-from src.apps.authorization.access.application.interfaces.gateway import AccessGatewayProto
 from src.apps.authorization.access.domain.models import Role, Permission
 from src.apps.authorization.role.application.interfaces.gateway import RoleGatewayProto, PermissionGatewayProto
 from src.apps.comment.application.interfaces.gateway import CommentGatewayProto
