@@ -1,13 +1,58 @@
 from pydantic_settings import BaseSettings
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, BaseModel
+
+from src.infrastructure.database.memory.config import MemoryDatabaseSettings
 from src.infrastructure.database.postgres.config import DatabaseSettings
-from src.common.domain.enums import EnvironmentEnum
+from src.common.domain.enums import EnvironmentEnum, EmailAdapterEnum, SMSAdapterEnum
 from src.apps.hotel.file_object.config import S3Settings
 from pydantic import EmailStr
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+class CORSConfig(BaseModel):
+    """CORS configuration for the FastAPI application."""
+
+    allow_origins: list[str] = Field(
+        default=[
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "http://localhost:3002",
+            "http://127.0.0.1:3000",
+        ],
+        description="List of allowed origins for CORS",
+    )
+    allow_credentials: bool = Field(
+        default=True,
+        description="Whether to allow credentials (cookies, authorization headers)",
+    )
+    allow_methods: list[str] = Field(
+        default=["*"],
+        description="List of allowed HTTP methods",
+    )
+    allow_headers: list[str] = Field(
+        default=["*"],
+        description="List of allowed HTTP headers",
+    )
+    expose_headers: list[str] = Field(
+        default=[
+            "Content-Length",
+            "Content-Type",
+            "Content-Disposition",
+            "Content-Range",
+            "X-Content-Type-Options",
+            "X-Video-Rotation",
+            "X-Thumbnail-Extraction-Time-Ms",
+            "X-Thumbnail-Bytes-Downloaded",
+            "X-Thumbnail-Savings-Percentage",
+            "X-Thumbnail-S3-Requests",
+            "X-Thumbnail-Frame-Number",
+            "X-Thumbnail-Size-Bytes",
+        ],
+        description="Headers exposed to the browser for cross-origin requests",
+    )
 
 
 class CustomBaseSettings(BaseSettings):
@@ -19,8 +64,16 @@ class CustomBaseSettings(BaseSettings):
 
 class GeneralSettings(CustomBaseSettings):
     app_version: str = "1.0.0"
-    app_name: str = "backend-hotel-service"
+    app_name: str = "hotel-service-backend"
     environment: EnvironmentEnum = EnvironmentEnum.DEV
+    cors: CORSConfig = Field(default_factory=CORSConfig)
+
+    email_adapter: EmailAdapterEnum = EmailAdapterEnum.SMTP
+    sms_adapter: SMSAdapterEnum = SMSAdapterEnum.NAVER
+    company_name: str = "HOTELS"
+    website_url: str = "http://localhost:3000"
+    support_email: str = "support@hotels.app"
+    logo_url: str = ""
 
 
 class SecuritySettings(CustomBaseSettings):
@@ -67,6 +120,7 @@ class LoggerSettings(BaseSettings):
 class Configs(BaseSettings):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
+    memory_database: MemoryDatabaseSettings = Field(default_factory=MemoryDatabaseSettings)
     security: SecuritySettings = Field(default_factory=SecuritySettings)
     smtp_email: SMTPSettings = Field(default_factory=SMTPSettings)
     s3: S3Settings = Field(default_factory=S3Settings)
