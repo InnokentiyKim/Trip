@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Query
 
 from src.apps.authorization.access.application.service import AccessService
@@ -29,7 +31,7 @@ router = APIRouter(
     prefix="/hotels",
     tags=["hotels"],
 )
-# TODO: Add all hotel_id to request DTO's UUID fields
+
 
 @router.get(
     "",
@@ -73,7 +75,7 @@ async def get_hotels(
 )
 @inject
 async def get_hotel(
-    hotel_id: int,
+    hotel_id: UUID,
     hotel_service: FromDishka[HotelService],
     access_service: FromDishka[AccessService],
     token: str = auth_header,
@@ -143,7 +145,7 @@ async def create_hotel(
 )
 @inject
 async def upload_hotel_image(
-    hotel_id: int,
+    hotel_id: UUID,
     access_service: FromDishka[AccessService],
     hotel_service: FromDishka[HotelService],
     token: str = auth_header,

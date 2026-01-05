@@ -58,7 +58,7 @@ class PasswordResetToken(AuthenticationBase):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
 
-    hashed_refresh_token: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    hashed_reset_token: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     status: Mapped[PasswordResetTokenStatusEnum] = mapped_column(

@@ -12,7 +12,6 @@ class ListRoomsCommand(Command):
 
 
 class GetRoomCommand(Command):
-    hotel_id: UUID
     room_id: UUID
 
 
@@ -28,7 +27,6 @@ class AddRoomCommand(Command):
 
 
 class UpdateRoomCommand(Command):
-    hotel_id: UUID
     room_id: UUID
     user_id: UUID
     name: str | None
@@ -40,6 +38,5 @@ class UpdateRoomCommand(Command):
 
 
 class DeleteRoomCommand(Command):
-    hotel_id: UUID
     room_id: UUID
     user_id: UUID

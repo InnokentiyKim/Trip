@@ -14,7 +14,7 @@ class RoomGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def get_room(self, hotel_id: uuid.UUID, room_id: uuid.UUID) -> Room | None:
+    async def get_room(self, room_id: uuid.UUID) -> Room | None:
         """Retrieve a room by its ID."""
         ...
 

@@ -13,9 +13,11 @@ class RoomServiceInsurance(ServiceEnsuranceBase):
         self._room = gateway
         self._logger = logger
 
-    async def room_exists(self, hotel_id: UUID, room_id: UUID) -> Room:
-        room = await self._room.get_room(hotel_id, room_id)
+    async def room_exists(self, room_id: UUID) -> Room:
+        room = await self._room.get_room(room_id)
+
         if room is None:
-            self._logger.error("Room not found", hotel_id=hotel_id, room_id=room_id)
+            self._logger.error("Room not found", room_id=room_id)
             raise exceptions.RoomNotFoundException
+
         return room

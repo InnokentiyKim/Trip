@@ -24,9 +24,9 @@ class RoomAdapter(SQLAlchemyGateway, RoomGatewayProto):
         row_result = await self.session.scalars(stmt)
         return list(row_result.all())
 
-    async def get_room(self, hotel_id: uuid.UUID, room_id: uuid.UUID) -> Room | None:
+    async def get_room(self, room_id: uuid.UUID) -> Room | None:
         """Retrieve a room by its ID."""
-        room = await self.get_one_item(Room, id=room_id, hotel_id=hotel_id)
+        room = await self.get_one_item(Room, id=room_id)
         return room
 
     async def add_room(

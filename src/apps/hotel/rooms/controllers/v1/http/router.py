@@ -31,7 +31,7 @@ router = APIRouter(
     prefix="/hotels",
     tags=["rooms"],
 )
-# TODO: Add all hotel_id and room_id to request DTO's UUID fields
+
 
 @router.get(
     "/{hotel_id}/rooms",
@@ -70,7 +70,7 @@ async def list_rooms(
 
 
 @router.get(
-    "/{hotel_id}/rooms/{room_id}",
+    "/rooms/{room_id}",
     responses=generate_responses(
         Unauthorized,
         Forbidden,
@@ -80,8 +80,7 @@ async def list_rooms(
 )
 @inject
 async def get_room(
-    hotel_id: int,
-    room_id: int,
+    room_id: UUID,
     room_service: FromDishka[RoomService],
     access_service: FromDishka[AccessService],
     token: str = auth_header,
@@ -96,7 +95,7 @@ async def get_room(
     )
 
     room = await room_service.get_room(
-        room_commands.GetRoomCommand(hotel_id=hotel_id, room_id=room_id)
+        room_commands.GetRoomCommand(room_id=room_id)
     )
 
     return GetRoomResponseDTO.model_validate(room)
@@ -114,7 +113,7 @@ async def get_room(
 )
 @inject
 async def add_room(
-    hotel_id: int,
+    hotel_id: UUID,
     dto: AddRoomRequestDTO,
     access_service: FromDishka[AccessService],
     room_service: FromDishka[RoomService],
@@ -146,7 +145,7 @@ async def add_room(
 
 
 @router.patch(
-    "/{hotel_id}/rooms/{room_id}",
+    "/rooms/{room_id}",
     responses=generate_responses(
         Unauthorized,
         Forbidden,
@@ -157,8 +156,7 @@ async def add_room(
 )
 @inject
 async def update_room(
-    hotel_id: int,
-    room_id: int,
+    room_id: UUID,
     dto: UpdateRoomRequestDTO,
     access_service: FromDishka[AccessService],
     room_service: FromDishka[RoomService],
@@ -175,7 +173,6 @@ async def update_room(
     )
 
     cmd = room_commands.UpdateRoomCommand(
-        hotel_id=hotel_id,
         room_id=room_id,
         user_id=authorization_info.user_id,
         name=dto.name,
@@ -191,7 +188,7 @@ async def update_room(
 
 
 @router.delete(
-    "/{hotel_id}/rooms/{room_id}",
+    "/rooms/{room_id}",
     responses=generate_responses(
         Unauthorized,
         Forbidden,
@@ -201,8 +198,7 @@ async def update_room(
 )
 @inject
 async def delete_room(
-    hotel_id: int,
-    room_id: int,
+    room_id: UUID,
     access_service: FromDishka[AccessService],
     room_service: FromDishka[RoomService],
     token: str = auth_header,
@@ -218,7 +214,7 @@ async def delete_room(
     )
 
     cmd = room_commands.DeleteRoomCommand(
-        hotel_id=hotel_id, room_id=room_id, user_id=authorization_info.user_id
+        user_id=authorization_info.user_id, room_id=room_id
     )
 
     await room_service.delete_room(cmd)

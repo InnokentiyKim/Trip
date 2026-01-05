@@ -98,6 +98,12 @@ class Role(AuthorizationBase, AsyncAttrs):
         cascade="all",
     )
 
+    users: Mapped[list["User"]] = relationship(  # noqa: F821
+        "User",
+        back_populates="role",
+        lazy="joined",
+    )
+
     @classmethod
     def returning_columns(cls) -> list[Any]:
         """Returns the list of columns to be selected."""
