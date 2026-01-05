@@ -183,7 +183,7 @@ class AuthenticationService(ServiceBase):
         password_reset_token = PasswordResetToken(
             id=uuid.uuid4(),
             user_id=cmd.user_id,
-            hashed_refresh_token=hashed_reset_token,
+            hashed_reset_token=hashed_reset_token,
             created_at=now,
             expires_at=expires_at,
             status=PasswordResetTokenStatusEnum.CREATED
@@ -193,7 +193,7 @@ class AuthenticationService(ServiceBase):
             id=password_reset_token.id,
             user_id=password_reset_token.user_id,
             reset_token=SecretStr(reset_token),
-            hashed_reset_token=password_reset_token.hashed_refresh_token,
+            hashed_reset_token=password_reset_token.hashed_reset_token,
             created_at=password_reset_token.created_at,
             expires_at=password_reset_token.expires_at,
             status=password_reset_token.status

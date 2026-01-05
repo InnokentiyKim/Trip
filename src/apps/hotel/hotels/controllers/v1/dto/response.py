@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from src.common.controllers.dto.base import BaseResponseDTO
 from src.common.controllers.dto.base import BaseDTO
 
@@ -16,7 +18,7 @@ class CreateHotelResponseDTO(BaseResponseDTO): ...
 
 class UploadHotelImageResponseDTO(BaseDTO):
     url: str
-    hotel_id: int
+    hotel_id: UUID
     content_type: str = "multipart/form-data"
 
 

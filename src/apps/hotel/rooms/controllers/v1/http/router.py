@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Query
 from typing import Annotated
 from src.apps.authorization.access.domain.commands import Authorize
@@ -29,7 +31,7 @@ router = APIRouter(
     prefix="/hotels",
     tags=["rooms"],
 )
-
+# TODO: Add all hotel_id and room_id to request DTO's UUID fields
 
 @router.get(
     "/{hotel_id}/rooms",
@@ -41,7 +43,7 @@ router = APIRouter(
 )
 @inject
 async def list_rooms(
-    hotel_id: int,
+    hotel_id: UUID,
     filter_query: Annotated[ListRoomsRequestDTO, Query()],
     access_service: FromDishka[AccessService],
     room_service: FromDishka[RoomService],

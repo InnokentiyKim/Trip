@@ -10,7 +10,7 @@ class ListHotelsCommand(Command):
 
 
 class GetHotelCommand(Command):
-    hotel_id: int
+    hotel_id: UUID
 
 
 class CreateHotelCommand(Command):
@@ -24,7 +24,7 @@ class CreateHotelCommand(Command):
 
 
 class UpdateHotelCommand(Command):
-    hotel_id: int
+    hotel_id: UUID
     owner: UUID
     name: str | None
     location: str | None
@@ -35,4 +35,4 @@ class UpdateHotelCommand(Command):
 
 
 class DeleteHotelCommand(Command):
-    hotel_id: int
+    hotel_id: UUID

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from src.apps.hotel.hotels.domain import commands
 from src.apps.hotel.hotels.application import exceptions
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
@@ -22,7 +24,7 @@ class HotelService(ServiceBase):
         hotel = await self._ensure.hotel_exists(cmd.hotel_id)
         return hotel
 
-    async def create_hotel(self, cmd: commands.CreateHotelCommand) -> int:
+    async def create_hotel(self, cmd: commands.CreateHotelCommand) -> UUID:
 
         hotel = Hotel(
             name=cmd.name,
@@ -43,7 +45,7 @@ class HotelService(ServiceBase):
         self._logger.info(f"New hotel successfully created", hotel_id=new_hotel_id, owner=str(cmd.owner))
         return new_hotel_id
 
-    async def update_hotel(self, cmd: commands.UpdateHotelCommand) -> int:
+    async def update_hotel(self, cmd: commands.UpdateHotelCommand) -> UUID:
         hotel = await self._ensure.hotel_exists(cmd.hotel_id)
         params = cmd.model_dump(exclude={"hotel_id"}, exclude_unset=True)
         is_updated = await self._adapter.update_hotel(hotel, **params)

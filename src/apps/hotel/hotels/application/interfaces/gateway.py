@@ -12,22 +12,22 @@ class HotelGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def get_hotel_by_id(self, hotel_id: int) -> Hotel | None:
+    async def get_hotel_by_id(self, hotel_id: UUID) -> Hotel | None:
         """Retrieve a hotel by its ID."""
         ...
 
     @abstractmethod
-    async def get_users_hotel(self, user_id: UUID, hotel_id: int) -> Hotel | None:
+    async def get_users_hotel(self, user_id: UUID, hotel_id: UUID) -> Hotel | None:
         """Retrieve users hotel by its ID."""
         ...
 
     @abstractmethod
-    async def add(self, hotel: Hotel) -> int | None:
+    async def add(self, hotel: Hotel) -> UUID | None:
         """Add a new hotel."""
         ...
 
     @abstractmethod
-    async def update_hotel(self, hotel: Hotel, **params) -> int | None:
+    async def update_hotel(self, hotel: Hotel, **params) -> UUID | None:
         """Update an existing hotel."""
         ...
 

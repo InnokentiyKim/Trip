@@ -29,7 +29,7 @@ router = APIRouter(
     prefix="/hotels",
     tags=["hotels"],
 )
-
+# TODO: Add all hotel_id to request DTO's UUID fields
 
 @router.get(
     "",

@@ -6,6 +6,7 @@ from src.apps.hotel.rooms.application.interfaces.gateway import RoomGatewayProto
 from src.apps.hotel.rooms.domain.models import Room
 from src.common.application.service import ServiceBase
 from src.common.interfaces import CustomLoggerProto
+from uuid import UUID
 
 
 class RoomService(ServiceBase):
@@ -33,7 +34,7 @@ class RoomService(ServiceBase):
             raise exceptions.RoomNotFoundException
         return room
 
-    async def add_room(self, cmd: commands.AddRoomCommand) -> int | None:
+    async def add_room(self, cmd: commands.AddRoomCommand) -> UUID | None:
         hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
         room_id = await self._room_adapter.add_room(
             hotel.id,
@@ -52,7 +53,7 @@ class RoomService(ServiceBase):
         self._logger.info("New room successfully added", hotel_id=cmd.hotel_id, room_id=room_id)
         return room_id
 
-    async def update_room(self, cmd: commands.UpdateRoomCommand) -> int:
+    async def update_room(self, cmd: commands.UpdateRoomCommand) -> UUID:
         hotel = await self._hotel_ensure.users_hotel_exists(cmd.user_id, cmd.hotel_id)
         room = await self._room_ensure.room_exists(hotel.id, cmd.room_id)
 

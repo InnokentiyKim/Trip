@@ -3,6 +3,7 @@ from src.apps.hotel.rooms.domain.models import Room
 from src.common.application.ensure import ServiceEnsuranceBase
 from src.apps.hotel.rooms.application import exceptions
 from src.common.interfaces import CustomLoggerProto
+from uuid import UUID
 
 
 class RoomServiceInsurance(ServiceEnsuranceBase):
@@ -12,7 +13,7 @@ class RoomServiceInsurance(ServiceEnsuranceBase):
         self._room = gateway
         self._logger = logger
 
-    async def room_exists(self, hotel_id: int, room_id: int) -> Room:
+    async def room_exists(self, hotel_id: UUID, room_id: UUID) -> Room:
         room = await self._room.get_room(hotel_id, room_id)
         if room is None:
             self._logger.error("Room not found", hotel_id=hotel_id, room_id=room_id)

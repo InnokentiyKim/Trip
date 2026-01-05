@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from src.common.controllers.dto.base import BaseRequestDTO
 
 
@@ -11,7 +13,7 @@ class CreateHotelRequestDTO(BaseRequestDTO):
 
 
 class UpdateHotelRequestDTO(BaseRequestDTO):
-    hotel_id: int
+    hotel_id: UUID
     name: str
     location: str
     rooms_quantity: int

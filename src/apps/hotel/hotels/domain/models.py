@@ -22,7 +22,7 @@ class Hotel(HotelBase):
         UniqueConstraint("name", "location", name="unq_hotel_name_location"),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     location: Mapped[str] = mapped_column(String, nullable=False)
     services: Mapped[dict | None] = mapped_column(JSON, nullable=True)
@@ -52,6 +52,7 @@ class Hotel(HotelBase):
         image_id: int | None = None,
     ) -> None:
         super().__init__()
+        self.id = uuid.uuid4()
         self.name = name
         self.location = location
         self.services = services if services else {}

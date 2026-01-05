@@ -17,9 +17,9 @@ class RoomBase(MappedAsDataclass, Base):
 class Room(RoomBase):
     __tablename__ = "rooms"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    hotel_id: Mapped[int] = mapped_column(
-        ForeignKey("hotels.id", ondelete="CASCADE"), nullable=False
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    hotel_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("hotels.id", ondelete="CASCADE"), nullable=False
     )
     owner: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
@@ -44,7 +44,7 @@ class Room(RoomBase):
 
     def __init__(
         self,
-        hotel_id: int,
+        hotel_id: uuid.UUID,
         owner: uuid.UUID,
         name: str,
         price: Decimal,
@@ -54,6 +54,7 @@ class Room(RoomBase):
         quantity: int = 1,
     ) -> None:
         super().__init__()
+        self.id = uuid.uuid4()
         self.hotel_id = hotel_id
         self.owner = owner
         self.name = name
