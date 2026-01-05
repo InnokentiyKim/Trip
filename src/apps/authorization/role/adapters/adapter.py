@@ -175,7 +175,7 @@ class FakeRoleAdapter(FakeGateway[Role], RoleGatewayProto):
         return True
 
 
-class FakePermissionsAdapter(FakeGateway, PermissionGatewayProto):
+class FakePermissionsAdapter(FakeGateway[Permission], PermissionGatewayProto):
     async def add(self, permission: Permission) -> None:
         """Adds a new permission to the database."""
         self._collection.add(permission)

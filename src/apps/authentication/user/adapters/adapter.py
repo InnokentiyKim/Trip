@@ -42,7 +42,7 @@ class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
         await self.delete_item(user)
 
 
-class FakeUserAdapter(FakeGateway, UserGatewayProto):
+class FakeUserAdapter(FakeGateway[User], UserGatewayProto):
     async def get_user_by_id(self, user_id) -> User | None:
         """Retrieve a user by filters."""
         return next((user for user in self._collection if user.id == user_id), None)

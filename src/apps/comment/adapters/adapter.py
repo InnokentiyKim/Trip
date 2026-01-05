@@ -49,7 +49,7 @@ class CommentAdapter(SQLAlchemyGateway, CommentGatewayProto):
         await self.delete_item(comment)
 
 
-class FakeCommentAdapter(FakeGateway, CommentGatewayProto):
+class FakeCommentAdapter(FakeGateway[Comment], CommentGatewayProto):
     async def add(self, comment: Comment) -> None:
         """Add a new comment."""
         self._collection.add(comment)
