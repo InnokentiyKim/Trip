@@ -2,7 +2,7 @@ from uuid import UUID
 
 from src.apps.authentication.user.application.exceptions import UserAlreadyExistsException
 from src.apps.authentication.user.domain.models import User
-from src.common.adapters.adapter import SQLAlchemyGateway
+from src.common.adapters.adapter import SQLAlchemyGateway, FakeGateway
 from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
 
 
@@ -40,3 +40,37 @@ class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
     async def delete_user(self, user: User) -> None:
         """Delete a user by its ID."""
         await self.delete_item(user)
+
+
+class FakeUserAdapter(FakeGateway, UserGatewayProto):
+    async def get_user_by_id(self, user_id) -> User | None:
+        """Retrieve a user by filters."""
+        return next((user for user in self._collection if user.id == user_id), None)
+
+    async def get_user_by_email(self, email: str) -> User | None:
+        """Retrieve a user by email."""
+        return next((user for user in self._collection if user.email == email), None)
+
+    async def get_users(self, **filters) -> list[User]:
+        """Retrieve a list of users."""
+        return [
+            user for user in self._collection if all(getattr(user, k) == v for k, v in filters.items())
+        ]
+
+    async def add(self, user: User) -> None:
+        """Add a new user."""
+        self._collection.add(user)
+
+    async def update_user(self, user: User, **params) -> UUID | None:
+        """Update an existing user."""
+        for key, value in params.items():
+            setattr(user, key, value)
+
+        self._collection.discard(user)
+        self._collection.add(user)
+
+        return user.id or None
+
+    async def delete_user(self, user: User) -> None:
+        """Delete a user by its ID."""
+        self._collection.discard(user)
