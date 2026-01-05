@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 from typing import Any
 from uuid import UUID
@@ -8,7 +9,7 @@ from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
 from src.apps.hotel.rooms.domain.models import Room
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.bookings.domain.models import Booking
-from src.common.adapters.adapter import SQLAlchemyGateway
+from src.common.adapters.adapter import SQLAlchemyGateway, FakeGateway
 
 
 class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
@@ -117,3 +118,72 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
     async def delete_booking(self, booking: Booking) -> None:
         """Delete a booking by its ID."""
         await self.delete_item(booking)
+
+
+class FakeBookingAdapter(FakeGateway[Booking], BookingGatewayProto):
+    async def add(self, booking: Booking) -> None:
+        """Add a new booking."""
+        self._collection.add(booking)
+
+    async def get_booking_by_id(
+        self, booking_id: UUID, **filters: Any
+    ) -> Booking | None:
+        """Retrieve a booking by its ID."""
+        return next(
+            (
+                booking
+                for booking in self._collection
+                if booking.id == booking_id
+                and all(getattr(booking, k) == v for k, v in filters.items())
+            ),
+            None,
+        )
+
+    async def get_bookings(self, **filters) -> list[Booking]:
+        """Retrieve a list of bookings."""
+        return [
+            booking
+            for booking in self._collection
+            if all(getattr(booking, k) == v for k, v in filters.items())
+        ]
+
+    async def get_active_bookings(self, **filters) -> list[Booking]:
+        """Retrieve a list of active bookings."""
+        return [
+            booking
+            for booking in self._collection
+            if booking.status in [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED]
+            and all(getattr(booking, k) == v for k, v in filters.items())
+        ]
+
+    async def add_booking(
+        self, user_id: UUID, room_id: int, date_from: date, date_to: date
+    ) -> Booking | None:
+        """Add a new booking."""
+        from datetime import datetime, UTC
+
+        now = datetime.now(UTC)
+        days_count = (date_to - date_from).days
+        booking = next(booking for booking in self._collection if booking.room_id == room_id)
+        # TODO: Improve add booking implementation in Adapter
+
+    async def update_booking(
+        self, booking: Booking, only_active: bool = False, **updating_params: Any
+    ) -> UUID | None:
+        """Update a booking."""
+        active_statuses = [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED]
+
+        if only_active and booking.status not in active_statuses:
+            return None
+
+        for key, value in updating_params.items():
+            setattr(booking, key, value)
+
+        self._collection.discard(booking)
+        self._collection.add(booking)
+
+        return booking.id
+
+    async def delete_booking(self, booking: Booking) -> None:
+        """Delete a booking by its ID."""
+        self._collection.discard(booking)
