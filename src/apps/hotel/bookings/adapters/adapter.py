@@ -1,4 +1,3 @@
-import uuid
 from datetime import date
 from typing import Any
 from uuid import UUID
@@ -10,6 +9,7 @@ from src.apps.hotel.rooms.domain.models import Room
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.bookings.domain.models import Booking
 from src.common.adapters.adapter import SQLAlchemyGateway, FakeGateway
+from src.infrastructure.database.memory.database import MemoryDatabase
 
 
 class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
@@ -53,10 +53,7 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
         )
         return list(active_bookings.scalars())
 
-    async def add_booking(
-        self, user_id: UUID, room_id: int, date_from: date, date_to: date
-    ) -> Booking | None:
-        """Add a new booking."""
+    async def get_free_rooms_left(self, room_id: UUID, date_from: date, date_to: date) -> int:
         booked_rooms = (
             select(Booking)
             .where(
@@ -85,19 +82,24 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
             .group_by(Room.quantity, booked_rooms.c.room_id)
         )
 
-        rooms_left_res = await self.session.execute(rooms_left_query)
-        rooms_left = rooms_left_res.scalar()
+        rooms_left = await self.session.scalar(rooms_left_query)
+        return rooms_left or 0
 
-        if rooms_left is not None and rooms_left > 0:
+    async def add_booking(
+        self, user_id: UUID, room_id: UUID, date_from: date, date_to: date
+    ) -> Booking | None:
+        """Add a new booking."""
+        rooms_left = await self.get_free_rooms_left(room_id, date_from, date_to)
+
+        if rooms_left > 0:
             price_query = select(Room.price).filter_by(id=room_id)
-            price = await self.session.execute(price_query)
-            finalized_price = price.scalar()
+            price = await self.session.scalar(price_query)
             new_booking = Booking(
                 room_id=room_id,
                 user_id=user_id,
                 date_from=date_from,
                 date_to=date_to,
-                price=finalized_price,
+                price=price,
             )
 
             await self.add(new_booking)
@@ -110,8 +112,10 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
         active_statuses = [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED]
         if only_active and booking.status not in active_statuses:
             return None
+
         for key, value in updating_params.items():
             setattr(booking, key, value)
+
         await self.add(booking)
         return booking.id
 
@@ -121,6 +125,10 @@ class BookingAdapter(SQLAlchemyGateway, BookingGatewayProto):
 
 
 class FakeBookingAdapter(FakeGateway[Booking], BookingGatewayProto):
+    def __init__(self, memory_db: MemoryDatabase, rooms_collection: set[Room]) -> None:
+        super().__init__(memory_db)
+        self._rooms_collection = rooms_collection
+
     async def add(self, booking: Booking) -> None:
         """Add a new booking."""
         self._collection.add(booking)
@@ -156,16 +164,44 @@ class FakeBookingAdapter(FakeGateway[Booking], BookingGatewayProto):
             and all(getattr(booking, k) == v for k, v in filters.items())
         ]
 
+    async def get_free_rooms_left(self, room_id: UUID, date_from: date, date_to: date) -> int:
+        booked_rooms = [
+            booking for booking in self._collection
+            if booking.room_id == room_id and (
+                    (date_from <= booking.date_from < date_to) or
+                    (booking.date_from <= date_from < booking.date_to)
+            )
+        ]
+
+        rooms_count = len([room for room in self._rooms_collection if room.id == room_id])
+        left_count = rooms_count - len(booked_rooms)
+
+        return  left_count
+
     async def add_booking(
-        self, user_id: UUID, room_id: int, date_from: date, date_to: date
+        self, user_id: UUID, room_id: UUID, date_from: date, date_to: date
     ) -> Booking | None:
         """Add a new booking."""
-        from datetime import datetime, UTC
-
-        now = datetime.now(UTC)
         days_count = (date_to - date_from).days
-        booking = next(booking for booking in self._collection if booking.room_id == room_id)
-        # TODO: Improve add booking implementation in Adapter
+        rooms_left = await self.get_free_rooms_left(room_id, date_from, date_to)
+
+        if rooms_left > 0:
+            room = next((room for room in self._rooms_collection if room.id == room_id), None)
+
+            if room is None:
+                return None
+
+            total_cost = room.price * days_count
+            new_booking = Booking(
+                room_id=room_id,
+                user_id=user_id,
+                date_from=date_from,
+                date_to=date_to,
+                price=total_cost,
+            )
+
+            self._collection.add(new_booking)
+            return new_booking
 
     async def update_booking(
         self, booking: Booking, only_active: bool = False, **updating_params: Any
