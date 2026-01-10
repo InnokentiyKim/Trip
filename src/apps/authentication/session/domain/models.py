@@ -42,7 +42,6 @@ class AuthSession(AuthenticationBase):
         now = datetime.now()
         self.created_at = created_at or now
         self.expires_at = now + duration
-        super().__init__()
 
     def __hash__(self) -> int:
         """Returns the hash of the object's id."""

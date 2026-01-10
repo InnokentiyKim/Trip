@@ -4,7 +4,7 @@ from decimal import Decimal
 from src.apps.authentication.user.domain.models import User
 from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
-from sqlalchemy import ForeignKey, Integer, TIMESTAMP, Computed, DECIMAL, Date
+from sqlalchemy import ForeignKey, Integer, TIMESTAMP, Computed, DECIMAL, Date, Index
 
 from src.common.domain.models import Base
 import uuid
@@ -27,7 +27,8 @@ class Booking(BookingBase):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), nullable=False, primary_key=True
     )
-    room_id: Mapped[int] = mapped_column(
+    room_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -54,9 +55,13 @@ class Booking(BookingBase):
         TIMESTAMP(timezone=False), nullable=False, default=datetime.now(UTC)
     )
 
+    __table_args__ = (
+        Index("ix_booking_updated_at_room_id", "updated_at", "room_id"),
+    )
+
     def __init__(
         self,
-        room_id: int,
+        room_id: uuid.UUID,
         user_id: uuid.UUID,
         date_from: date,
         date_to: date,

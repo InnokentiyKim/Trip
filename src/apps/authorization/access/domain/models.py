@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import String, Enum as SAEnum, ForeignKey
+from sqlalchemy import String, Enum as SAEnum, ForeignKey, UniqueConstraint
 
 from src.apps.authorization.access.domain.enums import UserPermissionEnum, ResourceTypeEnum
 from src.apps.authorization.role.domain.enums import UserRoleEnum
@@ -17,6 +17,9 @@ class AuthorizationBase(Base):
 
 class Permission(AuthorizationBase):
     __tablename__ = "permissions"
+    __table_args__ = (
+        UniqueConstraint('name', 'resource_type', name='uq_permission_name_resource'),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, primary_key=True)
     name: Mapped[UserPermissionEnum] = mapped_column(
@@ -27,7 +30,6 @@ class Permission(AuthorizationBase):
             values_callable=lambda enum_cls: [permission.value for permission in enum_cls],
         ),
         nullable=False,
-        unique=True
     )
     resource_type: Mapped[ResourceTypeEnum] = mapped_column(
         SAEnum(
@@ -100,8 +102,8 @@ class Role(AuthorizationBase, AsyncAttrs):
 
     users: Mapped[list["User"]] = relationship(  # noqa: F821
         "User",
-        back_populates="role",
         lazy="joined",
+        uselist=True,
     )
 
     @classmethod
@@ -119,6 +121,7 @@ class Role(AuthorizationBase, AsyncAttrs):
     async def remove_permissions(self, permissions: list[Permission]) -> None:
         """Remove permissions from the role."""
         self_permissions = await self.awaitable_attrs.permissions
+
         for permission in permissions:
             if permission in self_permissions:
                 self.permissions.remove(permission)

@@ -32,9 +32,7 @@ class UserBase(MappedAsDataclass, Base):
 class AuthStatus(UserBase):
     __tablename__ = "auth_statuses"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, nullable=False
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -83,7 +81,7 @@ class OAuthAuth(UserBase):
         nullable=False,
     )
 
-    provider: Mapped[OAuthProviderEnum] = mapped_column(
+    provider: Mapped[str] = mapped_column(
         SAEnum(
             OAuthProviderEnum,
             name="oauth_provider_enum",
@@ -120,9 +118,7 @@ class OAuthAuth(UserBase):
 class User(UserBase):
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, nullable=False
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     phone: Mapped[str | None] = mapped_column(String(60), nullable=True)
@@ -140,7 +136,6 @@ class User(UserBase):
         UUID(as_uuid=True),
         ForeignKey("roles.id", ondelete="RESTRICT"),
         nullable=False,
-        primary_key=True,
     )
 
     hotel: Mapped["Hotel"] = relationship("Hotel", back_populates="user", lazy="joined")
@@ -161,6 +156,7 @@ class User(UserBase):
     oauth_auths: Mapped[list[OAuthAuth]] = relationship(
         "OAuthAuth",
         back_populates="user",
+        uselist=True,
         lazy="selectin",
         cascade="all, delete-orphan",
     )
@@ -177,6 +173,7 @@ class User(UserBase):
         avatar_url: str | None = None,
         is_active: bool = True,
     ) -> None:
+        super().__init__()
         user_id = uuid.uuid4()
         self.id = user_id
         self.email = email
@@ -189,10 +186,7 @@ class User(UserBase):
         self.created_at = now
         self.updated_at = now
         self.is_active = is_active
-
         self.auth_status = AuthStatus(user_id=user_id)
-
-        super().__init__()
 
     def set_password(self, hashed_password: str) -> None:
         self.hashed_password = hashed_password
