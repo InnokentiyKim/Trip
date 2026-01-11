@@ -17,6 +17,11 @@ class UserGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
+    async def get_user_by_phone(self, phone: str) -> User | None:
+        """Retrieve a user by phone number."""
+        ...
+
+    @abstractmethod
     async def get_users(self, **filters) -> list[User]:
         """Retrieve a list of users."""
         ...

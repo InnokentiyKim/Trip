@@ -17,6 +17,11 @@ class UserAdapter(SQLAlchemyGateway, UserGatewayProto):
         user = await self.get_one_item(User, email=email)
         return user
 
+    async def get_user_by_phone(self, phone: str) -> User | None:
+        """Retrieve a user by phone number."""
+        user = await self.get_one_item(User, phone=phone)
+        return user
+
     async def get_users(self, **filters) -> list[User]:
         """Retrieve a list of users."""
         users = await self.get_items_list(User, **filters)
