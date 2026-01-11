@@ -9,13 +9,11 @@ from src.common.controllers.dto.base import BaseDTO, BaseResponseDTO
 class GetRoomResponseDTO(BaseResponseDTO):
     hotel_id: UUID
     name: str
-    description: str
+    description: str | None
     price: Decimal
-    services: dict
+    services: dict | None
     quantity: float
-    image_id: int
-
-    model_config = ConfigDict(from_attributes=True)
+    image_id: int | None
 
 
 class UpdateRoomResponseDTO(BaseResponseDTO): ...
