@@ -12,6 +12,7 @@ from structlog import BoundLogger, get_logger
 from src.common.interfaces import CustomLoggerProto
 from src.infrastructure.database.factory import create_database_adapter
 from src.config import Configs
+from src.infrastructure.database.memory.database import MemoryDatabase
 from src.infrastructure.logger.adapter import CustomLoggerAdapter
 from src.infrastructure.security.adapter import SecurityAdapter
 from src.common.interfaces import SecurityGatewayProto
@@ -50,6 +51,30 @@ class LoggingProvider(Provider):
             BoundLogger: An instance of BoundLogger configured with the application logger name.
         """
         return get_logger(config.logger.app_logger_name)
+
+
+class MemoryDatabaseProvider(Provider):
+    def __init__(self) -> None:
+        self._app_instance: MemoryDatabase | None = None  # Lazy initialization
+        super().__init__()
+
+    @provide(scope=Scope.REQUEST)
+    def provide_memory_database(self, configs: Configs) -> MemoryDatabase:
+        """Provides a MemoryDatabase instance with configurable scope.
+        Returns shared instance for APP scope, fresh instance for REQUEST scope.
+        """
+        if configs.memory_database.life_scope == Scope.APP:
+            # Lazy initialization of APP-scoped instance
+            if self._app_instance is None:
+                self._app_instance = self._create_memory_database(configs)
+            return self._app_instance
+        else:
+            # Always create fresh instance for REQUEST scope
+            return self._create_memory_database(configs)
+
+    def _create_memory_database(self, configs: Configs) -> MemoryDatabase:
+        """Create a new MemoryDatabase instance with config."""
+        return MemoryDatabase(configs)
 
 
 class DatabaseProvider(Provider):
@@ -123,6 +148,7 @@ def get_infra_providers() -> list[Provider]:
     return [
         ConfigProvider(),
         DatabaseProvider(),
+        MemoryDatabaseProvider(),
         LoggingProvider(),
         S3Provider(),
         SecurityProvider(),

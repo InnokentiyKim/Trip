@@ -1,3 +1,5 @@
+from typing import Self
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.apps.authentication.session.domain.models import OTPCode, PasswordResetToken, AuthSession
@@ -8,9 +10,14 @@ from src.apps.hotel.bookings.domain.models import Booking
 from src.apps.hotel.file_object.domain.models import FileObject
 from src.apps.hotel.hotels.domain.models import Hotel
 from src.apps.hotel.rooms.domain.models import Room
+from src.config import Configs
 
 
 class MemoryDatabase(BaseModel):
+    def __init__(self, config: Configs):
+        super().__init__()
+        self.config = config
+
     # Hotel-related collections
     bookings: set[Booking] = Field(default_factory=set)
     hotels: set[Hotel] = Field(default_factory=set)
