@@ -14,6 +14,13 @@ import pytest
 from testcontainers.minio import MinioContainer
 from testcontainers.postgres import PostgresContainer
 
+from src.apps.authentication.session.domain.models import AuthenticationBase
+from src.apps.authentication.user.domain.models import UserBase
+from src.apps.authorization.access.domain.models import AuthorizationBase
+from src.apps.comment.domain.models import CommentBase
+from src.apps.hotel.bookings.domain.models import BookingBase
+from src.apps.hotel.hotels.domain.models import HotelBase
+from src.apps.hotel.rooms.domain.models import RoomBase
 from src.common.controllers.http.api_v1 import http_router_v1
 from src.common.domain.enums import DataAccessEnum, EmailAdapterEnum, SMSAdapterEnum
 from src.common.exceptions.handlers import general_exception_handler
@@ -22,6 +29,7 @@ from src.ioc.registry import get_providers
 from src.setup.common import create_async_container
 from src.common.exceptions.common import BaseError
 from tests.fixtures.mocks import MockData
+
 
 BUCKET_NAME = "images"
 
@@ -192,6 +200,19 @@ type SaveInstances = Callable[[MockData[Any]], Any]
 
 
 @pytest.fixture
+def save_instances(request_container) -> SaveInstances:
+    async def _task(mock_data: MockData[Any]):
+        gateway = await request_container.get(dependency_type=mock_data.gateway_proto)
+        await mock_data.save_by_gateway(gateway)
+
+    async def _mock_data(*mocked_data_list):
+        for mocked_data in mocked_data_list:
+            await _task(mocked_data)
+
+    return _mock_data
+
+
+@pytest.fixture
 async def app_container(mock_test_config) -> AsyncGenerator[AsyncContainer]:
     providers = [*get_providers()]
     container = create_async_container(providers, config=mock_test_config)
@@ -213,11 +234,13 @@ def get_test_app(app_container) -> FastAPI:
     setup_dishka(container=app_container, app=app)
     return app
 
+
 @pytest.fixture
 async def sqlalchemy_engine(app_container) -> AsyncGenerator[AsyncEngine]:
     async with app_container() as request_container:
         engine = await request_container.get(dependency_type=AsyncEngine)
         yield engine
+
 
 @pytest.fixture
 async def http_client(get_test_app: FastAPI) -> AsyncGenerator[AsyncClient]:
@@ -225,4 +248,25 @@ async def http_client(get_test_app: FastAPI) -> AsyncGenerator[AsyncClient]:
         yield ac
 
 
+async def init_postgres_tables(sqlalchemy_engine: AsyncEngine) -> None:
+    """Initialize Postgres tables for testing."""
 
+    base_metadata = {
+        AuthenticationBase.metadata,
+        AuthorizationBase.metadata,
+        HotelBase.metadata,
+        BookingBase.metadata,
+        RoomBase.metadata,
+        UserBase.metadata,
+        CommentBase.metadata,
+    }
+
+    async with sqlalchemy_engine.begin() as conn:
+        for metadata in base_metadata:
+            await conn.run_sync(metadata.drop_all)
+            await conn.run_sync(metadata.create_all)
+
+
+async def init_memory_database(app_container: AsyncContainer, mock_test_config: Configs):
+    async with app_container() as request_container:
+        memory_database = await request_container.get()
