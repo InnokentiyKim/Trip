@@ -71,7 +71,7 @@ async def _load_samples() -> None:
                     manager = User(
                         email=f"manager{i}@hotel.com",
                         hashed_password=sample_password,
-                        role=manager_role_id,
+                        role_id=manager_role_id,
                         name=f"Manager {i}",
                         phone=f"+7900000000{i}",
                         is_active=True
