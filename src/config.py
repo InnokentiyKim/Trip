@@ -1,6 +1,9 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field, SecretStr, BaseModel
 
+from src.apps.authentication.config import AuthConfig
+from src.apps.comment.config import CommentConfig
+from src.apps.hotel.config import HotelsConfig
 from src.infrastructure.database.memory.config import MemoryDatabaseSettings
 from src.infrastructure.database.postgres.config import DatabaseSettings
 from src.common.domain.enums import EnvironmentEnum, EmailAdapterEnum, SMSAdapterEnum
@@ -126,6 +129,11 @@ class Configs(BaseSettings):
     s3: S3Settings = Field(default_factory=S3Settings)
     celery: CelerySettings = Field(default_factory=CelerySettings)
     logger: LoggerSettings = Field(default_factory=LoggerSettings)
+
+    # Apps
+    hotels: HotelsConfig = Field(default_factory=HotelsConfig)
+    authentication: AuthConfig = Field(default_factory=AuthConfig)
+    comment: CommentConfig = Field(default_factory=CommentConfig)
 
 
 def create_configs() -> Configs:
