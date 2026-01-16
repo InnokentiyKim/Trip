@@ -1,5 +1,8 @@
 import os
+import uuid
 from collections.abc import AsyncGenerator
+from datetime import datetime, UTC, timedelta
+from decimal import Decimal
 from enum import StrEnum
 from typing import Callable, Any
 
@@ -14,24 +17,36 @@ import pytest
 from testcontainers.minio import MinioContainer
 from testcontainers.postgres import PostgresContainer
 
+from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
 from src.apps.authentication.session.domain.models import AuthenticationBase
-from src.apps.authentication.user.domain.models import UserBase
+from src.apps.authentication.user.domain.models import UserBase, User
 from src.apps.authorization.access.domain.models import AuthorizationBase
+from src.apps.authorization.role.application.interfaces.gateway import RoleGatewayProto
+from src.apps.authorization.role.domain.enums import UserRoleEnum
 from src.apps.comment.domain.models import CommentBase
 from src.apps.hotel.bookings.domain.models import BookingBase
-from src.apps.hotel.hotels.domain.models import HotelBase
-from src.apps.hotel.rooms.domain.models import RoomBase
+from src.apps.hotel.hotels.domain.models import HotelBase, Hotel
+from src.apps.hotel.rooms.domain.models import RoomBase, Room
 from src.common.controllers.http.api_v1 import http_router_v1
 from src.common.domain.enums import DataAccessEnum, EmailAdapterEnum, SMSAdapterEnum
 from src.common.exceptions.handlers import general_exception_handler
-from src.config import Configs, create_configs
+from src.common.interfaces import SecurityGatewayProto
+from src.config import Configs
+from src.infrastructure.database.memory.database import MemoryDatabase
 from src.ioc.registry import get_providers
 from src.setup.common import create_async_container
 from src.common.exceptions.common import BaseError
 from tests.fixtures.mocks import MockData
+from src.setup.common import app_config
 
 
 BUCKET_NAME = "images"
+
+
+@pytest.fixture(scope="session")
+def anyio_backend():
+    """Force pytest-anyio to use asyncio as the backend."""
+    return "asyncio"
 
 
 def pytest_addoption(parser):
@@ -56,7 +71,9 @@ def app_configs(config: Configs) -> list[BaseModel]:
     ]
 
 
-def filter_configs_by_data_access(config: Configs, data_access: DataAccessEnum) -> list[BaseModel]:
+def filter_configs_by_data_access(
+    config: Configs, data_access: DataAccessEnum
+) -> list[BaseModel]:
     return [
         config
         for config in app_configs(config)
@@ -105,9 +122,14 @@ def stop_docker_containers():
 @pytest.fixture(scope="module", autouse=True)
 def postgres_container(mock_test_config) -> PostgresContainer:
     """Provide a Postgres container for testing."""
-    postgres = CONTAINERS[DockerContainerEnum.POSTGRES] or PostgresContainer("postgres:17")
+    postgres = CONTAINERS[DockerContainerEnum.POSTGRES] or PostgresContainer(
+        "postgres:17"
+    )
 
-    if is_postgres_required(mock_test_config) and CONTAINERS[DockerContainerEnum.POSTGRES] is None:
+    if (
+        is_postgres_required(mock_test_config)
+        and CONTAINERS[DockerContainerEnum.POSTGRES] is None
+    ):
         postgres.start()
         os.environ["POSTGRES_USER"] = postgres.username
         os.environ["POSTGRES_PASSWORD"] = postgres.password
@@ -130,7 +152,10 @@ def minio_container(mock_test_config) -> MinioContainer:
     """Provide a Minio container for testing."""
     minio = CONTAINERS[DockerContainerEnum.MINIO] or MinioContainer()
 
-    if is_minio_required(mock_test_config) and CONTAINERS[DockerContainerEnum.MINIO] is None:
+    if (
+        is_minio_required(mock_test_config)
+        and CONTAINERS[DockerContainerEnum.MINIO] is None
+    ):
         minio.start()
         minio_config = minio.get_config()
         os.environ["S3_ENDPOINT"] = "http://" + minio_config["endpoint"]
@@ -151,7 +176,24 @@ def minio_container(mock_test_config) -> MinioContainer:
 @pytest.fixture(scope="session")
 def default_config() -> Configs:
     """Fixture that provides the default configuration for tests and run test dependencies."""
-    return create_configs()
+    return app_config
+
+
+# Type aliases for fixture factories
+type SaveInstances = Callable[[MockData[Any]], Any]
+
+
+@pytest.fixture
+def save_instances(request_container) -> SaveInstances:
+    async def _task(mock_data: MockData[Any]):
+        gateway = await request_container.get(dependency_type=mock_data.gateway_proto)
+        await mock_data.save_by_gateway(gateway)
+
+    async def _mock_data(*mocked_data_list):
+        for mocked_data in mocked_data_list:
+            await _task(mocked_data)
+
+    return _mock_data
 
 
 @pytest.fixture(scope="module")
@@ -166,6 +208,13 @@ def default_test_config(default_config, request) -> Configs:
                 app_config.gateway = DataAccessEnum.MEMORY
             if hasattr(app_config, "view"):
                 app_config.view = DataAccessEnum.MEMORY
+
+    if not is_fake:
+        for app_config in app_configs(new_config):
+            if hasattr(app_config, "gateway"):
+                app_config.gateway = DataAccessEnum.ALCHEMY
+            if hasattr(app_config, "view"):
+                app_config.view = DataAccessEnum.ALCHEMY
 
     for app_config in app_configs(new_config):
         # Clear default fake data to not conflict with test fake data.
@@ -193,23 +242,6 @@ def mock_test_config(default_test_config) -> Configs:
     Override this fixture if you need to change the default config for testing.
     """
     return default_test_config
-
-
-# Type aliases for fixture factories
-type SaveInstances = Callable[[MockData[Any]], Any]
-
-
-@pytest.fixture
-def save_instances(request_container) -> SaveInstances:
-    async def _task(mock_data: MockData[Any]):
-        gateway = await request_container.get(dependency_type=mock_data.gateway_proto)
-        await mock_data.save_by_gateway(gateway)
-
-    async def _mock_data(*mocked_data_list):
-        for mocked_data in mocked_data_list:
-            await _task(mocked_data)
-
-    return _mock_data
 
 
 @pytest.fixture
@@ -244,7 +276,9 @@ async def sqlalchemy_engine(app_container) -> AsyncGenerator[AsyncEngine]:
 
 @pytest.fixture
 async def http_client(get_test_app: FastAPI) -> AsyncGenerator[AsyncClient]:
-    async with AsyncClient(transport=ASGITransport(app=get_test_app), base_url="http://test") as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=get_test_app), base_url="http://test"
+    ) as ac:
         yield ac
 
 
@@ -267,6 +301,194 @@ async def init_postgres_tables(sqlalchemy_engine: AsyncEngine) -> None:
             await conn.run_sync(metadata.create_all)
 
 
-async def init_memory_database(app_container: AsyncContainer, mock_test_config: Configs):
+async def init_memory_database(
+    app_container: AsyncContainer, mock_test_config: Configs
+):
     async with app_container() as request_container:
-        memory_database = await request_container.get()
+        memory_database = await request_container.get(MemoryDatabase)
+        memory_database.populate_from_config(mock_test_config)
+
+
+@pytest.fixture(autouse=True)
+async def init_tables(
+    sqlalchemy_engine: AsyncEngine,
+    app_container: AsyncContainer,
+    mock_test_config: Configs,
+    postgres_container: PostgresContainer,
+) -> None:
+    """Initialize tables."""
+    await init_postgres_tables(sqlalchemy_engine=sqlalchemy_engine)
+
+    from scripts.cli_tools.prepopulate_db import load_permissions
+    await load_permissions()
+
+
+@pytest.fixture
+async def user(request_container) -> User:
+    """Create a user."""
+    async def _get_role():
+        role_gateway = await request_container.get(RoleGatewayProto)
+        return await role_gateway.get_by_name(UserRoleEnum.USER)
+
+    async def _get_hashed_password():
+        security_gateway = await request_container.get(
+            dependency_type=SecurityGatewayProto
+        )
+        return await security_gateway.hash_password("Password123")
+
+    role = await _get_role()
+    hashed_password = await _get_hashed_password()
+
+    user = User(
+        email="test_user@mail.com",
+        hashed_password=hashed_password,
+        role_id=role.id,
+        name="test_user",
+    )
+    return user
+
+
+@pytest.fixture
+async def manager(request_container) -> User:
+    """Create a manager."""
+
+    async def _get_role():
+        role_gateway = await request_container.get(RoleGatewayProto)
+        return await role_gateway.get_by_name(UserRoleEnum.MANAGER)
+
+    async def _get_hashed_password():
+        security_gateway = await request_container.get(
+            dependency_type=SecurityGatewayProto
+        )
+        return await security_gateway.hash_password("Password123")
+
+    role = await _get_role()
+    hashed_password = await _get_hashed_password()
+
+    manager = User(
+        email="test_manager@mail.com",
+        hashed_password=hashed_password,
+        role_id=role.id,
+        name="test_manager",
+    )
+    return manager
+
+
+@pytest.fixture
+async def hotel(request_container, manager) -> Hotel:
+    """Create a hotel."""
+    hotel = Hotel(
+        name="test_hotel",
+        location="Test location",
+        services={"wifi": True, "pool": False},
+        rooms_quantity=10,
+        owner=manager.id,
+    )
+    return hotel
+
+
+@pytest.fixture
+async def room(request_container, hotel, manager) -> Room:
+    """Create a room."""
+    room = Room(
+        hotel_id=hotel.id,
+        owner=manager.id,
+        name="test_room",
+        price=Decimal("100.00"),
+        description="test_room",
+        quantity=3,
+    )
+    return room
+
+
+@pytest.fixture
+async def security_adapter(request_container) -> SecurityGatewayProto:
+    """Return a security adapter."""
+    return await request_container.get(dependency_type=SecurityGatewayProto)
+
+
+@pytest.fixture
+async def valid_user_token(security_adapter, default_config: Configs, user) -> str:
+    """Return valid token for user."""
+    now = datetime.now(UTC)
+    token = await security_adapter.create_jwt_token(
+        token_type=AuthTokenTypeEnum.ACCESS,
+        user_id=user.id,
+        created_at=now,
+        expires_at=now
+        + timedelta(minutes=default_config.security.access_token_expire_minutes),
+    )
+    return token
+
+
+@pytest.fixture
+async def invalid_user_token(security_adapter, default_config: Configs) -> str:
+    """Return an invalid token for user."""
+    now = datetime.now(UTC)
+    invalid_token = await security_adapter.create_jwt_token(
+        token_type=AuthTokenTypeEnum.ACCESS,
+        user_id=uuid.uuid4(),
+        created_at=now,
+        expires_at=now
+        + timedelta(minutes=default_config.security.access_token_expire_minutes),
+    )
+    return invalid_token
+
+
+@pytest.fixture
+async def expired_user_token(security_adapter, user) -> str:
+    """Return valid token for user."""
+    now = datetime.now(UTC)
+    token = await security_adapter.create_jwt_token(
+        token_type=AuthTokenTypeEnum.ACCESS,
+        user_id=user.id,
+        created_at=now-timedelta(minutes=60),
+        expires_at=now-timedelta(minutes=30),
+    )
+    return token
+
+
+@pytest.fixture
+async def valid_manager_token(security_adapter, manager, default_config) -> str:
+    """Generate a token for manager."""
+    from datetime import datetime, UTC, timedelta
+    from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
+
+    now = datetime.now(UTC)
+    token = await security_adapter.create_jwt_token(
+        token_type=AuthTokenTypeEnum.ACCESS,
+        user_id=manager.id,
+        created_at=now,
+        expires_at=now + timedelta(minutes=default_config.security.access_token_expire_minutes),
+    )
+    return token
+
+
+@pytest.fixture
+async def expired_manager_token(security_adapter, manager) -> str:
+    """Generate an expired token for manager."""
+    from datetime import datetime, UTC, timedelta
+    from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
+
+    now = datetime.now(UTC)
+    token = await security_adapter.create_jwt_token(
+        token_type=AuthTokenTypeEnum.ACCESS,
+        user_id=manager.id,
+        created_at=now-timedelta(minutes=60),
+        expires_at=now-timedelta(minutes=30),
+    )
+    return token
+
+
+@pytest.fixture
+async def refresh_user_token(security_adapter, user, default_config) -> str:
+    """Generate a refresh token."""
+    now = datetime.now(UTC)
+    token = await security_adapter.create_jwt_token(
+        token_type=AuthTokenTypeEnum.REFRESH,
+        user_id=user.id,
+        created_at=now,
+        expires_at=now
+        + timedelta(minutes=default_config.security.refresh_token_expire_minutes),
+    )
+    return token
