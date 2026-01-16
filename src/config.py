@@ -1,13 +1,9 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field, SecretStr, BaseModel
 
-from src.apps.authentication.config import AuthConfig
-from src.apps.comment.config import CommentConfig
-from src.apps.hotel.config import HotelsConfig
 from src.infrastructure.database.memory.config import MemoryDatabaseSettings
 from src.infrastructure.database.postgres.config import DatabaseSettings
 from src.common.domain.enums import EnvironmentEnum, EmailAdapterEnum, SMSAdapterEnum
-from src.apps.hotel.file_object.config import S3Settings
 from pydantic import EmailStr
 from pathlib import Path
 
@@ -62,7 +58,7 @@ class CustomBaseSettings(BaseSettings):
     class Config:
         env_file = BASE_DIR / ".env"
         case_sensitive = False
-        extra = 'ignore'
+        extra = "ignore"
 
 
 class GeneralSettings(CustomBaseSettings):
@@ -114,6 +110,17 @@ class CelerySettings(CustomBaseSettings):
     result_expires: int = 3600
 
 
+class S3Settings(BaseSettings):
+    bucket_name: str = "hotel-app-bucket"
+    sample_files_prefix: str = "sample"
+    s3_endpoint: str = "http://localhost:9000"
+    s3_endpoint_public: str = "http://localhost:9000"
+    s3_access_key: str = "minio-user"
+    s3_secret_key: SecretStr = SecretStr("minio-password")
+    connection_pool_size: int = 30
+    s3_file_download_size: int = 2097152
+
+
 class LoggerSettings(BaseSettings):
     log_level: str = "DEBUG"
     app_logger_name: str = "hotels_backend.service_logs"
@@ -123,17 +130,14 @@ class LoggerSettings(BaseSettings):
 class Configs(BaseSettings):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
-    memory_database: MemoryDatabaseSettings = Field(default_factory=MemoryDatabaseSettings)
+    memory_database: MemoryDatabaseSettings = Field(
+        default_factory=MemoryDatabaseSettings
+    )
     security: SecuritySettings = Field(default_factory=SecuritySettings)
     smtp_email: SMTPSettings = Field(default_factory=SMTPSettings)
     s3: S3Settings = Field(default_factory=S3Settings)
     celery: CelerySettings = Field(default_factory=CelerySettings)
     logger: LoggerSettings = Field(default_factory=LoggerSettings)
-
-    # Apps
-    hotels: HotelsConfig = Field(default_factory=HotelsConfig)
-    authentication: AuthConfig = Field(default_factory=AuthConfig)
-    comment: CommentConfig = Field(default_factory=CommentConfig)
 
 
 def create_configs() -> Configs:
