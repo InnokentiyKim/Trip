@@ -6,8 +6,6 @@ from uuid import uuid4, UUID
 from src.apps.hotel.rooms.application.service import RoomService
 from src.apps.hotel.rooms.application import exceptions
 from src.apps.hotel.rooms.domain import commands
-from src.apps.hotel.rooms.domain.models import Room
-from src.apps.hotel.hotels.domain.models import Hotel
 from tests.fixtures.mocks import MockUser, MockHotel, MockRoom
 
 
@@ -15,41 +13,6 @@ from tests.fixtures.mocks import MockUser, MockHotel, MockRoom
 async def room_service(request_container) -> RoomService:
     """Create a room service for testing."""
     return await request_container.get(RoomService)
-
-
-@pytest.fixture
-def sample_hotel(manager):
-    return Hotel(
-        name="Test Sample Hotel",
-        location="Test City",
-        services={"parking": True},
-        rooms_quantity=10,
-        owner=manager.id,
-    )
-
-@pytest.fixture
-def sample_room(sample_hotel):
-    return Room(
-        hotel_id=sample_hotel.id,
-        owner=sample_hotel.owner,
-        name="Deluxe Room",
-        description="Luxury room",
-        price=Decimal("100.0"),
-        quantity=5,
-        services={"wifi": True},
-    )
-
-@pytest.fixture
-def existing_room(sample_room):
-    return Room(
-    hotel_id=sample_room.hotel_id,
-    owner=sample_room.owner,
-    name="Existing Room",
-    price=Decimal("90.0"),
-    quantity=3,
-    description="Another room",
-    services={"wifi": True},
-)
 
 
 @pytest.fixture(autouse=True)

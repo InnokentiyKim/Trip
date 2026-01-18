@@ -16,10 +16,10 @@ async def hotel_service(request_container) -> HotelService:
 
 
 @pytest.fixture(autouse=True)
-async def mock_data(save_instances, user, manager, hotel) -> None:
+async def mock_data(save_instances, user, manager, hotel, existing_hotel) -> None:
     """Save required dependencies to database for tests with --no-fake."""
     await save_instances(MockUser([user, manager]))
-    await save_instances(MockHotel([hotel]))
+    await save_instances(MockHotel([hotel, existing_hotel]))
 
 
 @pytest.mark.asyncio
@@ -100,6 +100,22 @@ class TestHotelService:
         updated_id = await hotel_service.update_hotel(cmd)
 
         assert updated_id == hotel.id
+
+    async def test_update_hotel_cannot_be_updated(self, hotel_service, hotel, existing_hotel):
+        """Test updating an existing hotel."""
+        cmd = commands.UpdateHotelCommand(
+            hotel_id=hotel.id,
+            owner=hotel.owner,
+            name=existing_hotel.name, # Existing name/location to trigger cannot be updated
+            location=existing_hotel.location,
+            rooms_quantity=None,
+            services=None,
+            is_active=None,
+            image_id=None,
+        )
+
+        with pytest.raises(exceptions.HotelCannotBeUpdatedException):
+            await hotel_service.update_hotel(cmd)
 
     async def test_update_hotel_not_found(self, hotel_service, manager):
         """Test updating a non-existent hotel."""
