@@ -14,7 +14,7 @@ async def hotel_adapter(request_container) -> HotelGatewayProto:
 
 @pytest.fixture(autouse=True)
 async def mock_data(save_instances, user, manager, hotel) -> None:
-    """Save required dependencies to database for tests with --no-fake."""
+    """Save required dependencies to database for tests"""
     await save_instances(MockUser([user, manager]))
     await save_instances(MockHotel([hotel]))
 

@@ -3,18 +3,30 @@ from typing import TypeVar
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.apps.authentication.session.application.interfaces.gateway import AuthSessionGatewayProto, \
-    PasswordResetTokenGatewayProto, OTPCodeGatewayProto
-from src.apps.authentication.session.domain.models import AuthSession, PasswordResetToken, OTPCode
+from src.apps.authentication.session.application.interfaces.gateway import (
+    AuthSessionGatewayProto,
+    PasswordResetTokenGatewayProto,
+    OTPCodeGatewayProto,
+)
+from src.apps.authentication.session.domain.models import (
+    AuthSession,
+    PasswordResetToken,
+    OTPCode,
+)
 from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
 from src.apps.authentication.user.domain.models import User
 from src.apps.authorization.access.domain.models import Role, Permission
-from src.apps.authorization.role.application.interfaces.gateway import RoleGatewayProto, PermissionGatewayProto
+from src.apps.authorization.role.application.interfaces.gateway import (
+    RoleGatewayProto,
+    PermissionGatewayProto,
+)
 from src.apps.comment.application.interfaces.gateway import CommentGatewayProto
 from src.apps.comment.domain.models import Comment
 from src.apps.hotel.bookings.application.interfaces.gateway import BookingGatewayProto
 from src.apps.hotel.bookings.domain.models import Booking
-from src.apps.hotel.file_object.application.interfaces.gateway import FileObjectGatewayProto
+from src.apps.hotel.file_object.application.interfaces.gateway import (
+    FileObjectGatewayProto,
+)
 from src.apps.hotel.file_object.domain.models import FileObject
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from src.apps.hotel.hotels.domain.models import Hotel
@@ -49,7 +61,9 @@ class MockAuthSession(MockAlchemyDataMixin[AuthSession], MockData[AuthSession]):
     gateway_proto = AuthSessionGatewayProto
 
 
-class MockPasswordReset(MockAlchemyDataMixin[PasswordResetToken], MockData[PasswordResetToken]):
+class MockPasswordReset(
+    MockAlchemyDataMixin[PasswordResetToken], MockData[PasswordResetToken]
+):
     gateway_proto = PasswordResetTokenGatewayProto
 
 
