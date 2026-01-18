@@ -2,7 +2,6 @@ import os
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import datetime, UTC, timedelta
-from decimal import Decimal
 from enum import StrEnum
 from typing import Callable, Any
 
@@ -25,8 +24,8 @@ from src.apps.authorization.role.application.interfaces.gateway import RoleGatew
 from src.apps.authorization.role.domain.enums import UserRoleEnum
 from src.apps.comment.domain.models import CommentBase
 from src.apps.hotel.bookings.domain.models import BookingBase
-from src.apps.hotel.hotels.domain.models import HotelBase, Hotel
-from src.apps.hotel.rooms.domain.models import RoomBase, Room
+from src.apps.hotel.hotels.domain.models import HotelBase
+from src.apps.hotel.rooms.domain.models import RoomBase
 from src.common.controllers.http.api_v1 import http_router_v1
 from src.common.domain.enums import DataAccessEnum, EmailAdapterEnum, SMSAdapterEnum
 from src.common.exceptions.handlers import general_exception_handler
@@ -372,33 +371,6 @@ async def manager(request_container) -> User:
         name="test_manager",
     )
     return manager
-
-
-@pytest.fixture
-async def hotel(request_container, manager) -> Hotel:
-    """Create a hotel."""
-    hotel = Hotel(
-        name="test_hotel",
-        location="Test location",
-        services={"wifi": True, "pool": False},
-        rooms_quantity=10,
-        owner=manager.id,
-    )
-    return hotel
-
-
-@pytest.fixture
-async def room(request_container, hotel, manager) -> Room:
-    """Create a room."""
-    room = Room(
-        hotel_id=hotel.id,
-        owner=manager.id,
-        name="test_room",
-        price=Decimal("100.00"),
-        description="test_room",
-        quantity=3,
-    )
-    return room
 
 
 @pytest.fixture
