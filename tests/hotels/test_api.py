@@ -13,7 +13,7 @@ async def mock_data(save_instances, user, manager, hotel) -> None:
     await save_instances(MockHotel([hotel]))
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 class TestHotelAPI:
     async def test_get_hotels(self, http_client: AsyncClient, hotel):
         """Test getting list of hotels."""
