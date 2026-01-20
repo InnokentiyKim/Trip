@@ -1,24 +1,24 @@
 import os
 import uuid
-from collections.abc import AsyncGenerator
-from datetime import datetime, UTC, timedelta
+from collections.abc import AsyncGenerator, Callable
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
-from typing import Callable, Any
+from typing import Any
 
-from dishka import Scope, AsyncContainer
+import pytest
+from dishka import AsyncContainer, Scope
 from dishka.integrations.fastapi import setup_dishka
 from fastapi import FastAPI
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncEngine
 from testcontainers.core.container import DockerContainer
-import pytest
 from testcontainers.minio import MinioContainer
 from testcontainers.postgres import PostgresContainer
 
 from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
 from src.apps.authentication.session.domain.models import AuthenticationBase
-from src.apps.authentication.user.domain.models import UserBase, User
+from src.apps.authentication.user.domain.models import User, UserBase
 from src.apps.authorization.access.domain.models import AuthorizationBase
 from src.apps.authorization.role.application.interfaces.gateway import RoleGatewayProto
 from src.apps.authorization.role.domain.enums import UserRoleEnum
@@ -28,16 +28,14 @@ from src.apps.hotel.hotels.domain.models import HotelBase
 from src.apps.hotel.rooms.domain.models import RoomBase
 from src.common.controllers.http.api_v1 import http_router_v1
 from src.common.domain.enums import DataAccessEnum, EmailAdapterEnum, SMSAdapterEnum
+from src.common.exceptions.common import BaseError
 from src.common.exceptions.handlers import general_exception_handler
 from src.common.interfaces import SecurityGatewayProto
 from src.config import Configs
 from src.infrastructure.database.memory.database import MemoryDatabase
 from src.ioc.registry import get_providers
-from src.setup.common import create_async_container
-from src.common.exceptions.common import BaseError
+from src.setup.common import app_config, create_async_container
 from tests.fixtures.mocks import MockData
-from src.setup.common import app_config
-
 
 BUCKET_NAME = "images"
 
@@ -283,7 +281,6 @@ async def http_client(get_test_app: FastAPI) -> AsyncGenerator[AsyncClient]:
 
 async def init_postgres_tables(sqlalchemy_engine: AsyncEngine) -> None:
     """Initialize Postgres tables for testing."""
-
     base_metadata = {
         AuthenticationBase.metadata,
         AuthorizationBase.metadata,
@@ -414,8 +411,8 @@ async def expired_user_token(security_adapter, user) -> str:
     token = await security_adapter.create_jwt_token(
         token_type=AuthTokenTypeEnum.ACCESS,
         user_id=user.id,
-        created_at=now-timedelta(minutes=60),
-        expires_at=now-timedelta(minutes=30),
+        created_at=now - timedelta(minutes=60),
+        expires_at=now - timedelta(minutes=30),
     )
     return token
 
@@ -423,7 +420,8 @@ async def expired_user_token(security_adapter, user) -> str:
 @pytest.fixture
 async def valid_manager_token(security_adapter, manager, default_config) -> str:
     """Generate a token for manager."""
-    from datetime import datetime, UTC, timedelta
+    from datetime import UTC, datetime, timedelta
+
     from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
 
     now = datetime.now(UTC)
@@ -439,15 +437,16 @@ async def valid_manager_token(security_adapter, manager, default_config) -> str:
 @pytest.fixture
 async def expired_manager_token(security_adapter, manager) -> str:
     """Generate an expired token for manager."""
-    from datetime import datetime, UTC, timedelta
+    from datetime import UTC, datetime, timedelta
+
     from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
 
     now = datetime.now(UTC)
     token = await security_adapter.create_jwt_token(
         token_type=AuthTokenTypeEnum.ACCESS,
         user_id=manager.id,
-        created_at=now-timedelta(minutes=60),
-        expires_at=now-timedelta(minutes=30),
+        created_at=now - timedelta(minutes=60),
+        expires_at=now - timedelta(minutes=30),
     )
     return token
 

@@ -53,8 +53,8 @@ async def rooms(request_container, hotel, manager) -> list[Room]:
             Room(
                 hotel_id=hotel.id,
                 owner=manager.id,
-                name=f"test_room_{i+1}",
-                price=Decimal("100.00"+str(i*10)),
+                name=f"test_room_{i + 1}",
+                price=Decimal("100.00" + str(i * 10)),
                 description="test_room",
                 quantity=3,
                 services={"wifi": True},
@@ -74,6 +74,7 @@ def sample_room(sample_hotel):
         quantity=5,
         services={"wifi": True},
     )
+
 
 @pytest.fixture
 def existing_room(sample_room):

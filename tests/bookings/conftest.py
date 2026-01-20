@@ -3,8 +3,8 @@ from decimal import Decimal
 
 import pytest
 
-from src.apps.hotel.bookings.domain.models import Booking
 from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
+from src.apps.hotel.bookings.domain.models import Booking
 from src.apps.hotel.hotels.domain.models import Hotel
 from src.apps.hotel.rooms.domain.models import Room
 
