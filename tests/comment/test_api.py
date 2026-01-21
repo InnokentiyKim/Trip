@@ -4,6 +4,7 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
+from src.apps.comment.domain.commands import AddCommentCommand
 from tests.comment.conftest import another_hotel
 from tests.fixtures.mocks import MockComment, MockHotel, MockUser
 
@@ -119,6 +120,82 @@ class TestCommentAPI:
         """Test getting comment without authorization."""
         response = await http_client.get(
             f"/api/v1/hotels/comments/{sample_comment.id}"
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_list_comments_success(
+        self,
+        http_client: AsyncClient,
+        valid_user_token: str,
+        sample_hotel,
+    ):
+        """Test listing comments for a hotel."""
+        hotel_id = sample_hotel.id
+        response = await http_client.get(
+            "/api/v1/hotels/comments",
+            params={"hotel_id": hotel_id},
+            headers={"Authorization": f"Bearer {valid_user_token}"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) >= 1
+        assert data[0]["hotel_id"] == str(sample_hotel.id)
+
+    async def test_list_comments_missing_hotel_id(
+        self,
+        http_client: AsyncClient,
+        valid_user_token: str,
+    ):
+        """Test listing comments without hotel_id parameter."""
+        response = await http_client.get(
+            "/api/v1/hotels/comments",
+            headers={"Authorization": f"Bearer {valid_user_token}"},
+        )
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    async def test_list_comments_hotel_not_found(
+        self,
+        http_client: AsyncClient,
+        valid_user_token: str,
+    ):
+        """Test listing comments for non-existent hotel."""
+        non_existent_hotel_id = uuid.uuid4()
+
+        response = await http_client.get(
+            "/api/v1/hotels/comments",
+            params={"hotel_id": str(non_existent_hotel_id)},
+            headers={"Authorization": f"Bearer {valid_user_token}"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    async def test_list_comments_unauthorized(
+        self,
+        http_client: AsyncClient,
+        sample_hotel,
+    ):
+        """Test listing comments without authorization."""
+        response = await http_client.get(
+            "/api/v1/hotels/comments",
+            params={"hotel_id": str(sample_hotel.id)},
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    async def test_list_comments_invalid_token(
+        self,
+        http_client: AsyncClient,
+        sample_hotel,
+    ):
+        """Test listing comments with invalid token."""
+        response = await http_client.get(
+            "/api/v1/hotels/comments",
+            params={"hotel_id": str(sample_hotel.id)},
+            headers={"Authorization": "Bearer invalid_token"},
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
