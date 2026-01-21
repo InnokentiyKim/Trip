@@ -35,8 +35,8 @@ VALUES
     -- Comment permissions
     (gen_random_uuid(), 'can_create', 'comment', 'Создание комментариев'),
     (gen_random_uuid(), 'can_edit', 'comment', 'Редактирование комментариев'),
-    (gen_random_uuid(), 'can_delete', 'comment', 'Удаление комментариев'),
-    (gen_random_uuid(), 'can_view', 'comment', 'Просмотр комментариев')
+    (gen_random_uuid(), 'can_view', 'comment', 'Удаление комментариев'),
+    (gen_random_uuid(), 'can_delete', 'comment', 'Просмотр комментариев')
 ON CONFLICT (name, resource_type) DO NOTHING;
 
 
