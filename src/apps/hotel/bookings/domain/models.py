@@ -1,16 +1,16 @@
-from datetime import date, datetime, UTC
+import uuid
+from datetime import UTC, date, datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
+
+from sqlalchemy import DECIMAL, TIMESTAMP, Computed, Date, ForeignKey, Index, Integer
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 
 from src.apps.authentication.user.domain.models import User
 from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
-from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
-from sqlalchemy import ForeignKey, Integer, TIMESTAMP, Computed, DECIMAL, Date, Index
-
 from src.common.domain.models import Base
-import uuid
-from sqlalchemy import Enum as SAEnum
-from sqlalchemy.dialects.postgresql import UUID
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from src.apps.hotel.rooms.domain.models import Room
@@ -18,22 +18,19 @@ if TYPE_CHECKING:
 
 class BookingBase(MappedAsDataclass, Base):
     """Base class for booking ORM models."""
+
     __abstract__ = True
 
 
 class Booking(BookingBase):
     __tablename__ = "bookings"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False, primary_key=True
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, primary_key=True)
     room_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     date_from: Mapped[date] = mapped_column(Date, nullable=False)
     date_to: Mapped[date] = mapped_column(Date, nullable=False)
@@ -48,16 +45,10 @@ class Booking(BookingBase):
         nullable=False,
         default=BookingStatusEnum.PENDING,
     )
-    created_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=False), nullable=False, default=datetime.now(UTC)
-    )
-    updated_at: Mapped[date] = mapped_column(
-        TIMESTAMP(timezone=False), nullable=False, default=datetime.now(UTC)
-    )
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False, default=datetime.now(UTC))
+    updated_at: Mapped[date] = mapped_column(TIMESTAMP(timezone=True), nullable=False, default=datetime.now(UTC))
 
-    __table_args__ = (
-        Index("ix_booking_updated_at_room_id", "updated_at", "room_id"),
-    )
+    __table_args__ = (Index("ix_booking_updated_at_room_id", "updated_at", "room_id"),)
 
     def __init__(
         self,
@@ -76,8 +67,11 @@ class Booking(BookingBase):
         self.date_to = date_to
         self.price = price
         self.status = status
-        days_count = (date_to - date_from).days
-        self.total_days = int(days_count)
         now = datetime.now(UTC)
         self.created_at = now
         self.updated_at = now
+
+    @property
+    def total_cost(self) -> Decimal:
+        """Calculate the total cost of the booking."""
+        return self.price * Decimal(self.total_days)

@@ -1,22 +1,28 @@
 import uuid
 from datetime import datetime, timedelta
 
-from sqlalchemy.orm import MappedAsDataclass, Mapped, mapped_column
-from sqlalchemy import String, ForeignKey, TIMESTAMP, Integer
+from sqlalchemy import TIMESTAMP, ForeignKey, Integer, String
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
+
+from src.apps.authentication.session.domain.enums import (
+    OTPStatusEnum,
+    PasswordResetTokenStatusEnum,
+)
 from src.apps.notification.enums import NotificationChannelEnum
-from src.apps.authentication.session.domain.enums import PasswordResetTokenStatusEnum, OTPStatusEnum
 from src.common.domain.models import Base
 
 
 class AuthenticationBase(MappedAsDataclass, Base):
     """Base class for SQLAlchemy authentication ORM models."""
+
     __abstract__ = True
 
 
 class AuthSession(AuthenticationBase):
     """Manages authentication sessions for users."""
+
     __tablename__ = "auth_sessions"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
@@ -50,6 +56,7 @@ class AuthSession(AuthenticationBase):
 
 class PasswordResetToken(AuthenticationBase):
     """Manages password reset tokens for users."""
+
     __tablename__ = "password_reset_tokens"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
@@ -67,7 +74,7 @@ class PasswordResetToken(AuthenticationBase):
             validate_strings=True,
             values_callable=lambda enum_cls: [status.value for status in enum_cls],
         ),
-        nullable=False
+        nullable=False,
     )
 
     def __hash__(self) -> int:
@@ -77,6 +84,7 @@ class PasswordResetToken(AuthenticationBase):
 
 class OTPCode(AuthenticationBase):
     """Manages OTP codes for users."""
+
     __tablename__ = "otp_codes"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
@@ -91,7 +99,7 @@ class OTPCode(AuthenticationBase):
             validate_strings=True,
             values_callable=lambda enum_cls: [channel.value for channel in enum_cls],
         ),
-        nullable=False
+        nullable=False,
     )
     hashed_otp_code: Mapped[str] = mapped_column(String(64), nullable=False)
     failed_attempts: Mapped[int] = mapped_column(Integer, nullable=False)

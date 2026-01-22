@@ -1,21 +1,24 @@
 import uuid
 from decimal import Decimal
 
+from sqlalchemy import DECIMAL, UUID, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
-from sqlalchemy import Integer, String, JSON, ForeignKey, DECIMAL, UUID
 
+from src.apps.hotel.bookings.domain.models import Booking
+from src.apps.hotel.hotels.domain.models import Hotel
 from src.common.domain.models import Base
-from src.apps.hotel.bookings.domain.models import Booking  # noqa: F401
-from src.apps.hotel.hotels.domain.models import Hotel  # noqa: F401
 
 
 class RoomBase(MappedAsDataclass, Base):
     """Base class for room ORM models."""
+
     __abstract__ = True
 
 
 class Room(RoomBase):
     __tablename__ = "rooms"
+    __table_args__ = (UniqueConstraint("hotel_id", "name", name="unq_room_hotel_name"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     hotel_id: Mapped[uuid.UUID] = mapped_column(
@@ -24,13 +27,15 @@ class Room(RoomBase):
     owner: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
     name: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str] = mapped_column(String, nullable=True)
+    description: Mapped[str | None] = mapped_column(String, nullable=True)
     price: Mapped[Decimal] = mapped_column(DECIMAL(10, 4), nullable=False)
-    services: Mapped[dict] = mapped_column(JSON, nullable=True)
-    image_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    services: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    image_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     hotel: Mapped["Hotel"] = relationship(
-        "Hotel", back_populates="rooms", lazy="joined"
+        "Hotel",
+        back_populates="rooms",
+        lazy="joined",
     )
     bookings: Mapped[list["Booking"]] = relationship(
         "Booking",
@@ -48,9 +53,9 @@ class Room(RoomBase):
         owner: uuid.UUID,
         name: str,
         price: Decimal,
-        description: str | None,
-        services: dict | None,
-        image_id: int | None,
+        description: str | None = None,
+        services: dict | None = None,
+        image_id: int | None = None,
         quantity: int = 1,
     ) -> None:
         super().__init__()

@@ -1,9 +1,10 @@
 import uuid
-
 from typing import TYPE_CHECKING
+
+from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
-from sqlalchemy import Integer, String, ForeignKey, JSON, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
+
 from src.common.domain.models import Base
 
 if TYPE_CHECKING:
@@ -13,19 +14,18 @@ if TYPE_CHECKING:
 
 class HotelBase(MappedAsDataclass, Base):
     """Base class for hotel ORM models."""
+
     __abstract__ = True
 
 
 class Hotel(HotelBase):
     __tablename__ = "hotels"
-    __table_args__ = (
-        UniqueConstraint("name", "location", name="unq_hotel_name_location"),
-    )
+    __table_args__ = (UniqueConstraint("name", "location", name="unq_hotel_name_location"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     location: Mapped[str] = mapped_column(String, nullable=False)
-    services: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    services: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     rooms_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     owner: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     image_id: Mapped[int | None] = mapped_column(Integer, nullable=True)

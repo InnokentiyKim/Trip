@@ -1,31 +1,34 @@
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 from sqlalchemy import (
+    TIMESTAMP,
+    Boolean,
+    ForeignKey,
     Integer,
     String,
-    Boolean,
-    TIMESTAMP,
-    ForeignKey,
     UniqueConstraint,
+)
+from sqlalchemy import (
     Enum as SAEnum,
 )
 from sqlalchemy.dialects.postgresql import UUID
-from typing import TYPE_CHECKING
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 
 from src.apps.authentication.user.domain.enums import OAuthProviderEnum
-from src.apps.hotel.hotels.domain.models import Hotel
 from src.apps.authentication.user.domain.results import OAuthProviderUser
-
+from src.apps.hotel.hotels.domain.models import Hotel
 from src.common.domain.models import Base
 
 if TYPE_CHECKING:
+    from src.apps.authorization.access.domain.models import Role
     from src.apps.hotel.bookings.domain.models import Booking
 
 
 class UserBase(MappedAsDataclass, Base):
     """Base class for SQLAlchemy user ORM models."""
+
     __abstract__ = True
 
 
@@ -40,21 +43,13 @@ class AuthStatus(UserBase):
         unique=True,
     )
 
-    last_login_at: Mapped[datetime | None] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=True
-    )
+    last_login_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    failed_login_attempts: Mapped[int] = mapped_column(
-        Integer, default=0, nullable=False
-    )
+    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
-    mfa_email_enabled: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
-    mfa_sms_enabled: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
+    mfa_email_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    mfa_sms_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     def __init__(self, user_id: uuid.UUID) -> None:
         self.id = uuid.uuid4()
@@ -70,9 +65,7 @@ class AuthStatus(UserBase):
 
 class OAuthAuth(UserBase):
     __tablename__ = "oauth_auths"
-    __table_args__ = (
-        UniqueConstraint("provider", "provider_user_id", name="uq_provider_account"),
-    )
+    __table_args__ = (UniqueConstraint("provider", "provider_user_id", name="uq_provider_account"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -90,15 +83,11 @@ class OAuthAuth(UserBase):
         )
     )
     provider_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="oauth_auths")
 
-    def __init__(
-        self, user_id: uuid.UUID, provider: OAuthProviderEnum, provider_user_id: str
-    ) -> None:
+    def __init__(self, user_id: uuid.UUID, provider: OAuthProviderEnum, provider_user_id: str) -> None:
         self.id = uuid.uuid4()
         self.user_id = user_id
         self.provider = provider
@@ -107,12 +96,10 @@ class OAuthAuth(UserBase):
         super().__init__()
 
     def __eq__(self, other):
+        """Check equality based on provider and provider_user_id."""
         if not isinstance(other, OAuthAuth):
             raise NotImplementedError
-        return (
-            self.provider_user_id == other.provider_user_id
-            and self.provider == other.provider
-        )
+        return self.provider_user_id == other.provider_user_id and self.provider == other.provider
 
 
 class User(UserBase):
@@ -125,24 +112,27 @@ class User(UserBase):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
 
-    role: Mapped[uuid.UUID] = mapped_column(
+    role_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("roles.id", ondelete="RESTRICT"),
+        ForeignKey("roles.id", ondelete="RESTRICT", name="role_id"),
         nullable=False,
     )
 
-    hotel: Mapped["Hotel"] = relationship("Hotel", back_populates="user", lazy="joined")
+    role: Mapped["Role"] = relationship(
+        "Role",
+        back_populates="users",
+        lazy="selectin",
+    )
+    hotel: Mapped[list["Hotel"]] = relationship(
+        "Hotel", back_populates="user", lazy="selectin", uselist=True, cascade="all, delete-orphan"
+    )
     bookings: Mapped[list["Booking"]] = relationship(
         "Booking",
         back_populates="user",
-        lazy="joined",
+        lazy="selectin",
         uselist=True,
         cascade="all, delete-orphan",
     )
@@ -167,7 +157,7 @@ class User(UserBase):
         self,
         email: str,
         hashed_password: str,
-        role: UUID,
+        role_id: uuid.UUID,
         phone: str | None = None,
         name: str | None = None,
         avatar_url: str | None = None,
@@ -180,7 +170,7 @@ class User(UserBase):
         self.phone = phone
         self.name = name
         self.avatar_url = avatar_url
-        self.role = role
+        self.role_id = role_id
         self.hashed_password = hashed_password
         now = datetime.now(UTC)
         self.created_at = now
@@ -189,12 +179,12 @@ class User(UserBase):
         self.auth_status = AuthStatus(user_id=user_id)
 
     def set_password(self, hashed_password: str) -> None:
+        """Set a new hashed password for the user."""
         self.hashed_password = hashed_password
         self.updated_at = datetime.now(UTC)
 
-    def bind_oauth(
-        self, oauth_user: OAuthProviderUser, provider: OAuthProviderEnum
-    ) -> OAuthAuth:
+    def bind_oauth(self, oauth_user: OAuthProviderUser, provider: OAuthProviderEnum) -> OAuthAuth:
+        """Bind an OAuth account to the user."""
         if user_oauth := self.get_oauth(oauth_user, provider):
             return user_oauth
 
@@ -207,15 +197,13 @@ class User(UserBase):
         self.oauth_auths.append(oauth)
         return oauth
 
-    def get_oauth(
-        self, oauth_user: OAuthProviderUser, provider: OAuthProviderEnum
-    ) -> OAuthAuth | None:
+    def get_oauth(self, oauth_user: OAuthProviderUser, provider: OAuthProviderEnum) -> OAuthAuth | None:
+        """Get the OAuth account bound to the user for a specific provider."""
         return next(
             (
                 user_oauth
                 for user_oauth in self.oauth_auths
-                if user_oauth.provider == provider
-                and user_oauth.provider_user_id == oauth_user.id
+                if user_oauth.provider == provider and user_oauth.provider_user_id == oauth_user.id
             ),
             None,
         )

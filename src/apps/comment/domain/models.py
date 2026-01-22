@@ -1,10 +1,11 @@
-from datetime import datetime, UTC
-
-from sqlalchemy.orm import MappedAsDataclass, Mapped, mapped_column
-from src.common.domain.models import Base
-from sqlalchemy import ForeignKey, String, Integer, TIMESTAMP
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
+from datetime import UTC, datetime
+
+from sqlalchemy import TIMESTAMP, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
+
+from src.common.domain.models import Base
 
 
 class CommentBase(MappedAsDataclass, Base):
@@ -13,27 +14,26 @@ class CommentBase(MappedAsDataclass, Base):
 
 class Comment(CommentBase):
     __tablename__ = "comments"
+    __table_args__ = (UniqueConstraint("user_id", "hotel_id", name="uq_user_hotel_comment"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"),
-        primary_key=True,
-        nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
     )
-    hotel_id: Mapped[int] = mapped_column(
-        ForeignKey("hotels.id", ondelete="CASCADE"),
-        primary_key=True,
-        nullable=False
+    hotel_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("hotels.id", ondelete="CASCADE"), nullable=False
     )
     content: Mapped[str] = mapped_column(String(512), nullable=False)
-    rating: Mapped[int] = mapped_column(Integer, nullable=True)
+    rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), nullable=False)
 
     def __init__(
         self,
-        hotel_id: int,
+        hotel_id: uuid.UUID,
         user_id: uuid.UUID,
         content: str,
         rating: int | None = None,
