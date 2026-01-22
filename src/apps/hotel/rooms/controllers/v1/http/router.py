@@ -1,31 +1,41 @@
+from typing import Annotated
 from uuid import UUID
 
+from dishka.integrations.fastapi import FromDishka, inject
 from fastapi import APIRouter, Query
-from typing import Annotated
+
+from src.apps.authentication.user.application.exceptions import (
+    Unauthorized,
+    UserNotFoundError,
+)
+from src.apps.authorization.access.application.service import AccessService
 from src.apps.authorization.access.domain.commands import Authorize
-from src.apps.authorization.access.domain.enums import RoomPermissionEnum, ResourceTypeEnum
+from src.apps.authorization.access.domain.enums import (
+    ResourceTypeEnum,
+    RoomPermissionEnum,
+)
 from src.apps.authorization.access.domain.exceptions import Forbidden
-from src.apps.hotel.hotels.application.exceptions import HotelNotFoundException
-from src.apps.hotel.rooms.application.exceptions import RoomNotFoundException, RoomCannotBeUpdatedException, \
-    RoomAlreadyExistsException
-from src.apps.hotel.rooms.controllers.v1.dto.response import UpdateRoomResponseDTO, AddRoomResponseDTO
+from src.apps.hotel.hotels.application.exceptions import HotelNotFoundError
+from src.apps.hotel.rooms.application.exceptions import (
+    RoomAlreadyExistsError,
+    RoomCannotBeUpdatedError,
+    RoomNotFoundError,
+)
 from src.apps.hotel.rooms.application.service import RoomService
 from src.apps.hotel.rooms.controllers.v1.dto.request import (
+    AddRoomRequestDTO,
+    ListRoomsRequestDTO,
     UpdateRoomRequestDTO,
-    ListRoomsRequestDTO, AddRoomRequestDTO,
 )
 from src.apps.hotel.rooms.controllers.v1.dto.response import (
-    GetRoomResponseDTO,
+    AddRoomResponseDTO,
     DeleteRoomResponseDTO,
+    GetRoomResponseDTO,
+    UpdateRoomResponseDTO,
 )
 from src.apps.hotel.rooms.domain import commands as room_commands
-from src.apps.authorization.access.application.service import AccessService
-from dishka.integrations.fastapi import FromDishka, inject
-from src.apps.authentication.user.application.exceptions import Unauthorized, UserNotFoundException
-
 from src.common.exceptions.handlers import generate_responses
 from src.common.utils.auth_scheme import auth_header
-
 
 router = APIRouter(
     prefix="/hotels",
@@ -38,26 +48,16 @@ router = APIRouter(
     responses=generate_responses(
         Unauthorized,
         Forbidden,
-        UserNotFoundException,
+        UserNotFoundError,
     ),
 )
 @inject
 async def list_rooms(
     hotel_id: UUID,
     filter_query: Annotated[ListRoomsRequestDTO, Query()],
-    access_service: FromDishka[AccessService],
     room_service: FromDishka[RoomService],
-    token: str = auth_header,
 ) -> list[GetRoomResponseDTO]:
-    # Authorize user
-    authorization_info = await access_service.authorize(
-        Authorize(
-            access_token=token,
-            permission=RoomPermissionEnum.CAN_VIEW,
-            resource_type=ResourceTypeEnum.ROOM,
-        )
-    )
-
+    """List rooms for a specific hotel with optional filters."""
     cmd = room_commands.ListRoomsCommand(
         hotel_id=hotel_id,
         price_from=filter_query.price_from,
@@ -72,31 +72,16 @@ async def list_rooms(
 @router.get(
     "/rooms/{room_id}",
     responses=generate_responses(
-        Unauthorized,
-        Forbidden,
-        UserNotFoundException,
-        RoomNotFoundException,
+        RoomNotFoundError,
     ),
 )
 @inject
 async def get_room(
     room_id: UUID,
     room_service: FromDishka[RoomService],
-    access_service: FromDishka[AccessService],
-    token: str = auth_header,
 ) -> GetRoomResponseDTO:
-    # Authorize user
-    authorization_info = await access_service.authorize(
-        Authorize(
-            access_token=token,
-            permission=RoomPermissionEnum.CAN_VIEW,
-            resource_type=ResourceTypeEnum.ROOM,
-        )
-    )
-
-    room = await room_service.get_room(
-        room_commands.GetRoomCommand(room_id=room_id)
-    )
+    """Get details of a specific room by its ID."""
+    room = await room_service.get_room(room_commands.GetRoomCommand(room_id=room_id))
 
     return GetRoomResponseDTO.model_validate(room)
 
@@ -106,9 +91,9 @@ async def get_room(
     responses=generate_responses(
         Unauthorized,
         Forbidden,
-        UserNotFoundException,
-        HotelNotFoundException,
-        RoomAlreadyExistsException,
+        UserNotFoundError,
+        HotelNotFoundError,
+        RoomAlreadyExistsError,
     ),
 )
 @inject
@@ -119,6 +104,7 @@ async def add_room(
     room_service: FromDishka[RoomService],
     token: str = auth_header,
 ) -> AddRoomResponseDTO:
+    """Add a new room to a specific hotel."""
     # Authorize user, only hotel owners can add rooms
     authorization_info = await access_service.authorize(
         Authorize(
@@ -149,9 +135,9 @@ async def add_room(
     responses=generate_responses(
         Unauthorized,
         Forbidden,
-        UserNotFoundException,
-        RoomNotFoundException,
-        RoomCannotBeUpdatedException,
+        UserNotFoundError,
+        RoomNotFoundError,
+        RoomCannotBeUpdatedError,
     ),
 )
 @inject
@@ -162,6 +148,7 @@ async def update_room(
     room_service: FromDishka[RoomService],
     token: str = auth_header,
 ) -> UpdateRoomResponseDTO:
+    """Update details of an existing room."""
     # Authorize user
     authorization_info = await access_service.authorize(
         Authorize(
@@ -192,8 +179,8 @@ async def update_room(
     responses=generate_responses(
         Unauthorized,
         Forbidden,
-        UserNotFoundException,
-        RoomNotFoundException,
+        UserNotFoundError,
+        RoomNotFoundError,
     ),
 )
 @inject
@@ -203,6 +190,7 @@ async def delete_room(
     room_service: FromDishka[RoomService],
     token: str = auth_header,
 ) -> DeleteRoomResponseDTO:
+    """Delete a specific room by its ID."""
     # Authorize user
     authorization_info = await access_service.authorize(
         Authorize(
@@ -213,9 +201,7 @@ async def delete_room(
         )
     )
 
-    cmd = room_commands.DeleteRoomCommand(
-        user_id=authorization_info.user_id, room_id=room_id
-    )
+    cmd = room_commands.DeleteRoomCommand(user_id=authorization_info.user_id, room_id=room_id)
 
     await room_service.delete_room(cmd)
     return DeleteRoomResponseDTO()

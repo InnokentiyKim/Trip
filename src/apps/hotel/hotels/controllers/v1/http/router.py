@@ -1,31 +1,39 @@
+from typing import Annotated
 from uuid import UUID
 
+from dishka.integrations.fastapi import FromDishka, inject
 from fastapi import APIRouter, Query
 
+from src.apps.authentication.user.application.exceptions import (
+    Unauthorized,
+    UserNotFoundError,
+)
 from src.apps.authorization.access.application.service import AccessService
 from src.apps.authorization.access.domain.commands import Authorize
-from src.apps.authorization.access.domain.enums import HotelPermissionEnum, ResourceTypeEnum
-from src.apps.hotel.hotels.application.exceptions import HotelNotFoundException, HotelAlreadyExistsException
+from src.apps.authorization.access.domain.enums import (
+    HotelPermissionEnum,
+    ResourceTypeEnum,
+)
+from src.apps.authorization.access.domain.exceptions import Forbidden
+from src.apps.hotel.hotels.application.exceptions import (
+    HotelAlreadyExistsError,
+    HotelNotFoundError,
+)
+from src.apps.hotel.hotels.application.service import HotelService
 from src.apps.hotel.hotels.controllers.v1.dto.request import (
+    CreateHotelRequestDTO,
     ListHotelsRequestDTO,
     UpdateHotelRequestDTO,
 )
-from typing import Annotated
-from src.apps.hotel.hotels.domain import commands as hotel_commands
-from src.apps.authentication.user.application.exceptions import Unauthorized, UserNotFoundException
-from src.apps.authorization.access.domain.exceptions import Forbidden
-from src.apps.hotel.hotels.controllers.v1.dto.request import CreateHotelRequestDTO
-from src.common.exceptions.handlers import generate_responses
-from src.common.utils.auth_scheme import auth_header
-from src.apps.hotel.hotels.application.service import HotelService
 from src.apps.hotel.hotels.controllers.v1.dto.response import (
-    GetHotelsResponseDTO,
     CreateHotelResponseDTO,
+    GetHotelsResponseDTO,
     UpdateHotelResponseDTO,
     UploadHotelImageResponseDTO,
 )
-from dishka.integrations.fastapi import FromDishka, inject
-
+from src.apps.hotel.hotels.domain import commands as hotel_commands
+from src.common.exceptions.handlers import generate_responses
+from src.common.utils.auth_scheme import auth_header
 
 router = APIRouter(
     prefix="/hotels",
@@ -35,63 +43,35 @@ router = APIRouter(
 
 @router.get(
     "",
-    responses=generate_responses(
-        Unauthorized,
-        Forbidden,
-        UserNotFoundException,
-    ),
 )
 @inject
 async def get_hotels(
     filter_query: Annotated[ListHotelsRequestDTO, Query()],
     hotel_service: FromDishka[HotelService],
-    access_service: FromDishka[AccessService],
-    token: str = auth_header,
 ) -> list[GetHotelsResponseDTO]:
-    # Authorize user
-    await access_service.authorize(
-        Authorize(
-            access_token=token,
-            permission=HotelPermissionEnum.CAN_VIEW,
-            resource_type=ResourceTypeEnum.HOTEL,
-        )
-    )
-
+    """List hotels with optional filters."""
     cmd = hotel_commands.ListHotelsCommand(
-        location=filter_query.location, services=filter_query.services, rooms_quantity=filter_query.rooms_quantity
+        location=filter_query.location,
+        services=filter_query.services,
+        rooms_quantity=filter_query.rooms_quantity,
     )
     hotels = await hotel_service.list_hotels(cmd)
-    return [GetHotelsResponseDTO.model_validate(hotel) for hotel in hotels]
+    return [GetHotelsResponseDTO.model_validate(hotel, from_attributes=True) for hotel in hotels]
 
 
 @router.get(
     "/{hotel_id}",
     responses=generate_responses(
-        Unauthorized,
-        Forbidden,
-        UserNotFoundException,
-        HotelNotFoundException,
+        HotelNotFoundError,
     ),
 )
 @inject
 async def get_hotel(
     hotel_id: UUID,
     hotel_service: FromDishka[HotelService],
-    access_service: FromDishka[AccessService],
-    token: str = auth_header,
 ) -> GetHotelsResponseDTO:
-    # Authorize user
-    await access_service.authorize(
-        Authorize(
-            access_token=token,
-            permission=HotelPermissionEnum.CAN_VIEW,
-            resource_type=ResourceTypeEnum.HOTEL,
-        )
-    )
-
-    hotel = await hotel_service.get_hotel(
-        hotel_commands.GetHotelCommand(hotel_id=hotel_id)
-    )
+    """Get details of a specific hotel by its ID."""
+    hotel = await hotel_service.get_hotel(hotel_commands.GetHotelCommand(hotel_id=hotel_id))
     return GetHotelsResponseDTO.model_validate(hotel, from_attributes=True)
 
 
@@ -100,8 +80,8 @@ async def get_hotel(
     responses=generate_responses(
         Unauthorized,
         Forbidden,
-        UserNotFoundException,
-        HotelAlreadyExistsException,
+        UserNotFoundError,
+        HotelAlreadyExistsError,
     ),
 )
 @inject
@@ -111,6 +91,7 @@ async def create_hotel(
     hotel_service: FromDishka[HotelService],
     token: str = auth_header,
 ) -> CreateHotelResponseDTO:
+    """Create a new hotel."""
     # Authorize user
     authorization_info = await access_service.authorize(
         Authorize(
@@ -139,8 +120,8 @@ async def create_hotel(
     responses=generate_responses(
         Unauthorized,
         Forbidden,
-        UserNotFoundException,
-        HotelNotFoundException,
+        UserNotFoundError,
+        HotelNotFoundError,
     ),
 )
 @inject
@@ -150,6 +131,7 @@ async def upload_hotel_image(
     hotel_service: FromDishka[HotelService],
     token: str = auth_header,
 ) -> UploadHotelImageResponseDTO:
+    """Upload an image for a specific hotel."""
     # Authorize user
     await access_service.authorize(
         Authorize(
@@ -160,7 +142,7 @@ async def upload_hotel_image(
         )
     )
 
-    hotel = await hotel_service.get_hotel(
+    hotel = await hotel_service.get_hotel(  # noqa: F841
         hotel_commands.GetHotelCommand(hotel_id=hotel_id)
     )
     url = ""
@@ -172,8 +154,8 @@ async def upload_hotel_image(
     responses=generate_responses(
         Unauthorized,
         Forbidden,
-        UserNotFoundException,
-        HotelNotFoundException,
+        UserNotFoundError,
+        HotelNotFoundError,
     ),
 )
 @inject
@@ -183,6 +165,7 @@ async def update_hotel(
     hotel_service: FromDishka[HotelService],
     token: str = auth_header,
 ) -> UpdateHotelResponseDTO:
+    """Update an existing hotel."""
     # Authorize user
     authorization_info = await access_service.authorize(
         Authorize(
