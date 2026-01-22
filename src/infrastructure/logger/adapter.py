@@ -1,8 +1,9 @@
+import re
 from typing import Any
 
-from src.common.interfaces import CustomLoggerProto
 import structlog
-import re
+
+from src.common.interfaces import CustomLoggerProto
 
 
 def _to_snake_case(name: str) -> str:
@@ -36,7 +37,7 @@ class CustomLoggerAdapter(CustomLoggerProto):
             **kwargs (Any): Arbitrary keyword arguments to bind directly.
         """
         for arg in args:
-            if not hasattr(arg, 'id'):
+            if not hasattr(arg, "id"):
                 self.logger.error(
                     "Unsupported argument. Argument must have an 'id' attribute.",
                     argument_type=type(arg).__name__,
@@ -51,6 +52,7 @@ class CustomLoggerAdapter(CustomLoggerProto):
     def unbind(self, *keys: str) -> None:
         """
         Unbind (remove) previously bound keys from the logger's context.
+
         Args:
             *keys (str): The keys to remove from the logger's current context.
         """
@@ -59,6 +61,7 @@ class CustomLoggerAdapter(CustomLoggerProto):
     def _log(self, level: str, *args: Any, **kwargs: Any) -> None:
         """
         Generic logging method that routes to the appropriate log level method.
+
         Args:
             level (str): The log level as a string (e.g., 'debug', 'info', 'error').
             *args (Any): Positional arguments to pass to the log method.
@@ -66,12 +69,13 @@ class CustomLoggerAdapter(CustomLoggerProto):
         """
         log_method = getattr(self.logger, level, None)
         if not log_method:
-            raise AttributeError("Logger has no method for level: %s" % level)
+            raise AttributeError(f"Logger has no method for level: {level}")
         log_method(*args, **kwargs)
 
     def debug(self, *args: Any, **kwargs: Any) -> None:
         """
         Log a DEBUG-level message with optional additional context.
+
         Args:
             *args (Any): Positional arguments for the log method.
             **kwargs (Any): Keyword arguments for the log method.
@@ -81,6 +85,7 @@ class CustomLoggerAdapter(CustomLoggerProto):
     def info(self, *args: Any, **kwargs: Any) -> None:
         """
         Log an INFO-level message with optional additional context.
+
         Args:
             *args (Any): Positional arguments for the log method.
             **kwargs (Any): Keyword arguments for the log method.
@@ -90,6 +95,7 @@ class CustomLoggerAdapter(CustomLoggerProto):
     def warning(self, *args: Any, **kwargs: Any) -> None:
         """
         Log a WARNING-level message with optional additional context.
+
         Args:
             *args (Any): Positional arguments for the log method.
             **kwargs (Any): Keyword arguments for the log method.
@@ -99,6 +105,7 @@ class CustomLoggerAdapter(CustomLoggerProto):
     def error(self, *args: Any, **kwargs: Any) -> None:
         """
         Log an ERROR-level message with optional additional context.
+
         Args:
             *args (Any): Positional arguments for the log method.
             **kwargs (Any): Keyword arguments for the log method.
@@ -108,6 +115,7 @@ class CustomLoggerAdapter(CustomLoggerProto):
     def critical(self, *args: Any, **kwargs: Any) -> None:
         """
         Log a CRITICAL-level message with optional additional context.
+
         Args:
             *args (Any): Positional arguments for the log method.
             **kwargs (Any): Keyword arguments for the log method.

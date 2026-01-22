@@ -1,21 +1,23 @@
 import hashlib
 import secrets
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError, InvalidHashError, VerificationError
-from jose import jwt, JWTError
+from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 from fastapi.concurrency import run_in_threadpool
+from jose import JWTError, jwt
 
-from src.common.interfaces import CustomLoggerProto
 from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
-from src.common.interfaces import SecurityGatewayProto
+from src.common.interfaces import CustomLoggerProto, SecurityGatewayProto
 from src.config import Configs
-from src.infrastructure.security.exceptions import InvalidTokenException, ExpiredTokenException, \
-    InvalidTokenTypeException
+from src.infrastructure.security.exceptions import (
+    ExpiredTokenError,
+    InvalidTokenError,
+    InvalidTokenTypeError,
+)
 
 
 class SecurityAdapter(SecurityGatewayProto):
@@ -39,6 +41,7 @@ class SecurityAdapter(SecurityGatewayProto):
         Returns:
             str: The hashed password.
         """
+
         def _hash_password(password: str) -> str:
             return self.hasher.hash(password)
 
@@ -55,6 +58,7 @@ class SecurityAdapter(SecurityGatewayProto):
         Returns:
             bool: True if the password matches the hash, otherwise False.
         """
+
         def _verify_password(plain: str, hashed: str) -> bool:
             try:
                 self.hasher.verify(hash=hashed, password=plain)
@@ -97,9 +101,9 @@ class SecurityAdapter(SecurityGatewayProto):
         def _generate_jwt() -> str:
             return jwt.encode(
                 claims=jwt_claims,
-                key=self.config.security.SECRET_KEY.get_secret_value(),
-                algorithm=self.config.security.ALGORITHM,
-                headers={"kid": self.config.security.JWT_KEY_ID}
+                key=self.config.security.secret_key.get_secret_value(),
+                algorithm=self.config.security.algorithm,
+                headers={"kid": self.config.security.jwt_key_id},
             )
 
         return await run_in_threadpool(_generate_jwt)
@@ -120,22 +124,27 @@ class SecurityAdapter(SecurityGatewayProto):
         Raises:
             JWTError: If the access_token is invalid or cannot be decoded.
         """
+
         def _decode_jwt() -> Any:
             try:
                 return jwt.decode(
                     token=token,
-                    key=self.config.jwt.jwt_secret_key.get_secret_value(),
+                    key=self.config.security.secret_key.get_secret_value(),
                     algorithms=[self.config.security.algorithm],
                 )
             except JWTError as err:
-                self.logger.info("[Security Adapter] Invalid JWT access_token attempt while decoding", error=f"{err}")
-                raise InvalidTokenException
+                self.logger.info(
+                    "[Security Adapter] Invalid JWT access_token attempt while decoding",
+                    error=f"{err}",
+                )
+                raise InvalidTokenError from None
 
         return await run_in_threadpool(_decode_jwt)
 
     async def verify_token(self, token: str, token_type: AuthTokenTypeEnum) -> UUID:
         """
         Verify a JWT token.
+
         This method decodes the token and checks its expiration. If the token is valid, it returns the user ID.
 
         Args:
@@ -153,15 +162,15 @@ class SecurityAdapter(SecurityGatewayProto):
 
         if token_type != jwt_type:
             self.logger.info("[SecurityAdapter] Invalid token type attempt")
-            raise InvalidTokenTypeException
+            raise InvalidTokenTypeError
 
         if not expire or not user_id:
             self.logger.info("[SecurityAdapter] Invalid token attempt")
-            raise InvalidTokenException
+            raise InvalidTokenError
 
         if int(expire) < int(datetime.now(UTC).timestamp()):
             self.logger.info("[SecurityAdapter] Expired token attempt")
-            raise ExpiredTokenException
+            raise ExpiredTokenError
 
         return user_id
 

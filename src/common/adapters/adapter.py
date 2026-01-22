@@ -1,14 +1,15 @@
 import typing
+from typing import Any
 from uuid import UUID
 
-from sqlalchemy.exc import IntegrityError
-from typing import Any
-from sqlalchemy import select
 from fastapi import status
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.common.domain.models import ORM_CLS, ORM_OBJ
 from src.common.exceptions.common import BaseError
 from src.common.interfaces import SQLAlchemyGatewayProto
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.common.domain.models import ORM_OBJ, ORM_CLS
 from src.infrastructure.database.memory.database import MemoryDatabase
 
 
@@ -18,32 +19,34 @@ class SQLAlchemyGateway(SQLAlchemyGatewayProto):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def add(self, item: ORM_OBJ) -> None:
+    async def add(self, item: ORM_OBJ) -> Any | None:
+        """Add an item to the database."""
         self.session.add(item)
         try:
             await self.session.commit()
+            return item.id
         except IntegrityError:
-            raise BaseError(
-                status_code=status.HTTP_409_CONFLICT, message="Item already exists"
-            ) from None
+            raise BaseError(status_code=status.HTTP_409_CONFLICT, message="Item already exists") from None
 
-    async def get_item_by_id(
-        self, orm_cls: ORM_CLS, item_id: int | UUID
-    ) -> ORM_OBJ | None:
+    async def get_item_by_id(self, orm_cls: ORM_CLS, item_id: int | UUID) -> ORM_OBJ | None:
+        """Retrieve an item by its ID."""
         item = await self.session.get(orm_cls, item_id)
         return item
 
-    async def get_one_item(self, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ | None:
+    async def get_one_item(self, orm_cls: Any, **filters: Any) -> Any | None:
+        """Retrieve a single item matching the given filters."""
         query = select(orm_cls).filter_by(**filters)
         row = await self.session.execute(query)
         return row.scalar_one_or_none()
 
     async def get_items_list(self, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
+        """Retrieve a list of items matching the given filters."""
         query = select(orm_cls).filter_by(**filters)
         rows = await self.session.execute(query)
-        return list(rows)
+        return list(rows.scalars())
 
     async def delete_item(self, orm_obj: ORM_OBJ) -> None:
+        """Delete an item from the database."""
         await self.session.delete(orm_obj)
         await self.session.commit()
 
@@ -54,7 +57,8 @@ class FakeGateway[Model]:
         self._collection = self._find_collection_by_type(memory_db)
 
     def _find_collection_by_type(self, memory_db: MemoryDatabase) -> set[Model]:
-        """Find the collection in memory_db that contains instances of Model type.
+        """
+        Find the collection in memory_db that contains instances of Model type.
 
         Uses Pydantic model fields to find collections with matching type annotations.
 
@@ -99,7 +103,8 @@ class FakeGateway[Model]:
         return set()
 
     def _get_model_type(self) -> type[Model]:
-        """Extract the Model type parameter from the class hierarchy.
+        """
+        Extract the Model type parameter from the class hierarchy.
 
         Returns:
             type[Model]: The concrete type of Model used in the gateway.

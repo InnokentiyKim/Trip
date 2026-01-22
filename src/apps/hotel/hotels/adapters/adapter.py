@@ -1,14 +1,16 @@
+from typing import Any
 from uuid import UUID
 
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
-from src.common.adapters.adapter import SQLAlchemyGateway, FakeGateway
-from src.apps.hotel.hotels.domain.models import Hotel
+
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
-from sqlalchemy import select
+from src.apps.hotel.hotels.domain.models import Hotel
+from src.common.adapters.adapter import FakeGateway, SQLAlchemyGateway
 
 
 class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
-    async def get_hotels(self, only_active: bool = True, **filters) -> list[Hotel]:
+    async def get_hotels(self, only_active: bool = True, **filters: Any) -> list[Hotel]:
         """Retrieve a list of hotels."""
         location = filters.get("location", None)
         services = filters.get("services", None)
@@ -19,12 +21,12 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         if location:
             criteria.append(Hotel.location == location)
         if services:
-            criteria.append(Hotel.services.contains(services))
+            criteria.append(Hotel.services.op("@>")(services))
         if rooms_quantity:
             criteria.append(Hotel.rooms_quantity >= rooms_quantity)
         stmt = select(Hotel).filter(*criteria)
         result = await self.session.execute(stmt)
-        return list(result.scalars())
+        return list(result.unique().scalars())
 
     async def get_hotel_by_id(self, hotel_id: UUID) -> Hotel | None:
         """Retrieve a hotel by its ID."""
@@ -33,7 +35,7 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
 
     async def get_users_hotel(self, user_id: UUID, hotel_id: UUID) -> Hotel | None:
         """Retrieve users hotel by its ID."""
-        hotel = await self.get_one_item(Hotel, id=hotel_id, owner_id=user_id)
+        hotel = await self.get_one_item(Hotel, id=hotel_id, owner=user_id)
         return hotel
 
     async def add(self, hotel: Hotel) -> UUID | None:
@@ -45,12 +47,15 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
         except IntegrityError:
             return None
 
-    async def update_hotel(self, hotel: Hotel, **params) -> UUID | None:
+    async def update_hotel(self, hotel: Hotel, **params: Any) -> UUID | None:
         """Update an existing hotel."""
-        for key, value in params.items():
-            setattr(hotel, key, value)
-        await self.add(hotel)
-        return hotel.id
+        hotel_id = hotel.id
+        stmt = update(Hotel).where(Hotel.id == hotel_id).values(**params)
+        try:
+            await self.session.execute(stmt)
+            return hotel_id
+        except IntegrityError:
+            return None
 
     async def delete_hotel(self, hotel: Hotel) -> None:
         """Delete a hotel by its ID."""
@@ -58,7 +63,7 @@ class HotelAdapter(SQLAlchemyGateway, HotelGatewayProto):
 
 
 class FakeHotelAdapter(FakeGateway[Hotel], HotelGatewayProto):
-    async def get_hotels(self, only_active: bool = True, **filters) -> list[Hotel]:
+    async def get_hotels(self, only_active: bool = True, **filters: Any) -> list[Hotel]:
         """Retrieve a list of hotels."""
         if only_active:
             return [
@@ -67,12 +72,7 @@ class FakeHotelAdapter(FakeGateway[Hotel], HotelGatewayProto):
                 if hotel.is_active and all(getattr(hotel, k) == v for k, v in filters.items())
             ]
 
-        return [
-            hotel
-            for hotel in self._collection
-            if all(getattr(hotel, k) == v for k, v in filters.items())
-        ]
-
+        return [hotel for hotel in self._collection if all(getattr(hotel, k) == v for k, v in filters.items())]
 
     async def get_hotel_by_id(self, hotel_id: UUID) -> Hotel | None:
         """Retrieve a hotel by its ID."""
@@ -80,13 +80,14 @@ class FakeHotelAdapter(FakeGateway[Hotel], HotelGatewayProto):
 
     async def get_users_hotel(self, user_id: UUID, hotel_id: UUID) -> Hotel | None:
         """Retrieve users hotel by its ID."""
-        return next(hotel for hotel in self._collection if hotel.id == hotel_id and hotel.owner == user_id)
+        return next((hotel for hotel in self._collection if hotel.id == hotel_id and hotel.owner == user_id), None)
 
     async def add(self, hotel: Hotel) -> UUID | None:
         """Add a new hotel."""
         self._collection.add(hotel)
+        return hotel.id or None
 
-    async def update_hotel(self, hotel: Hotel, **params) -> UUID | None:
+    async def update_hotel(self, hotel: Hotel, **params: Any) -> UUID | None:
         """Update an existing hotel."""
         for key, value in params.items():
             setattr(hotel, key, value)

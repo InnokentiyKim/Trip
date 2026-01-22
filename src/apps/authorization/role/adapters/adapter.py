@@ -1,20 +1,24 @@
 from uuid import UUID
 
+from sqlalchemy import delete, select
+
 from src.apps.authentication.user.domain.models import User
-from src.apps.authorization.access.domain.models import Role, Permission
-from src.apps.authorization.role.application.interfaces.gateway import RoleGatewayProto, PermissionGatewayProto
+from src.apps.authorization.access.domain.models import Permission, Role
+from src.apps.authorization.role.application.interfaces.gateway import (
+    PermissionGatewayProto,
+    RoleGatewayProto,
+)
 from src.apps.authorization.role.domain.enums import UserRoleEnum
-from src.common.adapters.adapter import SQLAlchemyGateway, FakeGateway
-from sqlalchemy import select, delete
+from src.common.adapters.adapter import FakeGateway, SQLAlchemyGateway
 
 
 class RoleAdapter(SQLAlchemyGateway, RoleGatewayProto):
     async def add(self, role: Role) -> None:
         """
-        Adds a new role to the database.
+        Adds a new role_id to the database.
 
         Args:
-            role (Role): The role entity to be added.
+            role (Role): The role_id entity to be added.
 
         Returns:
             None
@@ -23,10 +27,10 @@ class RoleAdapter(SQLAlchemyGateway, RoleGatewayProto):
 
     async def get(self, role_id: UUID) -> Role | None:
         """
-        Retrieves a role from the database by its unique role_code.
+        Retrieves a role_id from the database by its unique role_code.
 
         Args:
-            role_id (str): The unique code of the role.
+            role_id (str): The unique code of the role_id.
 
         Returns:
             Role | None: The Role object if found, otherwise None.
@@ -36,10 +40,10 @@ class RoleAdapter(SQLAlchemyGateway, RoleGatewayProto):
 
     async def get_by_name(self, role_name: UserRoleEnum) -> Role | None:
         """
-        Retrieves a role from the database by its unique name.
+        Retrieves a role_id from the database by its unique name.
 
         Args:
-            role_name (str): The unique name of the role.
+            role_name (str): The unique name of the role_id.
 
         Returns:
             Role | None: The Role object if found, otherwise None.
@@ -49,27 +53,27 @@ class RoleAdapter(SQLAlchemyGateway, RoleGatewayProto):
 
     async def get_all_users_granted_to_role(self, role_id: UUID) -> list[UUID]:
         """
-        Retrieves all user IDs granted to the specified role.
+        Retrieves all user IDs granted to the specified role_id.
 
         Args:
-            role_id (UUID): The unique identifier of the role.
+            role_id (UUID): The unique identifier of the role_id.
 
         Returns:
-            list[UUID]: A list of user IDs granted to the role.
+            list[UUID]: A list of user IDs granted to the role_id.
         """
-        query = select(User.id).join(User.role).where(Role.id == role_id)
+        query = select(User.id).join(User.role_id).where(Role.id == role_id)
         query_result = await self.session.execute(query)
         return list(query_result.scalars().all())
 
     async def delete(self, role_id: UUID) -> bool:
         """
-        Deletes a role from the database by its unique identifier.
+        Deletes a role_id from the database by its unique identifier.
 
         Args:
-            role_id (UUID): The unique identifier of the role to delete.
+            role_id (UUID): The unique identifier of the role_id to delete.
 
         Returns:
-            bool: True if the role was deleted, False if the role was not found.
+            bool: True if the role_id was deleted, False if the role_id was not found.
         """
         stmt = delete(Role).where(Role.id == role_id)
         removed_info = await self.session.execute(stmt)
@@ -83,10 +87,10 @@ class PermissionsAdapter(SQLAlchemyGateway, PermissionGatewayProto):
 
     async def list_all_permissions(self) -> list[Permission]:
         """
-        Returns a list of permission names associated with the specified role.
+        Returns a list of permission names associated with the specified role_id.
 
         Returns:
-            RolePermissionsListReturn: A list of permission names linked to the role.
+            RolePermissionsListReturn: A list of permission names linked to the role_id.
         """
         query = select(*Permission.returning_columns())
         query_result = await self.session.execute(query)
@@ -110,10 +114,10 @@ class PermissionsAdapter(SQLAlchemyGateway, PermissionGatewayProto):
 class FakeRoleAdapter(FakeGateway[Role], RoleGatewayProto):
     async def add(self, role: Role) -> None:
         """
-        Adds a new role to the database.
+        Adds a new role_id to the database.
 
         Args:
-            role (Role): The role entity to be added.
+            role (Role): The role_id entity to be added.
 
         Returns:
             None
@@ -122,10 +126,10 @@ class FakeRoleAdapter(FakeGateway[Role], RoleGatewayProto):
 
     async def get(self, role_id: UUID) -> Role | None:
         """
-        Retrieves a role from the database by its unique role_code.
+        Retrieves a role_id from the database by its unique role_code.
 
         Args:
-            role_id (str): The unique code of the role.
+            role_id (str): The unique code of the role_id.
 
         Returns:
             Role | None: The Role object if found, otherwise None.
@@ -134,10 +138,10 @@ class FakeRoleAdapter(FakeGateway[Role], RoleGatewayProto):
 
     async def get_by_name(self, role_name: UserRoleEnum) -> Role | None:
         """
-        Retrieves a role from the database by its unique name.
+        Retrieves a role_id from the database by its unique name.
 
         Args:
-            role_name (str): The unique name of the role.
+            role_name (str): The unique name of the role_id.
 
         Returns:
             Role | None: The Role object if found, otherwise None.
@@ -146,28 +150,32 @@ class FakeRoleAdapter(FakeGateway[Role], RoleGatewayProto):
 
     async def get_all_users_granted_to_role(self, role_id: UUID) -> list[UUID]:
         """
-        Retrieves all user IDs granted to the specified role.
+        Retrieves all user IDs granted to the specified role_id.
 
         Args:
-            role_id (UUID): The unique identifier of the role.
+            role_id (UUID): The unique identifier of the role_id.
 
         Returns:
-            list[UUID]: A list of user IDs granted to the role.
+            list[UUID]: A list of user IDs granted to the role_id.
         """
-        users = (role.users for role in self._collection if role.id == role_id)
+        users = []
+        for role in self._collection:
+            if role.id == role_id:
+                users.extend(role.users)
+
         return [user.id for user in users]
 
     async def delete(self, role_id: UUID) -> bool:
         """
-        Deletes a role from the database by its unique identifier.
+        Deletes a role_id from the database by its unique identifier.
 
         Args:
-            role_id (UUID): The unique identifier of the role to delete.
+            role_id (UUID): The unique identifier of the role_id to delete.
 
         Returns:
-            bool: True if the role was deleted, False if the role was not found.
+            bool: True if the role_id was deleted, False if the role_id was not found.
         """
-        role = next((role for role in self._collection if role.id == role_id))
+        role = next((role for role in self._collection if role.id == role_id), None)
         if role is None:
             return False
 
@@ -182,10 +190,10 @@ class FakePermissionsAdapter(FakeGateway[Permission], PermissionGatewayProto):
 
     async def list_all_permissions(self) -> list[Permission]:
         """
-        Returns a list of permission names associated with the specified role.
+        Returns a list of permission names associated with the specified role_id.
 
         Returns:
-            RolePermissionsListReturn: A list of permission names linked to the role.
+            RolePermissionsListReturn: A list of permission names linked to the role_id.
         """
         return list(self._collection)
 
@@ -199,6 +207,4 @@ class FakePermissionsAdapter(FakeGateway[Permission], PermissionGatewayProto):
         Returns:
             list[Permission]: List of Permissions
         """
-        return [
-            permission for permission in self._collection if permission.id in permission_ids
-        ]
+        return [permission for permission in self._collection if permission.id in permission_ids]

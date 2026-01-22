@@ -1,16 +1,16 @@
 import asyncio
+from types import TracebackType
+from typing import Self
 
+from aiobotocore.client import AioBaseClient
 from aiobotocore.response import StreamingBody
+from botocore.exceptions import ClientError, EndpointConnectionError
 
-from src.apps.hotel.file_object.domain.models import FileObject
 from src.apps.hotel.file_object.application.interfaces.gateway import (
     FileObjectGatewayProto,
 )
-from aiobotocore.client import AioBaseClient
+from src.apps.hotel.file_object.domain.models import FileObject
 from src.config import Configs
-from typing import Self
-from types import TracebackType
-from botocore.exceptions import ClientError, EndpointConnectionError
 
 
 class S3FileObjectAdapter(FileObjectGatewayProto):
@@ -33,9 +33,7 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
         """Exit async context manager."""
         return None
 
-    async def generate_download_pre_signed_url(
-        self, key: str, file_name: str, content_type: str
-    ) -> str:
+    async def generate_download_pre_signed_url(self, key: str, file_name: str, content_type: str) -> str:
         """
         Generate a pre-signed URL for uploading an object to S3.
 
@@ -139,21 +137,30 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
             size=real_object_size,
         )
 
-    async def delete_multiple_objects(self, keys: list[str]) -> None: ...
+    async def delete_multiple_objects(self, keys: list[str]) -> None:
+        """Delete multiple objects from the S3 bucket."""
+        ...
 
     async def check_availability(self) -> None:
+        """Check the availability of the S3 bucket."""
         try:
-            await asyncio.wait_for(
-                self.client.head_bucket(Bucket=self.bucket_name), timeout=10
-            )
+            await asyncio.wait_for(self.client.head_bucket(Bucket=self.bucket_name), timeout=10)
         except TimeoutError:
-            raise EndpointConnectionError(
-                endpoint_url=self.client.meta.endpoint_url
-            ) from None
+            raise EndpointConnectionError(endpoint_url=self.client.meta.endpoint_url) from None
         except (ClientError, EndpointConnectionError) as exc:
             raise exc
 
     async def copy_object(self, source_key: str, destination_key: str) -> None:
+        """
+        Copy an object within the S3 bucket from source_key to destination_key.
+
+        Args:
+            source_key (str): The key of the source object to copy.
+            destination_key (str): The key where the object will be copied to.
+
+        Raises:
+            ClientError: If the copy operation fails.
+        """
         copy_source = {"Bucket": self.bucket_name, "Key": source_key}
 
         try:
@@ -166,16 +173,27 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
             raise exc
 
     async def put_object(self, file_object: FileObject) -> None:
+        """
+        Upload an object to the S3 bucket.
+
+        This method uploads the provided FileObject to the configured S3 bucket.
+
+        Args:
+            file_object (FileObject): The FileObject instance containing the object details to upload.
+
+        Raises:
+            ClientError: If the upload operation fails.
+        """
         body = file_object.body
 
         if isinstance(body, StreamingBody):
             async with body as stream:
-                body = await stream.read()
+                data = await stream.read()
 
         kwargs = {
             "Bucket": self.bucket_name,
             "Key": file_object.object_name,
-            "Body": body,
+            "Body": data,
         }
 
         if file_object.content_type != "":
