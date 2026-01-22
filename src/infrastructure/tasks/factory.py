@@ -3,7 +3,6 @@ from kombu import Exchange, Queue
 
 from src.setup.common import app_config as config
 
-
 celery_app = Celery(
     "tasks",
     broker=config.celery.broker_url,
@@ -37,7 +36,7 @@ celery_app.conf.update(
     task_queues=(
         Queue("default", Exchange("default"), routing_key="default"),
         Queue("high_priority", Exchange("high_priority"), routing_key="high_priority"),
-        Queue("low_priority", Exchange("low_priority"), routing_key="low_priority")
+        Queue("low_priority", Exchange("low_priority"), routing_key="low_priority"),
     ),
     task_default_queue="default",
     task_default_exchange="default",

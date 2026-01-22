@@ -1,12 +1,14 @@
 from fastapi import Request, Security
-from src.apps.authentication.user.application.exceptions import Unauthorized
 from fastapi.security import HTTPBearer
+
+from src.apps.authentication.user.application.exceptions import Unauthorized
 
 
 class AuthHeaderToken(HTTPBearer):
     """Custom HTTP Bearer authentication scheme to extract access_token from Authorization header."""
 
-    async def __call__(self, request: Request) -> str:
+    async def __call__(self, request: Request) -> str:  # type: ignore
+        """Extracts the token from the Authorization header or cookies."""
         auth = request.headers.get("Authorization") or request.cookies.get("access_token")
         if not auth:
             raise Unauthorized
@@ -14,9 +16,7 @@ class AuthHeaderToken(HTTPBearer):
         if not auth.startswith("Bearer"):
             auth = f"Bearer {auth.strip()}"
             request.headers.__dict__["_list"] = [
-                (b"authorization", auth.encode())
-                if key.lower() == b"authorization"
-                else (key, value)
+                (b"authorization", auth.encode()) if key.lower() == b"authorization" else (key, value)
                 for key, value in request.headers.raw
             ]
 

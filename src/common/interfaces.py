@@ -1,7 +1,7 @@
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from contextlib import AbstractAsyncContextManager
 from datetime import datetime
-from typing import Protocol, Any
+from typing import Any, Protocol
 from uuid import UUID
 
 from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
@@ -124,6 +124,7 @@ class SecurityGatewayProto(Protocol):
     async def verify_token(self, token: str, token_type: AuthTokenTypeEnum) -> UUID:
         """
         Verify a JWT token.
+
         This method decodes the token and checks its expiration. If the token is valid, it returns the user ID.
 
         Args:
@@ -191,14 +192,13 @@ class SecurityGatewayProto(Protocol):
 
 
 class GatewayProto(ABC):
-    def __call__(
-        self, *args: Any, **kwargs: Any
-    ) -> AbstractAsyncContextManager[UowProto]: #  noqa: E501
+    @abstractmethod
+    def __call__(self, *args: Any, **kwargs: Any) -> AbstractAsyncContextManager[UowProto]:  # noqa: E501
         """Return an async context manager for a unit of work."""
         ...
 
     @abstractmethod
-    async def add(self, model: Any) -> None:
+    async def add(self, model: Any) -> Any | None:
         """Add a model instance to the gateway."""
         ...
 
@@ -207,18 +207,26 @@ class SQLAlchemyGatewayProto(GatewayProto):
     # TODO: add __call__ method to return UoW instance
 
     @abstractmethod
-    async def add(self, item: ORM_OBJ) -> None: ...
+    async def add(self, item: ORM_OBJ) -> Any | None:
+        """Add an ORM object to the database session."""
+        ...
 
     @abstractmethod
-    async def get_item_by_id(self, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ: ...
+    async def get_item_by_id(self, orm_cls: ORM_CLS, item_id: int) -> ORM_OBJ | None:
+        """Retrieve an ORM object by its ID."""
+        ...
 
     @abstractmethod
-    async def get_one_item(self, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ: ...
+    async def get_one_item(self, orm_cls: ORM_CLS, **filters: Any) -> ORM_OBJ | None:
+        """Retrieve a single ORM object matching the given filters."""
+        ...
 
     @abstractmethod
-    async def get_items_list(
-        self, orm_cls: ORM_CLS, **filters: Any
-    ) -> list[ORM_OBJ]: ...
+    async def get_items_list(self, orm_cls: ORM_CLS, **filters: Any) -> list[ORM_OBJ]:
+        """Retrieve a list of ORM objects matching the given filters."""
+        ...
 
     @abstractmethod
-    async def delete_item(self, orm_obj: ORM_OBJ) -> None: ...
+    async def delete_item(self, orm_obj: ORM_OBJ) -> None:
+        """Delete an ORM object from the database session."""
+        ...

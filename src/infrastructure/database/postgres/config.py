@@ -42,6 +42,4 @@ class DatabaseSettings(BaseSettings):
             "port": self.postgres_port,
             "db": self.postgres_db,
         }
-        return "postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}".format(
-            **db_params
-        )
+        return "postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}".format(**db_params)

@@ -3,9 +3,9 @@ from dishka import Provider
 from src.apps.authentication.ioc import get_authentication_providers
 from src.apps.authorization.ioc import get_authorization_providers
 from src.apps.comment.ioc import get_comment_providers
+from src.apps.hotel.ioc import get_hotel_providers
 from src.apps.notification.ioc import get_notification_providers
 from src.infrastructure.ioc import get_infra_providers
-from src.apps.hotel.ioc import get_hotel_providers
 
 
 def get_providers() -> list[Provider]:

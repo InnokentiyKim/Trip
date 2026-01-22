@@ -14,4 +14,4 @@ class ListUserComments:
 
 @dataclass(slots=True, frozen=True)
 class ListHotelComments:
-    hotel_id: int
+    hotel_id: uuid.UUID

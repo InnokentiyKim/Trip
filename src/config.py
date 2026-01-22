@@ -1,12 +1,11 @@
-from pydantic_settings import BaseSettings
-from pydantic import Field, SecretStr, BaseModel
-
-from src.infrastructure.database.memory.config import MemoryDatabaseSettings
-from src.infrastructure.database.postgres.config import DatabaseSettings
-from src.common.domain.enums import EnvironmentEnum, EmailAdapterEnum, SMSAdapterEnum
-from pydantic import EmailStr
 from pathlib import Path
 
+from pydantic import BaseModel, EmailStr, Field, SecretStr
+from pydantic_settings import BaseSettings
+
+from src.common.domain.enums import EmailAdapterEnum, EnvironmentEnum, SMSAdapterEnum
+from src.infrastructure.database.memory.config import MemoryDatabaseSettings
+from src.infrastructure.database.postgres.config import DatabaseSettings
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -55,6 +54,8 @@ class CORSConfig(BaseModel):
 
 
 class CustomBaseSettings(BaseSettings):
+    """Custom base settings to configure environment file and case sensitivity."""
+
     class Config:
         env_file = BASE_DIR / ".env"
         case_sensitive = False
@@ -62,9 +63,12 @@ class CustomBaseSettings(BaseSettings):
 
 
 class GeneralSettings(CustomBaseSettings):
+    """General application configuration settings."""
+
     app_version: str = "1.0.0"
     app_name: str = "hotel-service-backend"
     environment: EnvironmentEnum = EnvironmentEnum.DEV
+    log_level: str = "DEBUG"
     cors: CORSConfig = Field(default_factory=CORSConfig)
 
     email_adapter: EmailAdapterEnum = EmailAdapterEnum.SMTP
@@ -76,6 +80,8 @@ class GeneralSettings(CustomBaseSettings):
 
 
 class SecuritySettings(CustomBaseSettings):
+    """Security configuration settings."""
+
     secret_key: SecretStr = SecretStr("some_secret_key")
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
@@ -83,7 +89,21 @@ class SecuritySettings(CustomBaseSettings):
     jwt_key_id: str = "primary"
 
 
+class AuthenticationSettings(CustomBaseSettings):
+    """Authentication configuration settings."""
+
+    reset_password_token_lifetime_minutes: int = 5
+    otp_lifetime_minutes: int = 3
+    otp_max_attempts: int = 5
+    mfa_token_lifetime_minutes: int = 3
+    max_login_attempts: int = 5
+    bypass_otp_code_enabled: bool = False
+    bypass_otp_code: str = "000000"
+
+
 class SMTPSettings(CustomBaseSettings):
+    """SMTP email configuration settings."""
+
     smtp_username: str = "HotelsApp"
     smtp_password: SecretStr = SecretStr("app_secret")
     smtp_use_credentials: bool = False
@@ -96,6 +116,8 @@ class SMTPSettings(CustomBaseSettings):
 
 
 class CelerySettings(CustomBaseSettings):
+    """Celery configuration settings."""
+
     # Celery broker and backend URLs
     broker_url: str = "redis://localhost:6379/0"
     result_backend: str = "redis://localhost:6379/0"
@@ -111,6 +133,8 @@ class CelerySettings(CustomBaseSettings):
 
 
 class S3Settings(BaseSettings):
+    """S3 configuration settings."""
+
     bucket_name: str = "hotel-app-bucket"
     sample_files_prefix: str = "sample"
     s3_endpoint: str = "http://localhost:9000"
@@ -122,18 +146,21 @@ class S3Settings(BaseSettings):
 
 
 class LoggerSettings(BaseSettings):
+    """Logger configuration settings."""
+
     log_level: str = "DEBUG"
     app_logger_name: str = "hotels_backend.service_logs"
     api_logger_name: str = "hotels_backend.api_logs"
 
 
 class Configs(BaseSettings):
+    """Application configuration settings."""
+
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
-    memory_database: MemoryDatabaseSettings = Field(
-        default_factory=MemoryDatabaseSettings
-    )
+    memory_database: MemoryDatabaseSettings = Field(default_factory=MemoryDatabaseSettings)
     security: SecuritySettings = Field(default_factory=SecuritySettings)
+    auth: AuthenticationSettings = Field(default_factory=AuthenticationSettings)
     smtp_email: SMTPSettings = Field(default_factory=SMTPSettings)
     s3: S3Settings = Field(default_factory=S3Settings)
     celery: CelerySettings = Field(default_factory=CelerySettings)
@@ -141,4 +168,5 @@ class Configs(BaseSettings):
 
 
 def create_configs() -> Configs:
+    """Create and return the application configuration."""
     return Configs()

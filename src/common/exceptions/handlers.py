@@ -1,8 +1,10 @@
 from typing import Any
-from pydantic import BaseModel, Field
-from src.common.exceptions.common import BaseError
-from fastapi.responses import ORJSONResponse
+
 from fastapi import Request
+from fastapi.responses import ORJSONResponse
+from pydantic import BaseModel, Field
+
+from src.common.exceptions.common import BaseError
 
 
 class ErrorDetail(BaseModel):
@@ -10,9 +12,7 @@ class ErrorDetail(BaseModel):
 
     loc: str = Field(..., description="Location where the error occurred.")
     msg: str = Field(..., description="A human-readable message explaining the error.")
-    type: str = Field(
-        ..., description="A unique, machine-readable code for the error type."
-    )
+    type: str = Field(..., description="A unique, machine-readable code for the error type.")
 
 
 class ErrorResponse(BaseModel):
@@ -66,12 +66,21 @@ def generate_responses(*exceptions: type[BaseError]) -> dict[int | str, dict[str
 
 
 def general_exception_handler(request: Request, exc: Exception) -> ORJSONResponse:
+    """
+    General exception handler for FastAPI applications.
+
+    This handler processes exceptions that inherit from BaseError and returns
+    responses with structured error information.
+
+    Args:
+        request (Request): The incoming HTTP request.
+        exc (Exception): The exception that was raised.
+
+    Returns:
+        ORJSONResponse: A JSON response containing error details.
+    """
     if not isinstance(exc, BaseError):
         raise exc
 
-    response_model = ErrorResponse(
-        detail=[ErrorDetail(loc=exc.loc, msg=exc.message, type=exc.__class__.__name__)]
-    )
-    return ORJSONResponse(
-        status_code=exc.status_code, content=response_model.model_dump()
-    )
+    response_model = ErrorResponse(detail=[ErrorDetail(loc=exc.loc, msg=exc.message, type=exc.__class__.__name__)])
+    return ORJSONResponse(status_code=exc.status_code, content=response_model.model_dump())

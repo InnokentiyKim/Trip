@@ -1,5 +1,6 @@
-from src.infrastructure.database.postgres.config import DatabaseSettings
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+
+from src.infrastructure.database.postgres.config import DatabaseSettings
 
 
 def create_database_adapter(config: DatabaseSettings) -> AsyncEngine:

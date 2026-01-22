@@ -1,5 +1,5 @@
-from sqlalchemy.exc import IntegrityError
 from fastapi import status
+from sqlalchemy.exc import IntegrityError
 
 
 class BaseError(Exception):
@@ -21,7 +21,18 @@ class BaseError(Exception):
 class UniqueConstraintError(BaseError, IntegrityError):
     status_code: int = status.HTTP_409_CONFLICT
     message: str = "Item already exists"
-    loc: str = ""
+
+    def __init__(
+        self,
+        message: str = "",
+        loc: str = "",
+        status_code: int = 0,
+    ) -> None:
+        self.message = message or self.message
+        self.loc = loc or self.loc
+        self.status_code = status_code or self.status_code
+
+        Exception.__init__(self, self.message)
 
 
 class InternalError(BaseError):

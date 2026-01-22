@@ -1,12 +1,13 @@
-from typing import Any
 import logging
+from typing import Any
+
 import structlog.processors
 from structlog.typing import EventDict, Processor
 
 from src.common.domain.enums import EnvironmentEnum
 from src.config import Configs
 
-_debug_additional_info =  structlog.processors.CallsiteParameterAdder(
+_debug_additional_info = structlog.processors.CallsiteParameterAdder(
     parameters=[
         structlog.processors.CallsiteParameter.FILENAME,
         structlog.processors.CallsiteParameter.FUNC_NAME,
@@ -15,10 +16,10 @@ _debug_additional_info =  structlog.processors.CallsiteParameterAdder(
     additional_ignores=["src.infrastructure.logger"],
 )
 
+
 def add_debug_location(logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
     """
-    A structlog processor that adds the file name and line number of the caller
-    to DEBUG-level log messages.
+    A structlog processor that adds the file name and line number of the caller to DEBUG-level log messages.
 
     Args:
         logger (Any): The logger instance.
@@ -58,6 +59,15 @@ def build_shared_processors(config: Configs) -> list[Processor]:
 
 
 def setup_logging(config: Configs) -> None:
+    """
+    Set up structlog logging configuration based on the provided settings.
+
+    Args:
+        config (Configs): The application configuration.
+
+    Returns:
+        None
+    """
     shared_processors = build_shared_processors(config)
 
     structlog.configure(
@@ -99,7 +109,10 @@ def setup_logging(config: Configs) -> None:
 
     # For Uvicorn's primary loggers, clear their default handlers and propagate to root.
     # This ensures that "uvicorn", "uvicorn.error" and FS logs go through structlog.
-    for log_type in ("uvicorn", "uvicorn.error", ):
+    for log_type in (
+        "uvicorn",
+        "uvicorn.error",
+    ):
         logging.getLogger(log_type).handlers.clear()
         logging.getLogger(log_type).propagate = True
 

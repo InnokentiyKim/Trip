@@ -1,6 +1,6 @@
-import structlog
 import time
 
+import structlog
 from asgi_correlation_id import correlation_id
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -14,6 +14,16 @@ access_logger = structlog.stdlib.get_logger(config.logger.api_logger_name)
 
 class AccessLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        """
+        Middleware to log access details for each HTTP request.
+
+        Args:
+            request: The incoming Starlette request object.
+            call_next: The next middleware or endpoint in the chain.
+
+        Returns:
+            Response: The outgoing Starlette response object.
+        """
         if request.scope["type"] != "http":
             return await call_next(request)
 
