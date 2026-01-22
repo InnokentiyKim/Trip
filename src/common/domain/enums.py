@@ -16,6 +16,11 @@ class DataAccessEnum(StrEnum):
     S3 = "s3"
 
 
+class GatewayTypeEnum(StrEnum):
+    ALCHEMY = DataAccessEnum.ALCHEMY
+    MEMORY = DataAccessEnum.MEMORY
+
+
 class EmailAdapterEnum(StrEnum):
     SMTP = "smtp"
     NAVER = "naver"
