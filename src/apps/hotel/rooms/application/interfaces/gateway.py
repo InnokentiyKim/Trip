@@ -9,7 +9,7 @@ from src.common.interfaces import GatewayProto
 
 class RoomGatewayProto(GatewayProto):
     @abstractmethod
-    async def list_rooms(self, hotel_id: uuid.UUID, **filters) -> list[Room]:
+    async def list_rooms(self, hotel_id: uuid.UUID, **filters: Any) -> list[Room]:
         """Retrieve a list of rooms."""
         ...
 

@@ -12,7 +12,7 @@ class CommentGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def get_comment_by_id(self, comment_id: UUID) -> Comment:
+    async def get_comment_by_id(self, comment_id: UUID) -> Comment | None:
         """Retrieve a comment by its ID."""
         ...
 
@@ -22,7 +22,7 @@ class CommentGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def get_comments_by_hotel_id(self, hotel_id: int) -> list[Comment]:
+    async def get_comments_by_hotel_id(self, hotel_id: UUID) -> list[Comment]:
         """Retrieve a list of comments for a specific hotel."""
         ...
 

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from uuid import UUID
 
-from src.apps.authorization.access.domain.enums import ResourceTypeEnum, PermissionEnum
+from src.apps.authorization.access.domain.enums import PermissionEnum, ResourceTypeEnum
 from src.common.interfaces import GatewayProto
 
 
@@ -23,14 +23,18 @@ class AccessGatewayProto(GatewayProto):
 
     @abstractmethod
     async def check_object_access(
-        self, user_id: UUID, user_role: UUID, object_type: ResourceTypeEnum, object_id: UUID
+        self,
+        user_id: UUID,
+        user_role: UUID,
+        object_type: ResourceTypeEnum,
+        object_id: UUID | int,
     ) -> bool:
         """
         Check if a user has access to a specific object.
 
         Args:
             user_id (UUID): The unique identifier of the user.
-            user_role (UUID): The unique identifier of the user's role.
+            user_role (UUID): The unique identifier of the user's role_id.
             object_type (ResourceTypeEnum): The type of the object.
             object_id (UUID | int): The unique identifier of the object.
 
@@ -40,12 +44,14 @@ class AccessGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def check_permission(self, role_id: UUID, resource_type: ResourceTypeEnum, permission: PermissionEnum) -> bool:
+    async def check_permission(
+        self, role_id: UUID, resource_type: ResourceTypeEnum, permission: PermissionEnum
+    ) -> bool:
         """
         Check if a subject has a specific permission.
 
         Args:
-            role_id (UUID): The unique identifier of the role.
+            role_id (UUID): The unique identifier of the role_id.
             resource_type (ResourceTypeEnum): The type of the resource.
             permission (PermissionEnum): The permission to check.
 

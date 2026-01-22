@@ -14,9 +14,7 @@ class BookingGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def get_booking_by_id(
-        self, booking_id: UUID, **filters: dict | Any
-    ) -> Booking | None:
+    async def get_booking_by_id(self, booking_id: UUID, **filters: dict | Any) -> Booking | None:
         """Retrieve a booking by its ID."""
         ...
 
@@ -31,16 +29,12 @@ class BookingGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def add_booking(
-        self, user_id: UUID, room_id: int, date_from: date, date_to: date
-    ) -> Booking | None:
+    async def add_booking(self, user_id: UUID, room_id: UUID, date_from: date, date_to: date) -> Booking | None:
         """Add a new booking."""
         ...
 
     @abstractmethod
-    async def update_booking(
-        self, booking: Booking, only_active: bool = False, **updating_params: Any
-    ) -> UUID | None:
+    async def update_booking(self, booking: Booking, only_active: bool = False, **updating_params: Any) -> UUID | None:
         """Update a booking."""
         ...
 

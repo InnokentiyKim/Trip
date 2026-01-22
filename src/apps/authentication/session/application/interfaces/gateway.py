@@ -1,8 +1,12 @@
 from abc import abstractmethod
 from uuid import UUID
 
+from src.apps.authentication.session.domain.models import (
+    AuthSession,
+    OTPCode,
+    PasswordResetToken,
+)
 from src.common.interfaces import GatewayProto
-from src.apps.authentication.session.domain.models import AuthSession, PasswordResetToken, OTPCode
 
 
 class AuthSessionGatewayProto(GatewayProto):
