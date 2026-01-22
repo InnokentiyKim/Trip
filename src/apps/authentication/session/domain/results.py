@@ -4,7 +4,10 @@ from uuid import UUID
 
 from pydantic import SecretStr
 
-from src.apps.authentication.session.domain.enums import PasswordResetTokenStatusEnum, OTPStatusEnum
+from src.apps.authentication.session.domain.enums import (
+    OTPStatusEnum,
+    PasswordResetTokenStatusEnum,
+)
 from src.apps.authentication.user.domain.models import AuthStatus
 from src.apps.notification.enums import NotificationChannelEnum
 

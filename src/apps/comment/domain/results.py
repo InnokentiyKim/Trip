@@ -2,12 +2,14 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
+from src.apps.comment.domain.models import Comment
+
 
 @dataclass(slots=True, frozen=True)
 class CommentInfo:
-    id: str
+    id: UUID
     user_id: UUID
-    hotel_id: int
+    hotel_id: UUID
     content: str
     rating: int | None
     created_at: datetime

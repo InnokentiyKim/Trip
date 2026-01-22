@@ -5,9 +5,8 @@ from uuid import UUID
 
 from pydantic import SecretStr
 
-
 if TYPE_CHECKING:
-    from src.apps.authentication.user.domain.models import User, AuthStatus
+    from src.apps.authentication.user.domain.models import AuthStatus, User
 
 
 @dataclass(slots=True, frozen=True)
@@ -80,7 +79,7 @@ class UserInfo:
         return cls(
             id=model.id,
             email=model.email,
-            role=model.role,
+            role=model.role_id,
             phone=model.phone,
             name=model.name,
             avatar_url=model.avatar_url,

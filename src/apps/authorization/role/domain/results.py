@@ -10,12 +10,17 @@ class PermissionInfo:
     id: UUID
     resource_type: ResourceTypeEnum
     name: str
-    description: str
+    description: str | None
 
     @classmethod
     def from_model(cls, model: Permission) -> "PermissionInfo":
         """Create a PermissionInfo instance from a Permission domain model."""
-        return cls(id=model.id, resource_type=model.resource_type, name=model.name, description=model.description)
+        return cls(
+            id=model.id,
+            resource_type=model.resource_type,
+            name=model.name,
+            description=model.description,
+        )
 
 
 @dataclass(slots=True, frozen=True)
