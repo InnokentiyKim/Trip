@@ -24,6 +24,7 @@ async def hotel(request_container, manager) -> Hotel:
 
 @pytest.fixture
 def sample_hotel(manager):
+    """Create a sample hotel."""
     return Hotel(
         name="Test Sample Hotel",
         location="Test City",
@@ -54,6 +55,7 @@ async def rooms(request_container, hotel, manager) -> list[Room]:
 
 @pytest.fixture
 def sample_room(sample_hotel):
+    """Create a sample room."""
     return Room(
         hotel_id=sample_hotel.id,
         owner=sample_hotel.owner,
@@ -67,6 +69,7 @@ def sample_room(sample_hotel):
 
 @pytest.fixture
 def existing_room(sample_room):
+    """Create an existing room."""
     return Room(
         hotel_id=sample_room.hotel_id,
         owner=sample_room.owner,

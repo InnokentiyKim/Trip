@@ -57,6 +57,7 @@ def pytest_addoption(parser):
 
 
 def app_configs(config: Configs) -> list[BaseModel]:
+    """Return all application configs."""
     return [
         config.general,
         config.logger,
@@ -68,14 +69,9 @@ def app_configs(config: Configs) -> list[BaseModel]:
     ]
 
 
-def filter_configs_by_data_access(
-    config: Configs, data_access: DataAccessEnum
-) -> list[BaseModel]:
-    return [
-        config
-        for config in app_configs(config)
-        if getattr(config, "data_access", None) == data_access
-    ]
+def filter_configs_by_data_access(config: Configs, data_access: DataAccessEnum) -> list[BaseModel]:
+    """Filter application configs by data access type."""
+    return [config for config in app_configs(config) if getattr(config, "data_access", None) == data_access]
 
 
 def is_postgres_required(config: Configs) -> bool:
@@ -94,6 +90,8 @@ def is_memory_database_required(config: Configs) -> bool:
 
 
 class DockerContainerEnum(StrEnum):
+    """Enum for Docker container types."""
+
     POSTGRES = "postgres"
     REDIS = "redis"
     MINIO = "minio"
@@ -108,6 +106,7 @@ CONTAINERS: dict[DockerContainerEnum, DockerContainer | None] = {
 
 @pytest.fixture(scope="session", autouse=True)
 def stop_docker_containers():
+    """Stop all Docker containers after tests."""
     yield
     for name, docker_container in CONTAINERS.items():
         if CONTAINERS[name] is not None:
@@ -119,14 +118,9 @@ def stop_docker_containers():
 @pytest.fixture(scope="module", autouse=True)
 def postgres_container(mock_test_config) -> PostgresContainer:
     """Provide a Postgres container for testing."""
-    postgres = CONTAINERS[DockerContainerEnum.POSTGRES] or PostgresContainer(
-        "postgres:17"
-    )
+    postgres = CONTAINERS[DockerContainerEnum.POSTGRES] or PostgresContainer("postgres:17")
 
-    if (
-        is_postgres_required(mock_test_config)
-        and CONTAINERS[DockerContainerEnum.POSTGRES] is None
-    ):
+    if is_postgres_required(mock_test_config) and CONTAINERS[DockerContainerEnum.POSTGRES] is None:
         postgres.start()
         os.environ["POSTGRES_USER"] = postgres.username
         os.environ["POSTGRES_PASSWORD"] = postgres.password
@@ -149,10 +143,7 @@ def minio_container(mock_test_config) -> MinioContainer:
     """Provide a Minio container for testing."""
     minio = CONTAINERS[DockerContainerEnum.MINIO] or MinioContainer()
 
-    if (
-        is_minio_required(mock_test_config)
-        and CONTAINERS[DockerContainerEnum.MINIO] is None
-    ):
+    if is_minio_required(mock_test_config) and CONTAINERS[DockerContainerEnum.MINIO] is None:
         minio.start()
         minio_config = minio.get_config()
         os.environ["S3_ENDPOINT"] = "http://" + minio_config["endpoint"]
@@ -182,6 +173,8 @@ type SaveInstances = Callable[[MockData[Any]], Any]
 
 @pytest.fixture
 def save_instances(request_container) -> SaveInstances:
+    """Fixture factory to save mock data instances to the database."""
+
     async def _task(mock_data: MockData[Any]):
         gateway = await request_container.get(dependency_type=mock_data.gateway_proto)
         await mock_data.save_by_gateway(gateway)
@@ -243,6 +236,7 @@ def mock_test_config(default_test_config) -> Configs:
 
 @pytest.fixture
 async def app_container(mock_test_config) -> AsyncGenerator[AsyncContainer]:
+    """Create the application container for testing."""
     providers = [*get_providers()]
     container = create_async_container(providers, config=mock_test_config)
     yield container
@@ -251,12 +245,14 @@ async def app_container(mock_test_config) -> AsyncGenerator[AsyncContainer]:
 
 @pytest.fixture
 async def request_container(app_container) -> AsyncGenerator[AsyncContainer]:
+    """Create a request-scoped container for testing."""
     async with app_container() as request_container:
         yield request_container
 
 
 @pytest.fixture
 def get_test_app(app_container) -> FastAPI:
+    """Create the FastAPI test application."""
     app = FastAPI()
     app.add_exception_handler(BaseError, general_exception_handler)
     app.include_router(http_router_v1)
@@ -266,6 +262,7 @@ def get_test_app(app_container) -> FastAPI:
 
 @pytest.fixture
 async def sqlalchemy_engine(app_container) -> AsyncGenerator[AsyncEngine]:
+    """Provide the SQLAlchemy async engine for testing."""
     async with app_container() as request_container:
         engine = await request_container.get(dependency_type=AsyncEngine)
         yield engine
@@ -273,9 +270,8 @@ async def sqlalchemy_engine(app_container) -> AsyncGenerator[AsyncEngine]:
 
 @pytest.fixture
 async def http_client(get_test_app: FastAPI) -> AsyncGenerator[AsyncClient]:
-    async with AsyncClient(
-        transport=ASGITransport(app=get_test_app), base_url="http://test"
-    ) as ac:
+    """Provide an HTTP client for testing."""
+    async with AsyncClient(transport=ASGITransport(app=get_test_app), base_url="http://test") as ac:
         yield ac
 
 
@@ -297,9 +293,8 @@ async def init_postgres_tables(sqlalchemy_engine: AsyncEngine) -> None:
             await conn.run_sync(metadata.create_all)
 
 
-async def init_memory_database(
-    app_container: AsyncContainer, mock_test_config: Configs
-):
+async def init_memory_database(app_container: AsyncContainer, mock_test_config: Configs):
+    """Initialize in-memory database for testing."""
     async with app_container() as request_container:
         memory_database = await request_container.get(MemoryDatabase)
         memory_database.populate_from_config(mock_test_config)
@@ -316,20 +311,20 @@ async def init_tables(
     await init_postgres_tables(sqlalchemy_engine=sqlalchemy_engine)
 
     from scripts.cli_tools.prepopulate_db import load_permissions
+
     await load_permissions()
 
 
 @pytest.fixture
 async def user(request_container) -> User:
     """Create a user."""
+
     async def _get_role():
         role_gateway = await request_container.get(RoleGatewayProto)
         return await role_gateway.get_by_name(UserRoleEnum.USER)
 
     async def _get_hashed_password():
-        security_gateway = await request_container.get(
-            dependency_type=SecurityGatewayProto
-        )
+        security_gateway = await request_container.get(dependency_type=SecurityGatewayProto)
         return await security_gateway.hash_password("Password123")
 
     role = await _get_role()
@@ -353,9 +348,7 @@ async def manager(request_container) -> User:
         return await role_gateway.get_by_name(UserRoleEnum.MANAGER)
 
     async def _get_hashed_password():
-        security_gateway = await request_container.get(
-            dependency_type=SecurityGatewayProto
-        )
+        security_gateway = await request_container.get(dependency_type=SecurityGatewayProto)
         return await security_gateway.hash_password("Password123")
 
     role = await _get_role()
@@ -384,8 +377,7 @@ async def valid_user_token(security_adapter, default_config: Configs, user) -> s
         token_type=AuthTokenTypeEnum.ACCESS,
         user_id=user.id,
         created_at=now,
-        expires_at=now
-        + timedelta(minutes=default_config.security.access_token_expire_minutes),
+        expires_at=now + timedelta(minutes=default_config.security.access_token_expire_minutes),
     )
     return token
 
@@ -398,8 +390,7 @@ async def invalid_user_token(security_adapter, default_config: Configs) -> str:
         token_type=AuthTokenTypeEnum.ACCESS,
         user_id=uuid.uuid4(),
         created_at=now,
-        expires_at=now
-        + timedelta(minutes=default_config.security.access_token_expire_minutes),
+        expires_at=now + timedelta(minutes=default_config.security.access_token_expire_minutes),
     )
     return invalid_token
 
@@ -459,7 +450,6 @@ async def refresh_user_token(security_adapter, user, default_config) -> str:
         token_type=AuthTokenTypeEnum.REFRESH,
         user_id=user.id,
         created_at=now,
-        expires_at=now
-        + timedelta(minutes=default_config.security.refresh_token_expire_minutes),
+        expires_at=now + timedelta(minutes=default_config.security.refresh_token_expire_minutes),
     )
     return token
