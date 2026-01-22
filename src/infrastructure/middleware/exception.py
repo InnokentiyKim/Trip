@@ -1,10 +1,11 @@
 import structlog
-from src.config import create_configs
 from fastapi import status
 from fastapi.responses import ORJSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
+
+from src.config import create_configs
 
 config = create_configs()
 exception_logger = structlog.stdlib.get_logger(config.logger.api_logger_name)

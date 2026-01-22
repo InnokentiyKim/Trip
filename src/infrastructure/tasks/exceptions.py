@@ -1,5 +1,6 @@
-from src.common.exceptions.common import BaseError
 from fastapi import status
+
+from src.common.exceptions.common import BaseError
 
 
 class ImageProcessingError(BaseError):

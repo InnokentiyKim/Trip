@@ -1,29 +1,31 @@
+from fastapi import status
+
 from src.common.exceptions.common import BaseError
 
 
-class InvalidTokenException(BaseError):
+class InvalidTokenError(BaseError):
     """Exception raised for invalid tokens."""
 
-    status_code = 401
+    status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Invalid token."
 
 
-class InvalidTokenTypeException(BaseError):
+class InvalidTokenTypeError(BaseError):
     """Exception raised for invalid token type."""
 
-    status_code = 400
+    status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Invalid token type."
 
 
-class ExpiredTokenException(BaseError):
+class ExpiredTokenError(BaseError):
     """Exception raised for expired tokens."""
 
-    status_code = 401
+    status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Token is expired."
 
 
-class TokenIsMissingException(BaseError):
+class TokenIsMissingError(BaseError):
     """Exception raised when access_token is missing."""
 
-    status_code = 403
+    status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Token is missing."

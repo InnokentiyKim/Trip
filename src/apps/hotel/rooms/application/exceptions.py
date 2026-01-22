@@ -1,22 +1,23 @@
-from src.common.exceptions.common import BaseError
 from fastapi import status
 
+from src.common.exceptions.common import BaseError
 
-class RoomNotFoundException(BaseError):
+
+class RoomNotFoundError(BaseError):
     status_code = status.HTTP_404_NOT_FOUND
     message = "Room not found."
 
 
-class RoomCannotBeUpdatedException(BaseError):
+class RoomCannotBeUpdatedError(BaseError):
     status_code = status.HTTP_400_BAD_REQUEST
-    message = "Room can't be updated."
+    message = "This room can't be updated."
 
 
-class RoomAlreadyExistsException(BaseError):
+class RoomAlreadyExistsError(BaseError):
     status_code = status.HTTP_409_CONFLICT
     message = "Room already exists."
 
 
-class RoomProcessingErrorException(BaseError):
+class RoomProcessingError(BaseError):
     status_code = 500
     message = "Room processing error."
