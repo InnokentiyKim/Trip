@@ -1,10 +1,16 @@
-from typing import Self
+from pydantic import BaseModel, Field
 
-from pydantic import BaseModel, ConfigDict, Field
-
-from src.apps.authentication.session.domain.models import OTPCode, PasswordResetToken, AuthSession
+from src.apps.authentication.session.domain.models import (
+    AuthSession,
+    OTPCode,
+    PasswordResetToken,
+)
 from src.apps.authentication.user.domain.models import User
-from src.apps.authorization.access.domain.models import Permission, Role, RolePermissions
+from src.apps.authorization.access.domain.models import (
+    Permission,
+    Role,
+    RolePermissions,
+)
 from src.apps.comment.domain.models import Comment
 from src.apps.hotel.bookings.domain.models import Booking
 from src.apps.hotel.file_object.domain.models import FileObject
@@ -33,5 +39,3 @@ class MemoryDatabase(BaseModel):
     auth_sessions: set[AuthSession] = Field(default_factory=set)
     password_reset_tokens: set[PasswordResetToken] = Field(default_factory=set)
     otp_codes: set[OTPCode] = Field(default_factory=set)
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
