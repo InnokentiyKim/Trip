@@ -34,9 +34,7 @@ async def mock_data(
     inactive_user,
 ) -> None:
     """Save required dependencies to database for tests."""
-    await save_instances(
-        MockUser([user, manager, sample_user, another_user, inactive_user])
-    )
+    await save_instances(MockUser([user, manager, sample_user, another_user, inactive_user]))
 
 
 @pytest.mark.anyio
@@ -70,7 +68,7 @@ class TestUserService:
             avatar_url=None,
         )
 
-        with pytest.raises(exceptions.UserAlreadyExistsException):
+        with pytest.raises(exceptions.UserAlreadyExistsError):
             await user_service.create_new_user(cmd)
 
     async def test_verify_user_credentials_success(self, user_service, sample_user):
@@ -85,16 +83,14 @@ class TestUserService:
         assert result is not None
         assert result.email == sample_user.email
 
-    async def test_verify_user_credentials_wrong_password(
-        self, user_service, sample_user
-    ):
+    async def test_verify_user_credentials_wrong_password(self, user_service, sample_user):
         """Test verifying credentials with wrong password."""
         cmd = commands.VerifyUserCredentialsCommand(
             email=sample_user.email,
             password=SecretStr("WrongPassword"),
         )
 
-        with pytest.raises(exceptions.InvalidCredentialsException):
+        with pytest.raises(exceptions.InvalidCredentialsError):
             await user_service.verify_user_credentials(cmd)
 
     async def test_verify_user_credentials_user_not_found(self, user_service):
@@ -104,7 +100,7 @@ class TestUserService:
             password=SecretStr("Password123"),
         )
 
-        with pytest.raises(exceptions.UserNotFoundException):
+        with pytest.raises(exceptions.UserNotFoundError):
             await user_service.verify_user_credentials(cmd)
 
     async def test_get_user_info_success(self, user_service, sample_user):
@@ -120,5 +116,5 @@ class TestUserService:
         user_id = uuid4()
         fetch = GetUserInfo(user_id=user_id)
 
-        with pytest.raises(exceptions.UserNotFoundException):
+        with pytest.raises(exceptions.UserNotFoundError):
             await user_service.get_user_info(fetch)

@@ -1,15 +1,13 @@
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 
+from src.apps.notification.email.application.interfaces.gateway import EmailGatewayProto
 from src.apps.notification.email.domain.model import EmailType
 from src.common.interfaces import CustomLoggerProto
 from src.config import Configs
-from src.apps.notification.email.application.interfaces.gateway import EmailGatewayProto
 
 
 class SMTPAdapter(EmailGatewayProto):
-    def __init__(
-        self, config: Configs, logger: CustomLoggerProto
-    ) -> None:
+    def __init__(self, config: Configs, logger: CustomLoggerProto) -> None:
         smtp_configs = ConnectionConfig(
             MAIL_USERNAME=config.smtp_email.smtp_username,
             MAIL_PASSWORD=config.smtp_email.smtp_password,
@@ -25,8 +23,13 @@ class SMTPAdapter(EmailGatewayProto):
         self._logger = logger
         self.fastmail = FastMail(smtp_configs)
 
-
     async def send_email(self, email_data: EmailType) -> None:
+        """
+        Send an email using SMTP.
+
+        Args:
+            email_data (EmailType): The email details including recipients, subject, and template information.
+        """
         self._logger.info(
             "SMTP: Sending email",
             subject=email_data.subject,
@@ -46,7 +49,6 @@ class SMTPAdapter(EmailGatewayProto):
             subject=email_data.subject,
             recipients=email_data.recipients,
         )
-
 
 
 class FakeEmailAdapter(EmailGatewayProto):

@@ -2,11 +2,11 @@ import uuid
 
 import pytest
 
+from src.apps.hotel.hotels.application import exceptions
 from src.apps.hotel.hotels.application.service import HotelService
 from src.apps.hotel.hotels.domain import commands
-from src.apps.hotel.hotels.application import exceptions
 from src.apps.hotel.hotels.domain.models import Hotel
-from tests.fixtures.mocks import MockUser, MockHotel
+from tests.fixtures.mocks import MockHotel, MockUser
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ async def hotel_service(request_container) -> HotelService:
 
 @pytest.fixture(autouse=True)
 async def mock_data(save_instances, user, manager, hotel, existing_hotel) -> None:
-    """Save required dependencies to database for tests with --no-fake."""
+    """Save required dependencies to database for tests."""
     await save_instances(MockUser([user, manager]))
     await save_instances(MockHotel([hotel, existing_hotel]))
 
@@ -49,7 +49,7 @@ class TestHotelService:
         """Test getting a non-existent hotel."""
         cmd = commands.GetHotelCommand(hotel_id=uuid.uuid4())
 
-        with pytest.raises(exceptions.HotelNotFoundException):
+        with pytest.raises(exceptions.HotelNotFoundError):
             await hotel_service.get_hotel(cmd)
 
     async def test_create_hotel_success(self, hotel_service, manager):
@@ -81,7 +81,7 @@ class TestHotelService:
             is_active=True,
         )
 
-        with pytest.raises(exceptions.HotelAlreadyExistsException):
+        with pytest.raises(exceptions.HotelAlreadyExistsError):
             await hotel_service.create_hotel(cmd)
 
     async def test_update_hotel_success(self, hotel_service, manager, hotel):
@@ -106,7 +106,7 @@ class TestHotelService:
         cmd = commands.UpdateHotelCommand(
             hotel_id=hotel.id,
             owner=hotel.owner,
-            name=existing_hotel.name, # Existing name/location to trigger cannot be updated
+            name=existing_hotel.name,  # Existing name/location to trigger cannot be updated
             location=existing_hotel.location,
             rooms_quantity=None,
             services=None,
@@ -114,7 +114,7 @@ class TestHotelService:
             image_id=None,
         )
 
-        with pytest.raises(exceptions.HotelCannotBeUpdatedException):
+        with pytest.raises(exceptions.HotelCannotBeUpdatedError):
             await hotel_service.update_hotel(cmd)
 
     async def test_update_hotel_not_found(self, hotel_service, manager):
@@ -131,7 +131,7 @@ class TestHotelService:
             image_id=None,
         )
 
-        with pytest.raises(exceptions.HotelNotFoundException):
+        with pytest.raises(exceptions.HotelNotFoundError):
             await hotel_service.update_hotel(cmd)
 
     async def test_delete_hotel_success(self, hotel_service, hotel):
@@ -141,8 +141,8 @@ class TestHotelService:
         await hotel_service.delete_hotel(cmd)
 
         # Verify deletion
-        with pytest.raises(exceptions.HotelNotFoundException):
-            get_cmd = commands.GetHotelCommand(hotel_id=hotel.id)
+        get_cmd = commands.GetHotelCommand(hotel_id=hotel.id)
+        with pytest.raises(exceptions.HotelNotFoundError):
             await hotel_service.get_hotel(get_cmd)
 
     async def test_delete_hotel_not_found(self, hotel_service):
@@ -150,5 +150,5 @@ class TestHotelService:
         hotel_id = uuid.uuid4()
         cmd = commands.DeleteHotelCommand(hotel_id=hotel_id)
 
-        with pytest.raises(exceptions.HotelNotFoundException):
+        with pytest.raises(exceptions.HotelNotFoundError):
             await hotel_service.delete_hotel(cmd)

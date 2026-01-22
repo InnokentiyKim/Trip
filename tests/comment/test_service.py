@@ -5,7 +5,7 @@ import pytest
 from src.apps.comment.adapters.adapter import CommentAdapter
 from src.apps.comment.application.service import CommentService
 from src.apps.comment.domain import commands, fetches
-from src.apps.comment.domain.excepitions import CommentNotFoundException, CommentAlreadyExistsException
+from src.apps.comment.domain.excepitions import CommentAlreadyExistsError, CommentNotFoundError
 from src.apps.comment.domain.results import CommentInfo
 from tests.fixtures.mocks import MockComment, MockHotel, MockUser
 
@@ -77,7 +77,7 @@ class TestCommentService:
             rating=2,
         )
 
-        with pytest.raises(CommentAlreadyExistsException):
+        with pytest.raises(CommentAlreadyExistsError):
             await comment_service.add_comment(cmd)
 
     async def test_get_comment_success(self, comment_service, sample_comment):
@@ -94,7 +94,7 @@ class TestCommentService:
         """Test getting non-existent comment."""
         fetch = fetches.GetCommentInfo(comment_id=uuid.uuid4())
 
-        with pytest.raises(CommentNotFoundException):
+        with pytest.raises(CommentNotFoundError):
             await comment_service.get_comment(fetch)
 
     async def test_list_user_comments(self, comment_service, user):
@@ -117,9 +117,7 @@ class TestCommentService:
         assert len(result) >= 1
         assert all(isinstance(comment, CommentInfo) for comment in result)
 
-    async def test_update_comment_info_success(
-        self, comment_service, comment_adapter, sample_comment
-    ):
+    async def test_update_comment_info_success(self, comment_service, comment_adapter, sample_comment):
         """Test updating comment info."""
         cmd = commands.UpdateCommentInfoCommand(
             comment_id=sample_comment.id,
@@ -133,9 +131,7 @@ class TestCommentService:
         assert updated_comment.content == "Updated comment content"
         assert updated_comment.rating == 2
 
-    async def test_update_comment_info_partial(
-        self, comment_service, comment_adapter, sample_comment
-    ):
+    async def test_update_comment_info_partial(self, comment_service, comment_adapter, sample_comment):
         """Test partial comment update."""
         cmd = commands.UpdateCommentInfoCommand(
             comment_id=sample_comment.id,
@@ -156,7 +152,7 @@ class TestCommentService:
             rating=1,
         )
 
-        with pytest.raises(CommentNotFoundException):
+        with pytest.raises(CommentNotFoundError):
             await comment_service.update_comment_info(cmd)
 
     async def test_delete_comment_success(self, comment_service, comment_adapter, comment):
@@ -172,5 +168,5 @@ class TestCommentService:
         """Test deleting non-existent comment."""
         cmd = commands.DeleteCommentCommand(comment_id=uuid.uuid4())
 
-        with pytest.raises(CommentNotFoundException):
+        with pytest.raises(CommentNotFoundError):
             await comment_service.delete_comment(cmd)

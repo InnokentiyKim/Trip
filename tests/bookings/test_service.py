@@ -4,16 +4,15 @@ from uuid import uuid4
 import pytest
 
 from src.apps.hotel.bookings.adapters.adapter import BookingAdapter
-from src.apps.hotel.bookings.application.service import BookingService
 from src.apps.hotel.bookings.application import exceptions
+from src.apps.hotel.bookings.application.service import BookingService
 from src.apps.hotel.bookings.domain import commands
 from src.apps.hotel.bookings.domain.enums import BookingStatusEnum
-from tests.bookings.conftest import cancelled_booking
 from tests.fixtures.mocks import (
-    MockUser,
+    MockBooking,
     MockHotel,
     MockRoom,
-    MockBooking,
+    MockUser,
 )
 
 
@@ -55,9 +54,7 @@ async def mock_data(
 class TestBookingService:
     async def test_get_booking_success(self, booking_service, user, sample_booking):
         """Test getting booking by ID."""
-        cmd = commands.GetBookingCommand(
-            user_id=user.id, booking_id=sample_booking.id
-        )
+        cmd = commands.GetBookingCommand(user_id=user.id, booking_id=sample_booking.id)
         result = await booking_service.get_booking(cmd)
 
         assert result == sample_booking
@@ -68,30 +65,20 @@ class TestBookingService:
         booking_id = uuid4()
         cmd = commands.GetBookingCommand(user_id=user.id, booking_id=booking_id)
 
-        with pytest.raises(exceptions.BookingNotFoundException):
+        with pytest.raises(exceptions.BookingNotFoundError):
             await booking_service.get_booking(cmd)
 
-    async def test_get_active_bookings(
-        self, booking_service, user, sample_booking, confirmed_booking
-    ):
+    async def test_get_active_bookings(self, booking_service, user, sample_booking, confirmed_booking):
         """Test getting active bookings."""
         cmd = commands.GetActiveBookingsCommand(user_id=user.id)
         result = await booking_service.get_active_bookings(cmd)
 
         assert len(result) >= 2
-        assert all(
-            booking.status
-            in [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED]
-            for booking in result
-        )
+        assert all(booking.status in [BookingStatusEnum.PENDING, BookingStatusEnum.CONFIRMED] for booking in result)
 
-    async def test_get_bookings_by_status(
-        self, booking_service, user, sample_booking
-    ):
+    async def test_get_bookings_by_status(self, booking_service, user, sample_booking):
         """Test getting bookings by status."""
-        cmd = commands.GetBookingsByStatusCommand(
-            user_id=user.id, status=BookingStatusEnum.PENDING
-        )
+        cmd = commands.GetBookingsByStatusCommand(user_id=user.id, status=BookingStatusEnum.PENDING)
         result = await booking_service.get_bookings_by_status(cmd)
 
         assert len(result) >= 1
@@ -99,9 +86,7 @@ class TestBookingService:
 
     async def test_list_bookings(self, booking_service, user, bookings):
         """Test listing bookings."""
-        cmd = commands.ListBookingsCommand(
-            user_id=user.id, room_id=None, date_from=None, date_to=None, status=None
-        )
+        cmd = commands.ListBookingsCommand(user_id=user.id, room_id=None, date_from=None, date_to=None, status=None)
         result = await booking_service.list_bookings(cmd)
 
         assert len(result) >= len(bookings)
@@ -122,9 +107,7 @@ class TestBookingService:
         assert result.room_id == existing_room.id
         assert result.user_id == user.id
 
-    async def test_create_booking_invalid_dates(
-        self, booking_service, user, sample_room
-    ):
+    async def test_create_booking_invalid_dates(self, booking_service, user, sample_room):
         """Test creating booking with invalid dates."""
         today = date.today()
         cmd = commands.CreateBookingCommand(
@@ -134,18 +117,18 @@ class TestBookingService:
             date_to=today + timedelta(days=5),  # date_to before date_from
         )
 
-        with pytest.raises(exceptions.InvalidBookingDatesException):
+        with pytest.raises(exceptions.InvalidBookingDatesError):
             await booking_service.create_booking(cmd)
 
-    async def test_create_booking_room_not_available(
-        self, booking_service, booking_adapter, user, sample_room
-    ):
+    async def test_create_booking_room_not_available(self, booking_service, booking_adapter, user, sample_room):
         """Test creating booking when room is not available."""
         today = date.today()
         date_from = today + timedelta(days=1)
         date_to = today + timedelta(days=3)
         rooms_left = await booking_adapter.get_free_rooms_left(
-            room_id=sample_room.id, date_from=date_from, date_to=date_to,
+            room_id=sample_room.id,
+            date_from=date_from,
+            date_to=date_to,
         )
 
         # Fill all rooms
@@ -160,7 +143,7 @@ class TestBookingService:
             )
 
         # Try to book when full
-        with pytest.raises(exceptions.RoomCannotBeBookedException):
+        with pytest.raises(exceptions.RoomCannotBeBookedError):
             await booking_service.create_booking(
                 commands.CreateBookingCommand(
                     user_id=user.id,
@@ -170,52 +153,36 @@ class TestBookingService:
                 )
             )
 
-    async def test_cancel_active_booking_success(
-        self, booking_service, user, sample_booking
-    ):
+    async def test_cancel_active_booking_success(self, booking_service, user, sample_booking):
         """Test cancelling active booking."""
-        cmd = commands.CancelActiveBookingCommand(
-            user_id=user.id, booking_id=sample_booking.id
-        )
+        cmd = commands.CancelActiveBookingCommand(user_id=user.id, booking_id=sample_booking.id)
 
         result = await booking_service.cancel_active_booking(cmd)
 
         assert result == sample_booking.id
 
-    async def test_cancel_active_booking_not_pending(
-        self, booking_service, user, confirmed_booking
-    ):
+    async def test_cancel_active_booking_not_pending(self, booking_service, user, confirmed_booking):
         """Test cancelling non-pending booking."""
-        cmd = commands.CancelActiveBookingCommand(
-            user_id=user.id, booking_id=confirmed_booking.id
-        )
+        cmd = commands.CancelActiveBookingCommand(user_id=user.id, booking_id=confirmed_booking.id)
 
-        with pytest.raises(exceptions.BookingCannotBeCancelledException):
+        with pytest.raises(exceptions.BookingCannotBeCancelledError):
             await booking_service.cancel_active_booking(cmd)
 
     async def test_cancel_active_booking_not_found(self, booking_service, user):
         """Test cancelling non-existent booking."""
         booking_id = uuid4()
-        cmd = commands.CancelActiveBookingCommand(
-            user_id=user.id, booking_id=booking_id
-        )
+        cmd = commands.CancelActiveBookingCommand(user_id=user.id, booking_id=booking_id)
 
-        with pytest.raises(exceptions.BookingNotFoundException):
+        with pytest.raises(exceptions.BookingNotFoundError):
             await booking_service.cancel_active_booking(cmd)
 
-    async def test_delete_booking_success(
-        self, booking_service, user, cancelled_booking
-    ):
+    async def test_delete_booking_success(self, booking_service, user, cancelled_booking):
         """Test deleting cancelled booking."""
-        cmd = commands.DeleteBookingCommand(
-            user_id=user.id, booking_id=cancelled_booking.id
-        )
+        cmd = commands.DeleteBookingCommand(user_id=user.id, booking_id=cancelled_booking.id)
 
         await booking_service.delete_booking(cmd)
 
         # Verify deletion
-        get_cmd = commands.GetBookingCommand(
-            user_id=user.id, booking_id=cancelled_booking.id
-        )
-        with pytest.raises(exceptions.BookingNotFoundException):
+        get_cmd = commands.GetBookingCommand(user_id=user.id, booking_id=cancelled_booking.id)
+        with pytest.raises(exceptions.BookingNotFoundError):
             await booking_service.get_booking(get_cmd)
