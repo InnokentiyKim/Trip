@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from src.apps.authorization.access.domain.enums import ResourceTypeEnum, PermissionEnum
+from src.apps.authorization.access.domain.enums import PermissionEnum, ResourceTypeEnum
 from src.common.domain.commands import Command
 
 

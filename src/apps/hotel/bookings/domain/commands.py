@@ -21,8 +21,9 @@ class GetBookingsByStatusCommand(Command):
 
 class ListBookingsCommand(Command):
     user_id: UUID
-    room_id: int | None
+    room_id: UUID | None
     date_from: date | None
+    date_to: date | None
     status: BookingStatusEnum | None
 
 
@@ -33,7 +34,7 @@ class DeleteBookingCommand(Command):
 
 class CreateBookingCommand(Command):
     user_id: UUID
-    room_id: int
+    room_id: UUID
     date_from: date
     date_to: date
 
@@ -44,7 +45,7 @@ class ConfirmBookingCommand(Command):
 
 
 class UpdateBookingCommand(Command):
-    user_id: int
+    user_id: UUID
     booking_id: UUID
     status: BookingStatusEnum
 

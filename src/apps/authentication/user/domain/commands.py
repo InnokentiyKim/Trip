@@ -1,4 +1,6 @@
-from pydantic import SecretStr
+from typing import Annotated
+
+from pydantic import AnyUrl, SecretStr
 
 from src.apps.authentication.user.domain.enums import UserTypeEnum
 from src.common.domain.commands import Command
@@ -10,8 +12,8 @@ class CreateUserCommand(Command):
     user_type: UserTypeEnum
     name: str | None
     phone: str | None
-    avatar_url: str | None
-    is_active: bool | None
+    avatar_url: Annotated[str, AnyUrl] | None
+    is_active: bool = True
 
 
 class VerifyUserCredentialsCommand(Command):
