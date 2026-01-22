@@ -4,8 +4,6 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from src.apps.comment.domain.commands import AddCommentCommand
-from tests.comment.conftest import another_hotel
 from tests.fixtures.mocks import MockComment, MockHotel, MockUser
 
 
@@ -28,9 +26,7 @@ async def mock_data(
 
 @pytest.mark.anyio
 class TestCommentAPI:
-    async def test_add_comment_success(
-        self, http_client: AsyncClient, valid_user_token, another_hotel
-    ):
+    async def test_add_comment_success(self, http_client: AsyncClient, valid_user_token, another_hotel):
         """Test adding a new comment."""
         payload = {
             "hotel_id": str(another_hotel.id),
@@ -64,9 +60,7 @@ class TestCommentAPI:
 
         assert response.status_code in (status.HTTP_200_OK, status.HTTP_201_CREATED)
 
-    async def test_add_comment_already_exists(
-        self, http_client: AsyncClient, valid_user_token, sample_hotel
-    ):
+    async def test_add_comment_already_exists(self, http_client: AsyncClient, valid_user_token, sample_hotel):
         """Test adding an existing comment."""
         payload = {
             "hotel_id": str(sample_hotel.id),
@@ -118,9 +112,7 @@ class TestCommentAPI:
 
     async def test_get_comment_unauthorized(self, http_client: AsyncClient, sample_comment):
         """Test getting comment without authorization."""
-        response = await http_client.get(
-            f"/api/v1/hotels/comments/{sample_comment.id}"
-        )
+        response = await http_client.get(f"/api/v1/hotels/comments/{sample_comment.id}")
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -283,8 +275,6 @@ class TestCommentAPI:
 
     async def test_delete_comment_unauthorized(self, http_client: AsyncClient, sample_comment):
         """Test deleting comment without authorization."""
-        response = await http_client.delete(
-            f"/api/v1/hotels/comments/{sample_comment.id}"
-        )
+        response = await http_client.delete(f"/api/v1/hotels/comments/{sample_comment.id}")
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED

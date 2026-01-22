@@ -15,15 +15,15 @@ async def mock_data(
     inactive_user,
 ) -> None:
     """Save required dependencies to database for tests."""
-    await save_instances(
-        MockUser([user, manager, sample_user, another_user, inactive_user])
-    )
+    await save_instances(MockUser([user, manager, sample_user, another_user, inactive_user]))
 
 
 @pytest.mark.anyio
 class TestUserAPI:
     async def test_get_user_info_success(
-        self, http_client: AsyncClient, valid_user_token: str,
+        self,
+        http_client: AsyncClient,
+        valid_user_token: str,
     ):
         """Test getting user info."""
         response = await http_client.get(
@@ -44,7 +44,9 @@ class TestUserAPI:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     async def test_get_user_info_invalid_token(
-        self, http_client: AsyncClient, invalid_user_token: str,
+        self,
+        http_client: AsyncClient,
+        invalid_user_token: str,
     ):
         """Test getting user info with invalid token."""
         response = await http_client.get(
@@ -55,7 +57,9 @@ class TestUserAPI:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     async def test_get_user_info_expired_token(
-        self, http_client: AsyncClient, expired_user_token: str,
+        self,
+        http_client: AsyncClient,
+        expired_user_token: str,
     ):
         """Test getting user info with expired token."""
         response = await http_client.get(

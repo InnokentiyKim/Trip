@@ -2,10 +2,10 @@ import uuid
 from datetime import date, timedelta
 
 import pytest
-from httpx import AsyncClient
 from fastapi import status
+from httpx import AsyncClient
 
-from tests.fixtures.mocks import MockBooking, MockUser, MockHotel, MockRoom
+from tests.fixtures.mocks import MockBooking, MockHotel, MockRoom, MockUser
 
 
 @pytest.fixture(autouse=True)
@@ -31,9 +31,7 @@ async def mock_data(
 
 @pytest.mark.anyio
 class TestBookingAPI:
-    async def test_get_bookings(
-        self, http_client: AsyncClient, valid_user_token, bookings
-    ):
+    async def test_get_bookings(self, http_client: AsyncClient, valid_user_token, bookings):
         """Test getting list of bookings."""
         response = await http_client.get(
             "/api/v1/bookings",
@@ -45,9 +43,7 @@ class TestBookingAPI:
         assert isinstance(data, list)
         assert len(data) >= 1
 
-    async def test_get_booking_by_id_success(
-        self, http_client: AsyncClient, valid_user_token, sample_booking
-    ):
+    async def test_get_booking_by_id_success(self, http_client: AsyncClient, valid_user_token, sample_booking):
         """Test getting booking by id."""
         response = await http_client.get(
             f"/api/v1/bookings/{sample_booking.id}",
@@ -59,9 +55,7 @@ class TestBookingAPI:
         assert data["id"] == str(sample_booking.id)
         assert data["room_id"] == str(sample_booking.room_id)
 
-    async def test_get_booking_by_id_not_found(
-        self, http_client: AsyncClient, valid_user_token
-    ):
+    async def test_get_booking_by_id_not_found(self, http_client: AsyncClient, valid_user_token):
         """Test getting non-existent booking."""
         booking_id = uuid.uuid4()
         response = await http_client.get(
@@ -71,9 +65,7 @@ class TestBookingAPI:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    async def test_create_booking_success(
-        self, http_client: AsyncClient, valid_user_token, existing_room
-    ):
+    async def test_create_booking_success(self, http_client: AsyncClient, valid_user_token, existing_room):
         """Test creating a new booking."""
         today = date.today()
         payload = {
@@ -93,9 +85,7 @@ class TestBookingAPI:
         assert "id" in data
         assert isinstance(uuid.UUID(data["id"]), uuid.UUID)
 
-    async def test_create_booking_invalid_dates(
-        self, http_client: AsyncClient, valid_user_token, sample_room
-    ):
+    async def test_create_booking_invalid_dates(self, http_client: AsyncClient, valid_user_token, sample_room):
         """Test creating booking with invalid dates."""
         today = date.today()
         payload = {
@@ -112,9 +102,7 @@ class TestBookingAPI:
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    async def test_create_booking_unauthorized(
-        self, http_client: AsyncClient, sample_room
-    ):
+    async def test_create_booking_unauthorized(self, http_client: AsyncClient, sample_room):
         """Test creating booking without authorization."""
         today = date.today()
         payload = {
@@ -127,9 +115,7 @@ class TestBookingAPI:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    async def test_cancel_booking_success(
-        self, http_client: AsyncClient, valid_user_token, sample_booking
-    ):
+    async def test_cancel_booking_success(self, http_client: AsyncClient, valid_user_token, sample_booking):
         """Test cancelling booking."""
         response = await http_client.post(
             f"/api/v1/bookings/{sample_booking.id}",
@@ -140,9 +126,7 @@ class TestBookingAPI:
         data = response.json()
         assert data["id"] == str(sample_booking.id)
 
-    async def test_cancel_booking_not_found(
-        self, http_client: AsyncClient, valid_user_token
-    ):
+    async def test_cancel_booking_not_found(self, http_client: AsyncClient, valid_user_token):
         """Test cancelling non-existent booking."""
         booking_id = uuid.uuid4()
         response = await http_client.post(
@@ -152,17 +136,13 @@ class TestBookingAPI:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    async def test_cancel_booking_unauthorized(
-        self, http_client: AsyncClient, sample_booking
-    ):
+    async def test_cancel_booking_unauthorized(self, http_client: AsyncClient, sample_booking):
         """Test cancelling booking without authorization."""
         response = await http_client.post(f"/api/v1/bookings/{sample_booking.id}")
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    async def test_get_bookings_with_filters(
-        self, http_client: AsyncClient, valid_user_token, sample_room
-    ):
+    async def test_get_bookings_with_filters(self, http_client: AsyncClient, valid_user_token, sample_room):
         """Test filtering bookings."""
         today = date.today()
 

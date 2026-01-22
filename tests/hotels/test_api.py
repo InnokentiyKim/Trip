@@ -1,9 +1,10 @@
 import uuid
 
 import pytest
-from httpx import AsyncClient
 from fastapi import status
-from tests.fixtures.mocks import MockUser, MockHotel
+from httpx import AsyncClient
+
+from tests.fixtures.mocks import MockHotel, MockUser
 
 
 @pytest.fixture(autouse=True)
@@ -182,10 +183,7 @@ class TestHotelAPI:
 
     async def test_list_hotels_with_filters(self, http_client: AsyncClient, hotel):
         """Test filtering hotels."""
-        response = await http_client.get(
-            "/api/v1/hotels",
-            params={"location": hotel.location}
-        )
+        response = await http_client.get("/api/v1/hotels", params={"location": hotel.location})
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()

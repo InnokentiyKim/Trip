@@ -1,16 +1,16 @@
 import uuid
 
 import pytest
-from httpx import AsyncClient
 from fastapi import status
+from httpx import AsyncClient
 
-from tests.fixtures.mocks import MockRoom, MockUser, MockHotel
+from tests.fixtures.mocks import MockHotel, MockRoom, MockUser
 
 
 @pytest.fixture(autouse=True)
 async def mock_data(save_instances, user, manager, hotel, rooms, sample_hotel, sample_room, existing_room) -> None:
     """Save required dependencies to database for tests."""
-    print(f"\n[mock_data] Saving data for test...")
+    print("\n[mock_data] Saving data for test...")
     await save_instances(MockUser([user, manager]))
     await save_instances(MockHotel([hotel, sample_hotel]))
     await save_instances(MockRoom([*rooms, sample_room, existing_room]))
@@ -199,7 +199,7 @@ class TestRoomAPI:
             headers={"Authorization": f"Bearer {valid_manager_token}"},
         )
 
-        assert response.status_code in  (status.HTTP_204_NO_CONTENT, status.HTTP_200_OK)
+        assert response.status_code in (status.HTTP_204_NO_CONTENT, status.HTTP_200_OK)
         # Verify deletion
         get_response = await http_client.get(f"/api/v1/hotels/rooms/{sample_room.id}")
         assert get_response.status_code == status.HTTP_404_NOT_FOUND
@@ -232,8 +232,7 @@ class TestRoomAPI:
     async def test_list_rooms_with_filters(self, http_client: AsyncClient, hotel, sample_room):
         """Test filtering rooms by price range."""
         response = await http_client.get(
-            f"/api/v1/hotels/{hotel.id}/rooms",
-            params={"price_from": "50", "price_to": "200"}
+            f"/api/v1/hotels/{hotel.id}/rooms", params={"price_from": "50", "price_to": "200"}
         )
 
         assert response.status_code == status.HTTP_200_OK
