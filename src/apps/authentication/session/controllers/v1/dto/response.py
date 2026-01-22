@@ -18,9 +18,9 @@ class RegisterUserResponseDTO(BaseResponseDTO):
     access_token: str
     refresh_token: str
 
-
     @classmethod
     def from_model(cls, model) -> "RegisterUserResponseDTO":
+        """Create RegisterUserResponseDTO from model."""
         return cls(
             id=model.id,
             email=model.email,

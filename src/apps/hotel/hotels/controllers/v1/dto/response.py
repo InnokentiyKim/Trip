@@ -2,12 +2,10 @@ from uuid import UUID
 
 from pydantic import ConfigDict
 
-from src.common.controllers.dto.base import BaseResponseDTO
-from src.common.controllers.dto.base import BaseDTO
+from src.common.controllers.dto.base import BaseDTO, BaseResponseDTO
 
 
 class GetHotelsResponseDTO(BaseResponseDTO):
-
     name: str
     location: str
     services: dict | None = None

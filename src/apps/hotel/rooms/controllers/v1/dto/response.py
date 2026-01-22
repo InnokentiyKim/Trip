@@ -1,8 +1,8 @@
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import ConfigDict
 from fastapi import status
+
 from src.common.controllers.dto.base import BaseDTO, BaseResponseDTO
 
 
@@ -21,6 +21,7 @@ class UpdateRoomResponseDTO(BaseResponseDTO): ...
 
 class AddRoomResponseDTO(BaseResponseDTO):
     hotel_id: UUID
+
 
 class DeleteRoomResponseDTO(BaseDTO):
     status_code: int = status.HTTP_204_NO_CONTENT
