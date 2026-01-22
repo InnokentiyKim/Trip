@@ -1,18 +1,13 @@
 from src.apps.notification.email.application.interfaces.gateway import EmailGatewayProto
+from src.apps.notification.email.domain import model as email_model
 from src.apps.notification.email.domain.commands import SendBookingConfirmationEmail
 from src.common.application.service import ServiceBase
-from src.apps.notification.email.domain import model as email_model
 from src.common.interfaces import CustomLoggerProto
 from src.config import Configs
 
 
 class EmailService(ServiceBase):
-    def __init__(
-        self,
-        email: EmailGatewayProto,
-        logger: CustomLoggerProto,
-        config: Configs
-    ) -> None:
+    def __init__(self, email: EmailGatewayProto, logger: CustomLoggerProto, config: Configs) -> None:
         self._email = email
         self._logger = logger
         self._config = config.smtp_email

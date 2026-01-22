@@ -1,12 +1,14 @@
-from src.apps.authentication.user.application.ensure import UserServiceEnsurance
-from src.apps.authorization.access.application.interfaces.gateway import AccessGatewayProto
-from src.apps.authorization.access.domain import commands
 from src.apps.authentication.session.domain.enums import AuthTokenTypeEnum
-from src.apps.authorization.access.domain.results import UserAccessInfo
-from src.apps.authorization.access.domain.exceptions import Forbidden
-from src.common.application.service import ServiceBase
-from src.common.interfaces import SecurityGatewayProto, CustomLoggerProto
+from src.apps.authentication.user.application.ensure import UserServiceEnsurance
 from src.apps.authentication.user.domain.results import UserInfo
+from src.apps.authorization.access.application.interfaces.gateway import (
+    AccessGatewayProto,
+)
+from src.apps.authorization.access.domain import commands
+from src.apps.authorization.access.domain.exceptions import Forbidden
+from src.apps.authorization.access.domain.results import UserAccessInfo
+from src.common.application.service import ServiceBase
+from src.common.interfaces import CustomLoggerProto, SecurityGatewayProto
 from src.config import Configs
 
 
@@ -28,6 +30,7 @@ class AccessService(ServiceBase):
     async def verify_user_by_token(self, cmd: commands.VerifyUserByTokenCommand) -> UserInfo:
         """
         Verify a user by their access token.
+
         This method decodes and verifies the provided access token, and retrieves the corresponding user.
 
         Args:
@@ -37,7 +40,7 @@ class AccessService(ServiceBase):
             UserInfo: The user object corresponding to the verified token.
 
         Raises:
-            InvalidTokenException: If the token is invalid or cannot be verified.
+            InvalidTokenError: If the token is invalid or cannot be verified.
         """
         user_id = await self._security.verify_token(cmd.access_token, AuthTokenTypeEnum.ACCESS)
         user = await self._user_ensure.user_exists(user_id)
@@ -57,9 +60,7 @@ class AccessService(ServiceBase):
         Raises:
             Forbidden: If the user is not authorized for the requested resource.
         """
-        user_info = await self.verify_user_by_token(
-            commands.VerifyUserByTokenCommand(access_token=cmd.access_token)
-        )
+        user_info = await self.verify_user_by_token(commands.VerifyUserByTokenCommand(access_token=cmd.access_token))
 
         if cmd.resource_id is None:
             has_permission = await self._access.check_permission(user_info.role, cmd.resource_type, cmd.permission)
@@ -77,5 +78,8 @@ class AccessService(ServiceBase):
             raise Forbidden
 
         return UserAccessInfo(
-            user_id=user_info.id, role=cmd.permission, resource_id=cmd.resource_id, resource_type=cmd.resource_type
+            user_id=user_info.id,
+            role=cmd.permission,
+            resource_id=cmd.resource_id,  # type: ignore
+            resource_type=cmd.resource_type,
         )

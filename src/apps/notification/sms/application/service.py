@@ -1,12 +1,13 @@
 from src.apps.notification.sms.application.interfaces.gateway import SMSGatewayProto
+from src.apps.notification.sms.domain import model as sms_model
 from src.apps.notification.sms.domain.commands import SendOTPPasswordResetSMS
 from src.common.application.service import ServiceBase
-from src.apps.notification.sms.domain import model as sms_model
 from src.config import Configs
 
 
 class SMSService(ServiceBase):
     """Service for handling SMS notifications."""
+
     def __init__(self, sms: SMSGatewayProto, config: Configs):
         super().__init__()
         self._sms = sms

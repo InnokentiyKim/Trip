@@ -1,13 +1,12 @@
-import uuid
-
 from src.apps.authorization.access.domain.models import Role
 from src.apps.authorization.role.application.ensure import RoleServiceEnsurance
 from src.apps.authorization.role.application.exceptions import RoleIsNotFoundError
-from src.apps.authorization.role.application.interfaces.gateway import RoleGatewayProto, PermissionGatewayProto
+from src.apps.authorization.role.application.interfaces.gateway import (
+    PermissionGatewayProto,
+    RoleGatewayProto,
+)
+from src.apps.authorization.role.domain import commands, fetches, results
 from src.common.interfaces import CustomLoggerProto
-from src.apps.authorization.role.domain import commands
-from src.apps.authorization.role.domain import results
-from src.apps.authorization.role.domain import fetches
 
 
 class RoleManagementService:  # noqa: WPS214
@@ -22,27 +21,24 @@ class RoleManagementService:  # noqa: WPS214
         self._logger = logger
         self._ensure = RoleServiceEnsurance(gateway, logger)
 
-    async def create_role(
-        self, cmd: commands.CreateCustomRole
-    ) -> results.RoleInfo:
+    async def create_role(self, cmd: commands.CreateCustomRole) -> results.RoleInfo:
         """
-        Creates a new custom role with the specified permissions.
+        Creates a new custom role_id with the specified permissions.
 
         Args:
-            cmd (CreateCustomRole): Command containing role details and permissions.
+            cmd (CreateCustomRole): Command containing role_id details and permissions.
 
         Returns:
-            RoleFullInfo: Information about the created role.
+            RoleFullInfo: Information about the created role_id.
 
         Raises:
             PermissionsNotFoundError: If any of the specified permissions do not exist.
-            RoleAlreadyExistsError: If a role with the same code already exists.
+            RoleAlreadyExistsError: If a role_id with the same code already exists.
         """
         permissions = await self._permissions.get_list(cmd.permissions)
 
-        # Create role
+        # Create role_id
         role = Role(
-            id=uuid.uuid4(),
             name=cmd.name,
             description=cmd.description,
         )
@@ -52,21 +48,19 @@ class RoleManagementService:  # noqa: WPS214
         self._logger.debug("Role created", role_id=role.id, role_name=cmd.name)
         return results.RoleInfo.from_model(role)
 
-    async def delete_role(
-        self, cmd: commands.DeleteRole
-    ) -> results.RoleInfo:
+    async def delete_role(self, cmd: commands.DeleteRole) -> results.RoleInfo:
         """
-        Deletes a role by its ID.
+        Deletes a role_id by its ID.
 
         Args:
-            cmd (src.apps.authorization.role.domain.commands.DeleteRole): Command containing the role ID to delete.
+            cmd (src.apps.authorization.role.domain.commands.DeleteRole): Command containing the role_id ID to delete.
 
         Raises:
-            RoleIsNotFoundError: If the role does not exist.
-            RoleCouldNotBeDeletedError: If the role is a base role and cannot be deleted.
-            RoleAssignedToUsersError: If the role is assigned to users and cannot be deleted.
+            RoleIsNotFoundError: If the role_id does not exist.
+            RoleCouldNotBeDeletedError: If the role_id is a base role_id and cannot be deleted.
+            RoleAssignedToUsersError: If the role_id is assigned to users and cannot be deleted.
         """
-        # Ensure role exists and can be deleted
+        # Ensure role_id exists and can be deleted
         role = await self._ensure.role_exists(cmd.role_id)
         await self._ensure.role_name_is_not_base(role.name)
         await self._ensure.no_users_granted_to_role(role.id)
@@ -78,16 +72,16 @@ class RoleManagementService:  # noqa: WPS214
 
     async def get_role_info(self, fetch: fetches.GetRoleInfo) -> results.RoleInfo:
         """
-        Retrieves detailed information about a role, including its permissions.
+        Retrieves detailed information about a role_id, including its permissions.
 
         Args:
-            fetch (GetRoleInfo): Object containing the role ID to fetch.
+            fetch (GetRoleInfo): Object containing the role_id ID to fetch.
 
         Returns:
-            RoleFullInfo: Information about the role and its permissions.
+            RoleFullInfo: Information about the role_id and its permissions.
 
         Raises:
-            RoleIsNotFoundError: If the role does not exist.
+            RoleIsNotFoundError: If the role_id does not exist.
         """
         role = await self._ensure.role_exists(fetch.role_id)
 
@@ -96,16 +90,16 @@ class RoleManagementService:  # noqa: WPS214
 
     async def get_role_info_by_name(self, fetch: fetches.GetRoleInfoByName) -> results.RoleInfo:
         """
-        Retrieves detailed information about a role, including its permissions.
+        Retrieves detailed information about a role_id, including its permissions.
 
         Args:
-            fetch (GetRoleInfoByName): Object containing the role ID to fetch.
+            fetch (GetRoleInfoByName): Object containing the role_id ID to fetch.
 
         Returns:
-            RoleFullInfo: Information about the role and its permissions.
+            RoleFullInfo: Information about the role_id and its permissions.
 
         Raises:
-            RoleIsNotFoundError: If the role does not exist.
+            RoleIsNotFoundError: If the role_id does not exist.
         """
         role = await self._gateway.get_by_name(fetch.role_name)
 
@@ -116,20 +110,18 @@ class RoleManagementService:  # noqa: WPS214
         self._logger.debug("Role info retrieved", role_id=role.id, role_name=role.name)
         return results.RoleInfo.from_model(role)
 
-    async def assign_permissions_to_role(
-        self, cmd: commands.AssignPermissionsToRole
-    ) -> results.RoleInfo:
+    async def assign_permissions_to_role(self, cmd: commands.AssignPermissionsToRole) -> results.RoleInfo:
         """
-        Assigns a list of permissions to a specific role.
+        Assigns a list of permissions to a specific role_id.
 
         Args:
-            cmd (AssignPermissionsToRole): Command containing the role ID and permissions to assign.
+            cmd (AssignPermissionsToRole): Command containing the role_id ID and permissions to assign.
 
         Returns:
-            RoleFullInfo: Information about the role with its updated permissions.
+            RoleFullInfo: Information about the role_id with its updated permissions.
 
         Raises:
-            RoleIsNotFoundError: If the role does not exist.
+            RoleIsNotFoundError: If the role_id does not exist.
             PermissionsNotFoundError: If any of the specified permissions do not exist.
         """
         role = await self._ensure.role_exists(cmd.role_id)
@@ -138,20 +130,18 @@ class RoleManagementService:  # noqa: WPS214
         await role.add_permissions(permissions)
         await self._gateway.add(role)
 
-        self._logger.debug("Permissions assigned to role", role_id=role.id, role_name=role.name)
+        self._logger.debug("Permissions assigned to role_id", role_id=role.id, role_name=role.name)
         return results.RoleInfo.from_model(role)
 
-    async def remove_permissions_from_role(
-        self, cmd: commands.RemovePermissionsFromRole
-    ) -> results.RoleInfo:
+    async def remove_permissions_from_role(self, cmd: commands.RemovePermissionsFromRole) -> results.RoleInfo:
         """
-        Removes specified permissions from a role.
+        Removes specified permissions from a role_id.
 
         Args:
-            cmd (RemovePermissionsFromRole): Command containing the role ID and permissions to remove.
+            cmd (RemovePermissionsFromRole): Command containing the role_id ID and permissions to remove.
 
         Raises:
-            RoleIsNotFoundError: If the role does not exist.
+            RoleIsNotFoundError: If the role_id does not exist.
         """
         async with self._gateway():
             permissions = await self._permissions.get_list(cmd.permissions)
@@ -160,5 +150,5 @@ class RoleManagementService:  # noqa: WPS214
             await role.remove_permissions(permissions)
             await self._gateway.add(role)
 
-            self._logger.debug("Permissions removed from role", role_id=role.id, role_name=role.name)
+            self._logger.debug("Permissions removed from role_id", role_id=role.id, role_name=role.name)
             return results.RoleInfo.from_model(role)

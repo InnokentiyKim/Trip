@@ -1,20 +1,22 @@
 from typing import Annotated
 
-from src.apps.authentication.user.domain import results
+from src.apps.authentication.user.application.ensure import UserServiceEnsurance
+from src.apps.authentication.user.application.exceptions import (
+    InvalidCredentialsError,
+    InvalidInputValuesError,
+    UserAlreadyExistsError,
+)
 from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
-from src.apps.authentication.user.application.exceptions import UserAlreadyExistsException, InvalidInputValuesException, \
-    InvalidCredentialsException
+from src.apps.authentication.user.domain import commands, results
 from src.apps.authentication.user.domain.enums import UserTypeEnum
 from src.apps.authentication.user.domain.fetches import GetUserInfo
+from src.apps.authentication.user.domain.models import User
 from src.apps.authorization.role.application.service import RoleManagementService
 from src.apps.authorization.role.domain.enums import UserRoleEnum
 from src.apps.authorization.role.domain.fetches import GetRoleInfoByName
 from src.apps.authorization.role.domain.results import RoleInfo
 from src.common.application.service import ServiceBase
-from src.apps.authentication.user.domain.models import User
-from src.apps.authentication.user.application.ensure import UserServiceEnsurance
-from src.apps.authentication.user.domain import commands
-from src.common.interfaces import SecurityGatewayProto, CustomLoggerProto
+from src.common.interfaces import CustomLoggerProto, SecurityGatewayProto
 from src.config import Configs
 
 
@@ -36,22 +38,33 @@ class UserService(ServiceBase):
         self._config = config
 
     async def _get_role_from_user_type(self, user_type: UserTypeEnum) -> RoleInfo:
+        """
+        Get role information based on the user type.
+
+        This private method maps a UserTypeEnum to its corresponding UserRoleEnum and retrieves
+        the role information using the RoleManagementService.
+
+        Args:
+            user_type (UserTypeEnum): The type of user (e.g., USER, MANAGER).
+
+        Returns:
+            RoleInfo: The role information corresponding to the user type.
+        """
         allowed_types = {UserTypeEnum.USER, UserTypeEnum.MANAGER}
 
         if user_type not in allowed_types:
             self._logger.error("Invalid user type provided", user_type=user_type)
-            raise InvalidInputValuesException
+            raise InvalidInputValuesError
 
         role_name: Annotated[UserRoleEnum, UserTypeEnum] = UserRoleEnum(user_type.value)
-        role_info = await self._role_management.get_role_info_by_name(
-            fetch=GetRoleInfoByName(role_name=role_name)
-        )
+        role_info = await self._role_management.get_role_info_by_name(fetch=GetRoleInfoByName(role_name=role_name))
 
         return role_info
 
-
     async def create_new_user(self, cmd: commands.CreateUserCommand) -> results.UserInfo:
         """
+        Create a new user in the system.
+
         This method creates a new user in the system after ensuring that no user with the same
         email already exists. It hashes the provided password before storing it.
 
@@ -62,12 +75,12 @@ class UserService(ServiceBase):
             UserInfo: The created user object.
 
         Raises:
-            UserAlreadyExistsException: If a user with the given email already exists.
+            UserAlreadyExistsError: If a user with the given email already exists.
         """
-        user = await self._user_ensure.user_with_email_exists(cmd.email)
+        user = await self._user.get_user_by_email(cmd.email)
         if user:
             self._logger.error("User with this email already exists", email=cmd.email)
-            raise UserAlreadyExistsException
+            raise UserAlreadyExistsError
 
         hashed_password = await self._security.hash_password(cmd.password.get_secret_value())
         role_info = await self._get_role_from_user_type(cmd.user_type)
@@ -75,7 +88,7 @@ class UserService(ServiceBase):
         new_user = User(
             email=cmd.email,
             hashed_password=hashed_password,
-            role=role_info.id,
+            role_id=role_info.id,
             phone=cmd.phone,
             name=cmd.name,
             avatar_url=cmd.avatar_url,
@@ -101,18 +114,18 @@ class UserService(ServiceBase):
         user = await self._user_ensure.user_with_email_exists(email=cmd.email)
 
         if not user.hashed_password:
-            raise InvalidCredentialsException
+            raise InvalidCredentialsError
 
         if not await self._security.verify_hashed_password(
             plain_password=cmd.password.get_secret_value(),
             hashed_password=user.hashed_password,
         ):
             self._logger.warning("Incorrect password for user", user_id=user.id)
-            raise InvalidCredentialsException
+            raise InvalidCredentialsError
 
         return results.UserInfo.from_model(user)
 
-    async def get_user_info(self, fetch: GetUserInfo):
+    async def get_user_info(self, fetch: GetUserInfo) -> results.UserInfo:
         """
         Retrieve user information by user ID.
 

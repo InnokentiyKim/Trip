@@ -1,22 +1,42 @@
 import uuid
-from datetime import datetime, UTC, timedelta
+from datetime import UTC, datetime, timedelta
 
 from pydantic import SecretStr
 
-from src.apps.authentication.session.application.ensure import AuthenticationServiceEnsurance
-from src.apps.authentication.session.application.interfaces.gateway import AuthSessionGatewayProto, \
-    PasswordResetTokenGatewayProto, OTPCodeGatewayProto
-from src.apps.authentication.session.domain.commands import CreateAuthSessionCommand, ConsumeRefreshTokenCommand, \
-    InvalidateRefreshTokenCommand, CreatePasswordResetTokenCommand, ConfirmPasswordResetCommand, CreateOTPCodeCommand, \
-    ConsumeOTPCodeCommand, CreateMFATokenCommand, ValidateMFATokenCommand
-from src.apps.authentication.session.domain.enums import OTPStatusEnum, AuthTokenTypeEnum, PasswordResetTokenStatusEnum
-from src.apps.authentication.session.domain.models import OTPCode, AuthSession, PasswordResetToken
-from src.apps.authentication.user.domain import results
-from src.common.application.service import ServiceBase
-from src.common.interfaces import SecurityGatewayProto, CustomLoggerProto
-from src.config import Configs
 import src.apps.authentication.session.application.exceptions as auth_exceptions
+from src.apps.authentication.session.application.ensure import (
+    AuthenticationServiceEnsurance,
+)
+from src.apps.authentication.session.application.interfaces.gateway import (
+    AuthSessionGatewayProto,
+    OTPCodeGatewayProto,
+    PasswordResetTokenGatewayProto,
+)
 from src.apps.authentication.session.domain import results
+from src.apps.authentication.session.domain.commands import (
+    ConfirmPasswordResetCommand,
+    ConsumeOTPCodeCommand,
+    ConsumeRefreshTokenCommand,
+    CreateAuthSessionCommand,
+    CreateMFATokenCommand,
+    CreateOTPCodeCommand,
+    CreatePasswordResetTokenCommand,
+    InvalidateRefreshTokenCommand,
+    ValidateMFATokenCommand,
+)
+from src.apps.authentication.session.domain.enums import (
+    AuthTokenTypeEnum,
+    OTPStatusEnum,
+    PasswordResetTokenStatusEnum,
+)
+from src.apps.authentication.session.domain.models import (
+    AuthSession,
+    OTPCode,
+    PasswordResetToken,
+)
+from src.common.application.service import ServiceBase
+from src.common.interfaces import CustomLoggerProto, SecurityGatewayProto
+from src.config import Configs
 
 
 class AuthenticationService(ServiceBase):
@@ -91,13 +111,13 @@ class AuthenticationService(ServiceBase):
             token_type=AuthTokenTypeEnum.ACCESS,
             user_id=cmd.user_id,
             created_at=now,
-            expires_at=now + timedelta(minutes=self._config.security.access_token_expire_minutes)
+            expires_at=now + timedelta(minutes=self._config.security.access_token_expire_minutes),
         )
         refresh_token = await self._security.create_jwt_token(
             token_type=AuthTokenTypeEnum.REFRESH,
             user_id=cmd.user_id,
             created_at=now,
-            expires_at=now + timedelta(days=self._config.security.refresh_token_expire_minutes)
+            expires_at=now + timedelta(days=self._config.security.refresh_token_expire_minutes),
         )
         hashed_refresh_token = self._security.hash_string(refresh_token)
         auth_session = AuthSession(
@@ -158,6 +178,7 @@ class AuthenticationService(ServiceBase):
 
         if not auth_session:
             self._logger.debug("No refresh session found to invalidate", user_id=user_id)
+            return
 
         # Remove the auth session to invalidate the refresh token
         await self._auth_sessions.remove(auth_session)
@@ -186,7 +207,7 @@ class AuthenticationService(ServiceBase):
             hashed_reset_token=hashed_reset_token,
             created_at=now,
             expires_at=expires_at,
-            status=PasswordResetTokenStatusEnum.CREATED
+            status=PasswordResetTokenStatusEnum.CREATED,
         )
         await self._password_reset_tokens.add(password_reset_token)
         password_reset_token_info = results.PasswordResetTokenInfo(
@@ -196,7 +217,7 @@ class AuthenticationService(ServiceBase):
             hashed_reset_token=password_reset_token.hashed_reset_token,
             created_at=password_reset_token.created_at,
             expires_at=password_reset_token.expires_at,
-            status=password_reset_token.status
+            status=password_reset_token.status,
         )
 
         return password_reset_token_info
@@ -270,7 +291,7 @@ class AuthenticationService(ServiceBase):
             failed_attempts=otp_code.failed_attempts,
             created_at=otp_code.created_at,
             expires_at=otp_code.expires_at,
-            status=otp_code.status
+            status=otp_code.status,
         )
 
         return otp_code_info
@@ -329,7 +350,6 @@ class AuthenticationService(ServiceBase):
         Returns:
             results.UserID: A data structure containing the ID of the user.
         """
-        self._logger.info("Validating MFA token", user_id=cmd.user_id)
         plain_mfa_token = cmd.mfa_token.get_secret_value()
 
         # Validate the MFA token and extract the user ID
