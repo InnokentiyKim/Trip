@@ -1,10 +1,13 @@
 from uuid import UUID
 
-from src.apps.authorization.access.domain.models import Role, Permission
-from src.apps.authorization.role.application.interfaces.gateway import RoleGatewayProto, PermissionGatewayProto
+from src.apps.authorization.access.domain.models import Permission, Role
+from src.apps.authorization.role.application import exceptions
+from src.apps.authorization.role.application.interfaces.gateway import (
+    PermissionGatewayProto,
+    RoleGatewayProto,
+)
 from src.apps.authorization.role.domain.enums import BaseRoleEnum, UserRoleEnum
 from src.common.interfaces import CustomLoggerProto
-from src.apps.authorization.role.application import exceptions
 
 
 class RoleServiceEnsurance:
@@ -14,16 +17,16 @@ class RoleServiceEnsurance:
 
     async def role_exists(self, role_id: UUID) -> Role:
         """
-        Ensure that a role with the given ID exists.
+        Ensure that a role_id with the given ID exists.
 
         Args:
-            role_id (UUID): The ID of the role to check.
+            role_id (UUID): The ID of the role_id to check.
 
         Returns:
-            Role: The role object.
+            Role: The role_id object.
 
         Raises:
-            RoleIsNotFoundError: If the role does not exist.
+            RoleIsNotFoundError: If the role_id does not exist.
         """
         role = await self._roles.get(role_id)
 
@@ -35,36 +38,41 @@ class RoleServiceEnsurance:
 
     async def role_name_is_not_base(self, role_name: UserRoleEnum) -> None:
         """
-        Ensure that the role code is not a base role.
+        Ensure that the role_id code is not a base role_id.
 
         Args:
-            role_name (UserRoleEnum): The name of the role to check.
+            role_name (UserRoleEnum): The name of the role_id to check.
 
         Raises:
-            RoleCouldNotBeDeletedError: If the role code is a base role.
+            RoleCouldNotBeDeletedError: If the role_id code is a base role_id.
         """
         # Prohibit to delete base roles
         if role_name in BaseRoleEnum:
-            self._logger.error("Base role could not be removed")
+            self._logger.error("Base role_id could not be removed")
             raise exceptions.RoleCouldNotBeDeletedError from None
 
     async def no_users_granted_to_role(self, role_id: UUID) -> None:
         """
-        Ensure that no users are granted to the specified role.
+        Ensure that no users are granted to the specified role_id.
 
         Args:
-            role_id (UUID): The role's ID to check.
+            role_id (UUID): The role_id's ID to check.
 
         Raises:
-            RoleCouldNotBeDeletedError: If there are users granted to the role.
+            RoleCouldNotBeDeletedError: If there are users granted to the role_id.
         """
         if await self._roles.get_all_users_granted_to_role(role_id):
-            self._logger.error("Role could not be deleted because there are users granted to it", role_id=role_id)
+            self._logger.error(
+                "Role could not be deleted because there are users granted to it",
+                role_id=role_id,
+            )
             raise exceptions.RoleCouldNotBeDeletedError from None
 
     @staticmethod
     async def ensure_permissions_exist(
-        permissions_ids: list[UUID], permissions: PermissionGatewayProto, logger: CustomLoggerProto
+        permissions_ids: list[UUID],
+        permissions: PermissionGatewayProto,
+        logger: CustomLoggerProto,
     ) -> list[Permission]:
         """
         Ensures that all specified permission IDs exist in the system.

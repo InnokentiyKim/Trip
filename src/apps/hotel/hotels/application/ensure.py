@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from src.apps.hotel.hotels.domain.models import Hotel
-from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
-from src.common.application.ensure import ServiceEnsuranceBase
 from src.apps.hotel.hotels.application import exceptions
+from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
+from src.apps.hotel.hotels.domain.models import Hotel
+from src.common.application.ensure import ServiceEnsuranceBase
 from src.common.interfaces import CustomLoggerProto
 
 
@@ -15,15 +15,17 @@ class HotelServiceEnsurance(ServiceEnsuranceBase):
         self._logger = logger
 
     async def hotel_exists(self, hotel_id: UUID) -> Hotel:
+        """Ensure that a hotel exists by its ID."""
         hotel = await self._hotel.get_hotel_by_id(hotel_id)
         if hotel is None:
             self._logger.error("Hotel not found", hotel_id=hotel_id)
-            raise exceptions.HotelNotFoundException
+            raise exceptions.HotelNotFoundError
         return hotel
 
     async def users_hotel_exists(self, user_id: UUID, hotel_id: UUID) -> Hotel:
+        """Ensure that a hotel exists and belongs to a specific user."""
         hotel = await self._hotel.get_users_hotel(user_id, hotel_id)
         if hotel is None:
             self._logger.error("User's hotel not found", user_id=user_id, hotel_id=hotel_id)
-            raise exceptions.HotelNotFoundException
+            raise exceptions.HotelNotFoundError
         return hotel

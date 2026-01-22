@@ -1,11 +1,17 @@
 from uuid import UUID
 
-from src.apps.authentication.session.application.interfaces.gateway import (
-    AuthSessionGatewayProto, PasswordResetTokenGatewayProto, OTPCodeGatewayProto
-)
-from src.apps.authentication.session.domain.models import AuthSession, PasswordResetToken, OTPCode
-from src.common.interfaces import CustomLoggerProto
 import src.apps.authentication.session.application.exceptions as auth_exceptions
+from src.apps.authentication.session.application.interfaces.gateway import (
+    AuthSessionGatewayProto,
+    OTPCodeGatewayProto,
+    PasswordResetTokenGatewayProto,
+)
+from src.apps.authentication.session.domain.models import (
+    AuthSession,
+    OTPCode,
+    PasswordResetToken,
+)
+from src.common.interfaces import CustomLoggerProto
 
 
 class AuthenticationServiceEnsurance:
