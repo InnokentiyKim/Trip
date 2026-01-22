@@ -1,25 +1,25 @@
-from collections.abc import AsyncIterable, AsyncGenerator
+from collections.abc import AsyncGenerator, AsyncIterable
 
 from aiobotocore.client import AioBaseClient
 from aiobotocore.config import AioConfig
 from aiobotocore.session import get_session
-from httpx import AsyncClient, Timeout
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from dishka import Provider, Scope, provide
 from dishka import from_context as context
+from httpx import AsyncClient, Timeout
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from structlog import BoundLogger, get_logger
 
-from src.common.interfaces import CustomLoggerProto
-from src.infrastructure.database.factory import create_database_adapter
+from src.common.interfaces import CustomLoggerProto, SecurityGatewayProto
 from src.config import Configs
+from src.infrastructure.database.factory import create_database_adapter
 from src.infrastructure.database.memory.database import MemoryDatabase
 from src.infrastructure.logger.adapter import CustomLoggerAdapter
 from src.infrastructure.security.adapter import SecurityAdapter
-from src.common.interfaces import SecurityGatewayProto
 
 
 class ConfigProvider(Provider):
     """Provides application configuration."""
+
     config = context(provides=Configs, scope=Scope.APP)
 
 
@@ -61,7 +61,11 @@ class MemoryDatabaseProvider(Provider):
     @provide(scope=Scope.REQUEST)
     def provide_memory_database(self, configs: Configs) -> MemoryDatabase:
         """Provides a MemoryDatabase instance with configurable scope.
+
         Returns shared instance for APP scope, fresh instance for REQUEST scope.
+
+        Args:
+            configs (Configs): The configuration settings.
         """
         if configs.memory_database.life_scope == Scope.APP:
             # Lazy initialization of APP-scoped instance
@@ -73,7 +77,14 @@ class MemoryDatabaseProvider(Provider):
             return self._create_memory_database(configs)
 
     def _create_memory_database(self, configs: Configs) -> MemoryDatabase:
-        """Create a new MemoryDatabase instance with config."""
+        """Create a new MemoryDatabase instance with config.
+
+        Args:
+            configs (Configs): The configuration settings.
+
+        Returns:
+            MemoryDatabase: A new instance of MemoryDatabase.
+        """
         return MemoryDatabase(configs)
 
 
@@ -94,9 +105,7 @@ class DatabaseProvider(Provider):
         await engine.dispose()
 
     @provide(scope=Scope.REQUEST)
-    async def provide_db_session(
-        self, engine: AsyncEngine, config: Configs
-    ) -> AsyncIterable[AsyncSession]:
+    async def provide_db_session(self, engine: AsyncEngine, config: Configs) -> AsyncIterable[AsyncSession]:
         """Provides a database session for the duration of a request.
 
         Args:
@@ -107,9 +116,7 @@ class DatabaseProvider(Provider):
             AsyncIterable[AsyncSession]: An asynchronous session for database operations.
         """
         session_config = config.database.session
-        async with async_sessionmaker(
-            engine, expire_on_commit=session_config.expire_on_commit
-        )() as session:
+        async with async_sessionmaker(engine, expire_on_commit=session_config.expire_on_commit)() as session:
             yield session
 
 
@@ -132,6 +139,7 @@ class S3Provider(Provider):
 class HttpProvider(Provider):
     @provide(scope=Scope.APP, provides=AsyncClient)
     async def provide_http_adapter(self) -> AsyncGenerator[AsyncClient]:
+        """Provides an HTTP client for making asynchronous requests."""
         async with AsyncClient(
             timeout=Timeout(
                 connect=5.0,
