@@ -3,7 +3,7 @@ import uuid
 import pytest
 
 from src.apps.comment.adapters.adapter import CommentAdapter
-from src.apps.comment.domain.excepitions import CommentAlreadyExistsException
+from src.apps.comment.domain.excepitions import CommentAlreadyExistsError
 from src.apps.comment.domain.models import Comment
 from tests.fixtures.mocks import MockComment, MockHotel, MockUser
 
@@ -115,7 +115,7 @@ class TestCommentAdapter:
             rating=5,
         )
 
-        with pytest.raises(CommentAlreadyExistsException):
+        with pytest.raises(CommentAlreadyExistsError):
             await comment_adapter.add(existing_comment)
 
     async def test_update_comment_success(self, comment_adapter, sample_comment):
@@ -134,7 +134,6 @@ class TestCommentAdapter:
 
     async def test_delete_comment_success(self, comment_adapter, user, comment):
         """Test deleting comment."""
-
         await comment_adapter.delete_comment(comment)
 
         deleted_comment = await comment_adapter.get_comment_by_id(comment.id)

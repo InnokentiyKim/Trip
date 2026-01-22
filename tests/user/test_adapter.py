@@ -23,9 +23,7 @@ async def mock_data(
     inactive_user,
 ) -> None:
     """Save required dependencies to database for tests."""
-    await save_instances(
-        MockUser([user, manager, sample_user, another_user, inactive_user])
-    )
+    await save_instances(MockUser([user, manager, sample_user, another_user, inactive_user]))
 
 
 @pytest.mark.anyio

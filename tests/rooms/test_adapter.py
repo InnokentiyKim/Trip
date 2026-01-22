@@ -5,7 +5,7 @@ import pytest
 
 from src.apps.hotel.rooms.adapters.adapter import RoomAdapter
 from src.apps.hotel.rooms.domain.models import Room
-from tests.fixtures.mocks import MockUser, MockHotel, MockRoom
+from tests.fixtures.mocks import MockHotel, MockRoom, MockUser
 
 
 @pytest.fixture
@@ -37,21 +37,14 @@ class TestRoomAdapter:
 
     async def test_list_rooms_with_price_filter(self, room_adapter, sample_hotel):
         """Test listing rooms with price range filter."""
-        result = await room_adapter.list_rooms(
-            sample_hotel.id,
-            price_from=Decimal("85.0"),
-            price_to=Decimal("95.0")
-        )
+        result = await room_adapter.list_rooms(sample_hotel.id, price_from=Decimal("85.0"), price_to=Decimal("95.0"))
 
         assert len(result) >= 1
         assert all(Decimal("85.0") <= room.price <= Decimal("95.0") for room in result)
 
     async def test_list_rooms_with_services_filter(self, room_adapter, sample_hotel):
         """Test listing rooms with services filter."""
-        result = await room_adapter.list_rooms(
-            sample_hotel.id,
-            services={"wifi": True}
-        )
+        result = await room_adapter.list_rooms(sample_hotel.id, services={"wifi": True})
 
         assert len(result) >= 1
         assert all(room.services and room.services.get("wifi") is True for room in result)
@@ -82,7 +75,7 @@ class TestRoomAdapter:
             quantity=5,
             description="New room description",
             services={"wifi": True, "tv": True},
-            image_id=1
+            image_id=1,
         )
 
         assert room_id is not None
@@ -137,10 +130,7 @@ class TestRoomAdapter:
 
     async def test_update_room_duplicate_name(self, room_adapter, existing_room, sample_room):
         """Test updating room with duplicate name."""
-        updated_id = await room_adapter.update_room(
-            existing_room,
-            name=sample_room.name
-        )
+        updated_id = await room_adapter.update_room(existing_room, name=sample_room.name)
 
         assert updated_id is None
 
@@ -170,16 +160,11 @@ class TestRoomAdapter:
     async def test_list_rooms_with_multiple_filters(self, room_adapter, sample_hotel):
         """Test listing rooms with multiple filters."""
         result = await room_adapter.list_rooms(
-            sample_hotel.id,
-            price_from=Decimal("50.0"),
-            price_to=Decimal("150.0"),
-            services={"wifi": True}
+            sample_hotel.id, price_from=Decimal("50.0"), price_to=Decimal("150.0"), services={"wifi": True}
         )
 
         assert all(
-            Decimal("50.0") <= room.price <= Decimal("150.0")
-            and room.services
-            and room.services.get("wifi") is True
+            Decimal("50.0") <= room.price <= Decimal("150.0") and room.services and room.services.get("wifi") is True
             for room in result
         )
 

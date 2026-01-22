@@ -1,9 +1,10 @@
 import uuid
 
 import pytest
+
 from src.apps.hotel.hotels.application.interfaces.gateway import HotelGatewayProto
 from src.apps.hotel.hotels.domain.models import Hotel
-from tests.fixtures.mocks import MockUser, MockHotel
+from tests.fixtures.mocks import MockHotel, MockUser
 
 
 @pytest.fixture
@@ -14,7 +15,7 @@ async def hotel_adapter(request_container) -> HotelGatewayProto:
 
 @pytest.fixture(autouse=True)
 async def mock_data(save_instances, user, manager, hotel) -> None:
-    """Save required dependencies to database for tests"""
+    """Save required dependencies to database for tests."""
     await save_instances(MockUser([user, manager]))
     await save_instances(MockHotel([hotel]))
 
