@@ -1,13 +1,33 @@
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4
-    hooks:
-      - id: ruff
-        args: [--fix]
-      - id: ruff-format
+#  - repo: https://github.com/astral-sh/ruff-pre-commit
+#    rev: v0.8.4
+#    hooks:
+#      - id: ruff
+#        args: [--fix]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+  - repo: local
     hooks:
       - id: mypy
-        args: [src]
+        name: type checking
+        entry: bash -c "mypy src"
+        args: [--strict=false, --ignore-missing-imports=true, --local_partial_types=true, --warn_unreachable=true]
+        language: system
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff checking
+        entry: bash -c "ruff check --fix"
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff formatting
+        entry: bash -c "ruff format"
+        language: system
+        pass_filenames: false
+        always_run: true
