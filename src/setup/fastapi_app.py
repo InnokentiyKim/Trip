@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from src.infrastructure.monitoring import setup_metrics
 from src.common.controllers.http.api_v1 import http_router_v1
 from src.common.exceptions.common import BaseError
 from src.common.exceptions.handlers import general_exception_handler
@@ -41,7 +41,8 @@ def create_fastapi_app() -> FastAPI:
     # API routing
     app.include_router(http_router_v1)
 
-    # Telemetry and metrics
+    # Metrics
+    setup_metrics(app)
 
     # Health check endpoint
     # @app.get("/health")
