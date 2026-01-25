@@ -31,4 +31,6 @@ ENV PATH="/app/.venv/bin:$PATH" \
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "alembic upgrade head && python -m src.main"]
+RUN chmod a+x ./scripts/*.sh
+
+CMD ["python", "-m", "src.main"]
