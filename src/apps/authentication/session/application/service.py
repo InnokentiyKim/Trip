@@ -76,8 +76,8 @@ class AuthenticationService(ServiceBase):
             InvalidOTPCodeError: If the provided OTP code is invalid.
         """
         # Check for fake OTP bypass
-        if self._config.auth.bypass_otp_code_enabled:
-            if plain_code == self._config.auth.bypass_otp_code:
+        if self._config.auth.core.bypass_otp_code_enabled:
+            if plain_code == self._config.auth.core.bypass_otp_code:
                 return
 
         is_valid = self._security.verify_hashed_string(plain_code, otp_code.hashed_otp_code)
@@ -85,7 +85,7 @@ class AuthenticationService(ServiceBase):
             self._logger.warning("Invalid OTP provided for user ID", user_id=otp_code.user_id)
             otp_code.failed_attempts += 1
 
-            if otp_code.failed_attempts >= self._config.auth.otp_max_attempts:
+            if otp_code.failed_attempts >= self._config.auth.core.otp_max_attempts:
                 self._logger.error(
                     "OTP for user ID permanently failed after reaching max attempts.",
                     user_id=otp_code.user_id,
@@ -111,19 +111,19 @@ class AuthenticationService(ServiceBase):
             token_type=AuthTokenTypeEnum.ACCESS,
             user_id=cmd.user_id,
             created_at=now,
-            expires_at=now + timedelta(minutes=self._config.security.access_token_expire_minutes),
+            expires_at=now + timedelta(minutes=self._config.auth.core.access_token_expire_minutes),
         )
         refresh_token = await self._security.create_jwt_token(
             token_type=AuthTokenTypeEnum.REFRESH,
             user_id=cmd.user_id,
             created_at=now,
-            expires_at=now + timedelta(days=self._config.security.refresh_token_expire_minutes),
+            expires_at=now + timedelta(days=self._config.auth.core.refresh_token_expire_minutes),
         )
         hashed_refresh_token = self._security.hash_string(refresh_token)
         auth_session = AuthSession(
             user_id=cmd.user_id,
             hashed_refresh_token=hashed_refresh_token,
-            duration=timedelta(minutes=self._config.security.refresh_token_expire_minutes),
+            duration=timedelta(minutes=self._config.auth.core.refresh_token_expire_minutes),
             created_at=now,
         )
         await self._auth_sessions.add(auth_session)
@@ -200,7 +200,7 @@ class AuthenticationService(ServiceBase):
         hashed_reset_token = self._security.hash_string(reset_token)
         await self._password_reset_tokens.invalidate_unused_password_reset_tokens(cmd.user_id)
 
-        expires_at = now + timedelta(minutes=self._config.auth.reset_password_token_lifetime_minutes)
+        expires_at = now + timedelta(minutes=self._config.auth.core.reset_password_token_lifetime_minutes)
         password_reset_token = PasswordResetToken(
             id=uuid.uuid4(),
             user_id=cmd.user_id,
@@ -268,7 +268,7 @@ class AuthenticationService(ServiceBase):
         # Invalidate any existing unused OTP codes for the user
         await self._otp_codes.invalidate_unused_otp_codes(cmd.user_id)
 
-        otp_expires_at = now + timedelta(minutes=self._config.auth.otp_lifetime_minutes)
+        otp_expires_at = now + timedelta(minutes=self._config.auth.core.otp_lifetime_minutes)
         otp_code = OTPCode(
             id=uuid.uuid4(),
             user_id=cmd.user_id,
@@ -330,7 +330,7 @@ class AuthenticationService(ServiceBase):
             results.MFAToken: A data structure containing the MFA token and user ID.
         """
         now = datetime.now(UTC)
-        expires_at = now + timedelta(minutes=self._config.auth.mfa_token_lifetime_minutes)
+        expires_at = now + timedelta(minutes=self._config.auth.core.mfa_token_lifetime_minutes)
 
         mfa_token = await self._security.create_jwt_token(
             token_type=AuthTokenTypeEnum.MFA,

@@ -61,7 +61,7 @@ def app_configs(config: Configs) -> list[BaseModel]:
     return [
         config.general,
         config.logger,
-        config.security,
+        config.auth,
         config.database,
         config.celery,
         config.smtp_email,
@@ -377,7 +377,7 @@ async def valid_user_token(security_adapter, default_config: Configs, user) -> s
         token_type=AuthTokenTypeEnum.ACCESS,
         user_id=user.id,
         created_at=now,
-        expires_at=now + timedelta(minutes=default_config.security.access_token_expire_minutes),
+        expires_at=now + timedelta(minutes=default_config.auth.core.access_token_expire_minutes),
     )
     return token
 
@@ -390,7 +390,7 @@ async def invalid_user_token(security_adapter, default_config: Configs) -> str:
         token_type=AuthTokenTypeEnum.ACCESS,
         user_id=uuid.uuid4(),
         created_at=now,
-        expires_at=now + timedelta(minutes=default_config.security.access_token_expire_minutes),
+        expires_at=now + timedelta(minutes=default_config.auth.core.access_token_expire_minutes),
     )
     return invalid_token
 
@@ -420,7 +420,7 @@ async def valid_manager_token(security_adapter, manager, default_config) -> str:
         token_type=AuthTokenTypeEnum.ACCESS,
         user_id=manager.id,
         created_at=now,
-        expires_at=now + timedelta(minutes=default_config.security.access_token_expire_minutes),
+        expires_at=now + timedelta(minutes=default_config.auth.core.access_token_expire_minutes),
     )
     return token
 
@@ -450,6 +450,6 @@ async def refresh_user_token(security_adapter, user, default_config) -> str:
         token_type=AuthTokenTypeEnum.REFRESH,
         user_id=user.id,
         created_at=now,
-        expires_at=now + timedelta(minutes=default_config.security.refresh_token_expire_minutes),
+        expires_at=now + timedelta(minutes=default_config.auth.core.refresh_token_expire_minutes),
     )
     return token

@@ -101,9 +101,9 @@ class SecurityAdapter(SecurityGatewayProto):
         def _generate_jwt() -> str:
             return jwt.encode(
                 claims=jwt_claims,
-                key=self.config.security.secret_key.get_secret_value(),
-                algorithm=self.config.security.algorithm,
-                headers={"kid": self.config.security.jwt_key_id},
+                key=self.config.auth.jwt.secret_key.get_secret_value(),
+                algorithm=self.config.auth.jwt.algorithm,
+                headers={"kid": self.config.auth.jwt.jwt_key_id},
             )
 
         return await run_in_threadpool(_generate_jwt)
@@ -129,8 +129,8 @@ class SecurityAdapter(SecurityGatewayProto):
             try:
                 return jwt.decode(
                     token=token,
-                    key=self.config.security.secret_key.get_secret_value(),
-                    algorithms=[self.config.security.algorithm],
+                    key=self.config.auth.jwt.secret_key.get_secret_value(),
+                    algorithms=[self.config.auth.jwt.algorithm],
                 )
             except JWTError as err:
                 self.logger.info(

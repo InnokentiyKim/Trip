@@ -80,25 +80,46 @@ class GeneralSettings(CustomBaseSettings):
 
 
 class SecuritySettings(CustomBaseSettings):
-    """Security configuration settings."""
+    """JWT and security configuration settings."""
 
     secret_key: SecretStr = SecretStr("some_secret_key")
     algorithm: str = "HS256"
+    jwt_key_id: str = "primary"
+
+
+class OAuthSettings(BaseSettings):
+    """OAuth configuration settings."""
+
+    google_client_id: str = "43995819990-rpq47fgv4meentm6ond76smkt94om3ur.apps.googleusercontent.com"
+    google_client_secret: SecretStr = SecretStr("")
+    google_redirect_uri: str = "http://localhost:3000/auth/oauth/google/callback"
+    google_token_url: str = "https://oauth2.googleapis.com/token"
+    google_user_info_url: str = "https://openidconnect.googleapis.com/v1/userinfo"
+
+
+class CoreAuthSettings(BaseSettings):
+    """Core authentication configuration settings."""
+
     access_token_expire_minutes: int = 60
     refresh_token_expire_minutes: int = 1440  # 1 day
-    jwt_key_id: str = "primary"
+
+    reset_password_token_lifetime_minutes: int = 5
+
+    otp_lifetime_minutes: int = 3
+    otp_max_attempts: int = 5
+    mfa_token_lifetime_minutes: int = 3
+
+    max_login_attempts: int = 5
+    bypass_otp_code_enabled: bool = False
+    bypass_otp_code: str = "000000"
 
 
 class AuthenticationSettings(CustomBaseSettings):
     """Authentication configuration settings."""
 
-    reset_password_token_lifetime_minutes: int = 5
-    otp_lifetime_minutes: int = 3
-    otp_max_attempts: int = 5
-    mfa_token_lifetime_minutes: int = 3
-    max_login_attempts: int = 5
-    bypass_otp_code_enabled: bool = False
-    bypass_otp_code: str = "000000"
+    oauth: OAuthSettings = Field(default_factory=OAuthSettings)
+    core: CoreAuthSettings = Field(default_factory=CoreAuthSettings)
+    jwt: SecuritySettings = Field(default_factory=SecuritySettings)
 
 
 class SMTPSettings(CustomBaseSettings):
@@ -159,7 +180,6 @@ class Configs(BaseSettings):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     memory_database: MemoryDatabaseSettings = Field(default_factory=MemoryDatabaseSettings)
-    security: SecuritySettings = Field(default_factory=SecuritySettings)
     auth: AuthenticationSettings = Field(default_factory=AuthenticationSettings)
     smtp_email: SMTPSettings = Field(default_factory=SMTPSettings)
     s3: S3Settings = Field(default_factory=S3Settings)
