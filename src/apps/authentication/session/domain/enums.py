@@ -18,3 +18,10 @@ class OTPStatusEnum(StrEnum):
     VERIFIED = "verified"  # Successfully used
     SUPERSEDED = "superseded"  # A newer OTP was requested
     FAILED = "failed"  # Invalidated due to too many failed attempts
+
+
+class OAuthProviderEnum(StrEnum):
+    GOOGLE = "google"
+    YANDEX = "yandex"
+    FACEBOOK = "facebook"
+    GITHUB = "github"
