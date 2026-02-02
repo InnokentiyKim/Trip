@@ -10,14 +10,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.common.domain.models import ORM_CLS, ORM_OBJ
 from src.common.exceptions.common import BaseError
 from src.common.interfaces import SQLAlchemyGatewayProto
+from src.infrastructure.context import RequestContext
+from src.infrastructure.database.factory import SqlAlchemyUnitOfWork
 from src.infrastructure.database.memory.database import MemoryDatabase
 
 
 class SQLAlchemyGateway(SQLAlchemyGatewayProto):
     """SQLAlchemy adapters implementing the gateway protocol."""
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, request_context: RequestContext) -> None:
         self.session = session
+        self._request_context = request_context
+
+    def __call__(self, *args: Any, **kwargs: Any) -> SqlAlchemyUnitOfWork:
+        """Returns a SqlAlchemyUnitOfWork object."""
+        return SqlAlchemyUnitOfWork(self.session, self._request_context)
 
     async def add(self, item: ORM_OBJ) -> Any | None:
         """Add an item to the database."""

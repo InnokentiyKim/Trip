@@ -1,4 +1,3 @@
-from abc import ABC
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -21,10 +20,11 @@ from src.apps.authentication.session.domain.models import (
 from src.common.adapters.adapter import FakeGateway, SQLAlchemyGateway
 
 
-class AuthSessionAdapter(SQLAlchemyGateway, AuthSessionGatewayProto, ABC):
+class AuthSessionAdapter(SQLAlchemyGateway, AuthSessionGatewayProto):
     async def add(self, refresh_session: AuthSession) -> None:
         """Adds a refresh session to the database."""
         self.session.add(refresh_session)
+        await self.session.commit()
 
     async def get_refresh_session(
         self,
