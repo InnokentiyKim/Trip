@@ -4,7 +4,6 @@ from typing import Any
 
 from sqlalchemy import TIMESTAMP, Boolean, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
 
 from src.common.domain.models import Base
