@@ -1,5 +1,9 @@
 from dishka import AsyncContainer, Provider, Scope, provide, provide_all
 
+from src.apps.authentication.provider.adapters.adapter import ProviderAdapter
+from src.apps.authentication.provider.application.ensure import ProviderServiceEnsurance
+from src.apps.authentication.provider.application.interfaces.gateway import ProviderGatewayProto
+from src.apps.authentication.provider.application.service import ProviderService
 from src.apps.authentication.session.adapters.adapter import (
     AuthSessionAdapter,
     OTPCodeAdapter,
@@ -19,6 +23,7 @@ from src.apps.authentication.user.application.ensure import UserServiceEnsurance
 from src.apps.authentication.user.application.interfaces.gateway import UserGatewayProto
 from src.apps.authentication.user.application.service import UserService
 from src.common.domain.enums import GatewayTypeEnum
+from src.config import Configs
 
 
 class AuthenticationServiceProviders(Provider):
@@ -40,6 +45,17 @@ class UserServiceProviders(Provider):
     services = provide_all(
         UserService,
         UserServiceEnsurance,
+    )
+
+
+class OAuthServiceProviders(Provider):
+    """Register user service providers."""
+
+    scope = Scope.REQUEST
+
+    services = provide_all(
+        ProviderService,
+        ProviderServiceEnsurance,
     )
 
 
@@ -156,6 +172,43 @@ class AuthenticationGatewayProviders(Provider):
             raise ValueError(f"Unsupported user gateway: {gateway_type}")
 
 
+class OAuthGatewayProviders(Provider):
+    """OAuth Provider with container-based lazy instantiation."""
+
+    scope = Scope.REQUEST
+
+    # Register adapter implementation (not instantiated until requested)
+    _alchemy_gateway = provide(ProviderAdapter)
+
+    @provide(provides=ProviderGatewayProto)
+    async def provide_provider_gateway(
+        self,
+        config: Configs,
+        request_container: AsyncContainer,
+    ) -> ProviderGatewayProto:
+        """Provide provider gateway based on configuration.
+
+        Uses container to retrieve only the selected implementation,
+        which is instantiated on-demand with all dependencies auto-wired.
+
+        Args:
+            config: Application configuration (auto-injected).
+            request_container: Dependency injection container.
+
+        Returns:
+            ProviderGatewayProto: Selected gateway implementation.
+
+        Raises:
+            ValueError: If configured gateway type is not supported.
+        """
+        gateway_type = GatewayTypeEnum.ALCHEMY
+
+        if gateway_type == GatewayTypeEnum.ALCHEMY:
+            return await request_container.get(ProviderAdapter)
+        else:
+            raise ValueError(f"Unsupported connector gateway: {gateway_type}")
+
+
 def get_authentication_providers() -> list[Provider]:
     """Returns the list of authentication service and gateway providers."""
     return [
@@ -163,4 +216,6 @@ def get_authentication_providers() -> list[Provider]:
         AuthenticationGatewayProviders(),
         UserServiceProviders(),
         UserGatewayProviders(),
+        OAuthServiceProviders(),
+        OAuthGatewayProviders(),
     ]

@@ -31,7 +31,7 @@ class ServiceProviders(Provider):
 
 
 class GatewayProviders(Provider):
-    """Register gateway providers."""
+    """Register hotel gateway providers."""
 
     scope = Scope.REQUEST
 
