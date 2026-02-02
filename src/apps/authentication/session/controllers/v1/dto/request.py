@@ -3,6 +3,7 @@ from typing import Annotated
 from pydantic import AnyUrl, EmailStr, SecretStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
+from src.apps.authentication.session.domain.enums import OAuthProviderEnum
 from src.apps.authentication.user.domain.enums import UserTypeEnum
 from src.common.controllers.dto.base import BaseRequestDTO
 
@@ -28,3 +29,9 @@ class RegisterUserRequestDTO(BaseRequestDTO):
     phone: PhoneNumber | None = None
     avatar_url: AnyUrl | None = None
     is_active: bool = True
+
+
+class OAuthLoginRequestDTO(BaseRequestDTO):
+    provider: OAuthProviderEnum
+    code: SecretStr
+    redirect_uri: str | None = None

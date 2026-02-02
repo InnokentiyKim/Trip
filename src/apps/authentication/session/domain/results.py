@@ -21,6 +21,15 @@ class OAuthProviderUser:
 
 
 @dataclass(slots=True, frozen=True)
+class OAuthProviderData:
+    user_info: OAuthProviderUser
+    access_token: SecretStr
+    refresh_token: SecretStr | None
+    expires_at: datetime | None
+    scopes: list[str] | None
+
+
+@dataclass(slots=True, frozen=True)
 class UserID:
     id: UUID
 

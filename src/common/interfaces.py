@@ -204,8 +204,6 @@ class GatewayProto(ABC):
 
 
 class SQLAlchemyGatewayProto(GatewayProto):
-    # TODO: add __call__ method to return UoW instance
-
     @abstractmethod
     async def add(self, item: ORM_OBJ) -> Any | None:
         """Add an ORM object to the database session."""
