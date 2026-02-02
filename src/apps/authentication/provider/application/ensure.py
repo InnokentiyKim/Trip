@@ -46,14 +46,14 @@ class ProviderServiceEnsurance:
         Raises:
             ProviderNotFoundError: If no provider is found.
         """
-        provider = await self._gateway.get_users_provider(
+        users_provider = await self._gateway.get_users_provider(
             user_id=user_id,
             provider=provider,
         )
-        if provider is None:
+        if users_provider is None:
             raise ProviderNotFoundError
 
-        return provider
+        return users_provider
 
     def provider_has_token(self, provider: Provider) -> ProviderToken:
         """
