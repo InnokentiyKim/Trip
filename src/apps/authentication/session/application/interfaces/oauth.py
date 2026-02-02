@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
-from src.apps.authentication.session.domain.results import OAuthProviderUser, OAuthConnectorData
+from src.apps.authentication.session.domain.results import OAuthProviderData, OAuthProviderUser
 
 
-class OAuthAdapterProto(ABC):
+class OAuthGatewayProto(ABC):
     @abstractmethod
     async def authorize(self, auth_code: str) -> None:
         """
@@ -27,11 +27,11 @@ class OAuthAdapterProto(ABC):
         ...
 
     @abstractmethod
-    async def get_token_data(self) -> OAuthConnectorData:
+    async def get_token_data(self) -> OAuthProviderData:
         """
         Extract the token data from the provider.
 
         Returns:
-            OAuthConnectorData: A data structure containing the token data
+            OAuthProviderData: A data structure containing the token data
         """
         ...

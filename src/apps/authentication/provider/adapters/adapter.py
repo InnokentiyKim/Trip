@@ -1,13 +1,13 @@
-from abc import ABC
 from uuid import UUID
+
+from sqlalchemy import select
 
 from src.apps.authentication.provider.application.interfaces.gateway import ProviderGatewayProto
 from src.apps.authentication.provider.domain.models import Provider
 from src.common.adapters.adapter import SQLAlchemyGateway
-from sqlalchemy import select
 
 
-class ProviderGateway(SQLAlchemyGateway, ProviderGatewayProto, ABC):
+class ProviderAdapter(SQLAlchemyGateway, ProviderGatewayProto):
     """SQLAlchemy implementation of ProviderGatewayProto."""
 
     async def add(self, provider: Provider) -> None:
@@ -17,7 +17,8 @@ class ProviderGateway(SQLAlchemyGateway, ProviderGatewayProto, ABC):
         Args:
             provider (Provider): The provider aggregate.
         """
-        await self.add(provider)
+        self.session.add(provider)
+        await self.session.commit()
 
     async def get_by_id(self, provider_id: UUID) -> Provider | None:
         """
