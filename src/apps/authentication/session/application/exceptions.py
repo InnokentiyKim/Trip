@@ -33,3 +33,17 @@ class InvalidPasswordResetTokenError(BaseError):
     status_code = status.HTTP_401_UNAUTHORIZED
     message = "Invalid password reset token"
     loc = "password_reset_token"
+
+
+class ExchangeOAuthCodeError(BaseError):
+    """Exception raised when failing to exchange an OAuth code."""
+
+    status_code = status.HTTP_401_UNAUTHORIZED
+    message = "Failed to exchange OAuth code"
+    loc = "code"
+
+
+class UserPhoneNotFoundError(BaseError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    message = "User phone number not found. Please add a phone number to enable SMS MFA."
+    loc = "channel_type"
