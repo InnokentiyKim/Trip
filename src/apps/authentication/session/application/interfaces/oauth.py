@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 
+from typing import Protocol
+
+from src.apps.authentication.session.domain.enums import OAuthProviderEnum
 from src.apps.authentication.session.domain.results import OAuthProviderData, OAuthProviderUser
 
 
@@ -33,5 +36,20 @@ class OAuthGatewayProto(ABC):
 
         Returns:
             OAuthProviderData: A data structure containing the token data
+        """
+        ...
+
+
+class OAuthAdapterFactoryProto(Protocol):
+    @abstractmethod
+    def get_adapter(self, oauth_provider: OAuthProviderEnum) -> OAuthGatewayProto:
+        """
+        Get the appropriate OAuth adapter implementation based on the provider enum.
+
+        Args:
+            oauth_provider (OAuthProviderEnum): The OAuth provider enum.
+
+        Returns:
+            OAuthAdapterProto: The OAuth adapter implementation.
         """
         ...
