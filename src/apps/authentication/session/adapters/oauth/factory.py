@@ -7,7 +7,6 @@ from src.common.interfaces import CustomLoggerProto
 from src.config import Configs
 
 
-
 class OAuthAdapterFactory(OAuthAdapterFactoryProto):
     """Factory for creating OAuth adapter instances."""
 
