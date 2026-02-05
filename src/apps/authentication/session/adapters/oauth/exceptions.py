@@ -1,5 +1,6 @@
-from src.common.exceptions.common import BaseError
 from fastapi import status
+
+from src.common.exceptions.common import BaseError
 
 
 class UnsupportedOAuthProviderError(BaseError):
@@ -9,6 +10,7 @@ class UnsupportedOAuthProviderError(BaseError):
     This exception is raised when an OAuth adapter is used that
     is not supported by the system.
     """
+
     status_code = status.HTTP_401_UNAUTHORIZED
     message = "Unsupported OAuth provider."
     loc = "oauth"
@@ -22,6 +24,7 @@ class OAuthProviderLoginError(BaseError):
     provider login failures, such as misconfiguration, invalid credentials,
     or unexpected response from the provider.
     """
+
     status_code = status.HTTP_401_UNAUTHORIZED
     message = "OAuth login error."
     loc = "oauth"
