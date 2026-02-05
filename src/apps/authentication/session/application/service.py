@@ -1,9 +1,12 @@
 import uuid
 from datetime import UTC, datetime, timedelta
+from urllib.parse import urlencode
 
+from authlib.integrations.base_client import OAuthError
 from pydantic import SecretStr
 
 import src.apps.authentication.session.application.exceptions as auth_exceptions
+from src.apps.authentication.session.adapters.oauth.exceptions import OAuthProviderLoginError
 from src.apps.authentication.session.application.ensure import (
     AuthenticationServiceEnsurance,
 )
@@ -12,7 +15,8 @@ from src.apps.authentication.session.application.interfaces.gateway import (
     OTPCodeGatewayProto,
     PasswordResetTokenGatewayProto,
 )
-from src.apps.authentication.session.domain import results
+from src.apps.authentication.session.application.interfaces.oauth import OAuthAdapterFactoryProto
+from src.apps.authentication.session.domain import fetches, results
 from src.apps.authentication.session.domain.commands import (
     ConfirmPasswordResetCommand,
     ConsumeOTPCodeCommand,
@@ -26,6 +30,7 @@ from src.apps.authentication.session.domain.commands import (
 )
 from src.apps.authentication.session.domain.enums import (
     AuthTokenTypeEnum,
+    OAuthProviderEnum,
     OTPStatusEnum,
     PasswordResetTokenStatusEnum,
 )
@@ -46,6 +51,7 @@ class AuthenticationService(ServiceBase):
         auth_sessions: AuthSessionGatewayProto,
         password_reset_tokens: PasswordResetTokenGatewayProto,
         otp_codes: OTPCodeGatewayProto,
+        oauth_adapter_factory: OAuthAdapterFactoryProto,
         config: Configs,
         logger: CustomLoggerProto,
     ) -> None:
@@ -53,6 +59,7 @@ class AuthenticationService(ServiceBase):
         self._auth_sessions = auth_sessions
         self._password_reset_tokens = password_reset_tokens
         self._otp_codes = otp_codes
+        self._oauth_adapter_factory = oauth_adapter_factory
         self._config = config
         self._logger = logger
 
@@ -357,3 +364,78 @@ class AuthenticationService(ServiceBase):
 
         self._logger.info("MFA token validated for channel selection", user_id=user_id)
         return results.UserID(user_id)
+
+    async def get_provider_oauth_url(self, provider: OAuthProviderEnum) -> str:
+        """
+        Generates the OAuth URL for a given provider.
+
+        Args:
+            provider (str): The OAuth provider (e.g., 'google', 'facebook').
+
+        Returns:
+            str: The generated OAuth URL.
+        """
+        params = {
+            "response_type": "code",
+            "client_id": self._config.auth.oauth.yandex_client_id,
+            "redirect_uri": self._config.auth.oauth.yandex_redirect_uri,
+            "state": str(uuid.uuid4()),
+        }
+
+        query_params = urlencode(params)
+
+        return f"{self._config.auth.oauth.yandex_oauth_url}?{query_params}"
+
+    async def get_oauth_provider_user(self, fetch: fetches.GetOAuthProviderUser) -> results.OAuthProviderUser:
+        """
+        Fetches user information from an OAuth provider using an authorization code.
+
+        Args:
+            fetch (fetches.GetOAuthProviderUser): The fetch containing the OAuth provider and authorization code.
+
+        Returns:
+            results.OAuthProviderUser: User information retrieved from the OAuth provider.
+
+        Raises:
+            ExchangeOAuthCodeError: If the OAuth code exchange with the provider fails.
+        """
+        adapter = self._oauth_adapter_factory.get_adapter(oauth_provider=fetch.provider)
+        try:
+            await adapter.authorize(auth_code=fetch.code)
+        except OAuthError as exc:
+            self._logger.error("Failed to exchange OAuth code with provider", provider=fetch.provider)
+            raise auth_exceptions.ExchangeOAuthCodeError from exc
+
+        try:
+            return await adapter.get_user_info()
+        except OAuthProviderLoginError as exc:
+            self._logger.error("Failed to fetch OAuth user with provider", provider=fetch.provider)
+            raise auth_exceptions.ExchangeOAuthCodeError from exc
+
+    async def get_oauth_provider_data(self, fetch: fetches.GetOAuthProviderData) -> results.OAuthProviderData:
+        """
+        Fetches OAuth provider data (user info + tokens) for creating workspace  providers.
+
+        Similar to get_oauth_provider_user but also returns OAuth tokens needed
+        for provider creation (access_token, refresh_token, expires_at, scopes).
+
+        Args:
+            fetch (fetches.GetOAuthProviderData): The fetch containing the OAuth provider and authorization code.
+
+        Returns:
+            results.OAuthConnectorData: OAuth data including user info and tokens.
+
+        Raises:
+            ExchangeOAuthCodeError: If the OAuth code exchange with the provider fails.
+        """
+        adapter = self._oauth_adapter_factory.get_adapter(oauth_provider=fetch.provider)
+        try:
+            await adapter.authorize(auth_code=fetch.code)
+        except OAuthError as exc:
+            self._logger.error("Failed to exchange OAuth code with provider", provider=fetch.provider)
+            raise auth_exceptions.ExchangeOAuthCodeError from exc
+
+        # Get token data from adapter
+        token_data = await adapter.get_token_data()
+
+        return token_data
