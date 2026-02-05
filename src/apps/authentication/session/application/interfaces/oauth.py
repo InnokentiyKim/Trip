@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-
 from typing import Protocol
 
 from src.apps.authentication.session.domain.enums import OAuthProviderEnum
