@@ -11,6 +11,7 @@ dependencies = [
     "argon2-cffi>=25.1.0",
     "asgi-correlation-id>=4.3.4",
     "asyncpg>=0.31.0",
+    "authlib>=1.6.6",
     "botocore-types>=0.2.2",
     "celery>=5.5.3",
     "dishka>=1.6.0",
