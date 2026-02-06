@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from src.apps.authentication.provider.domain.models import Provider
+from src.apps.authentication.provider.domain.results import ProviderInfo
 
 
 class ProviderResponseDTO(BaseModel):
@@ -24,14 +25,14 @@ class ProviderResponseDTO(BaseModel):
     is_token_expired: bool = Field(..., description="Whether the OAuth token is expired")
 
     @classmethod
-    def from_model(cls, model: Provider) -> "ProviderResponseDTO":
+    def from_model(cls, model: Provider | ProviderInfo) -> "ProviderResponseDTO":
         """Create response DTO from domain model."""
         return cls(
             id=model.id,
             user_id=model.user_id,
             provider=model.provider,
             external_user_id=model.external_user_id,
-            external_account_email=model.external_account_email,
+            external_account_email=model.external_account_email,  # type: ignore
             scopes=model.scopes.copy(),
             provider_metadata=model.provider_metadata.copy(),
             is_active=model.is_active,

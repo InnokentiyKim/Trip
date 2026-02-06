@@ -43,7 +43,7 @@ class ProviderInfo:
             user_id=model.user_id,
             provider=model.provider,
             external_user_id=model.external_user_id,
-            external_account_email=model.external_account_email,
+            external_account_email=model.external_account_email,  # type: ignore
             scopes=model.scopes.copy(),  # Defensive copy
             provider_metadata=model.provider_metadata.copy(),  # Defensive copy
             is_active=model.is_active,

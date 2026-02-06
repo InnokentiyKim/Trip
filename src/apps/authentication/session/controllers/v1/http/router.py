@@ -2,6 +2,7 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import APIRouter
 from pydantic import SecretStr
+from starlette.responses import RedirectResponse
 
 from src.apps.authentication.session.application.exceptions import (
     InvalidRefreshSessionError,
@@ -11,6 +12,7 @@ from src.apps.authentication.session.controllers.v1.dto.request import (
     AuthRefreshSessionRequestDTO,
     LoginUserRequestDTO,
     LogoutUserRequestDTO,
+    OAuthLoginRequestDTO,
     RegisterUserRequestDTO,
 )
 from src.apps.authentication.session.controllers.v1.dto.response import (
@@ -180,3 +182,19 @@ async def refresh_session(
         access_token=auth_tokens.access_token.get_secret_value(),
         refresh_token=auth_tokens.refresh_token.get_secret_value(),
     )
+
+
+@router.post(
+    "/oauth/{provider}",
+    responses=generate_responses(
+        Unauthorized,
+    ),
+)
+@inject
+async def oauth_login(
+    dto: OAuthLoginRequestDTO,
+    auth_service: FromDishka[AuthenticationService],
+) -> RedirectResponse:
+    """Handle OAuth login for a specified provider."""
+    oauth_url = await auth_service.get_provider_oauth_url(dto.provider)
+    return RedirectResponse(url=oauth_url)
