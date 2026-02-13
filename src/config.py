@@ -96,6 +96,13 @@ class OAuthSettings(BaseSettings):
     google_token_url: str = "https://oauth2.googleapis.com/token"
     google_user_info_url: str = "https://openidconnect.googleapis.com/v1/userinfo"
 
+    yandex_client_id: str = "<KEY>"
+    yandex_client_secret: SecretStr = SecretStr("")
+    yandex_redirect_uri: str = "http://localhost:3000/auth/oauth/yandex/callback"
+    yandex_oauth_url: str = "https://oauth.yandex.ru/authorize"
+    yandex_token_url: str = "https://oauth.yandex.ru/token"
+    yandex_user_info_url: str = "https://login.yandex.ru/info?format=json"
+
 
 class CoreAuthSettings(BaseSettings):
     """Core authentication configuration settings."""
