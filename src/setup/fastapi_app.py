@@ -1,9 +1,10 @@
 from fastapi import FastAPI
-from src.infrastructure.monitoring import setup_metrics
+
 from src.common.controllers.http.api_v1 import http_router_v1
 from src.common.exceptions.common import BaseError
 from src.common.exceptions.handlers import general_exception_handler
 from src.infrastructure.logger.factory import setup_logging
+from src.infrastructure.monitoring import setup_metrics
 from src.setup.common import app_config
 
 
@@ -45,8 +46,8 @@ def create_fastapi_app() -> FastAPI:
     setup_metrics(app)
 
     # Health check endpoint
-    # @app.get("/health")
-    # async def health_check():
-    #     return {"status": "ok"}
+    @app.get("/health")
+    async def health_check():
+        return {"status": "ok"}
 
     return app
