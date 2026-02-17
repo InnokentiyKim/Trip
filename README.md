@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3110/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95.2-green.svg)](https://fastapi.tiangolo.com/)
-![Coverage](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/InnokentiyKim/Trip/main/coverage.json&label=coverage&query=$.totals.percent_covered&suffix=%&color=brightgreen)
+![Coverage](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/InnokentiyKim/Trip/main/coverage.json&label=coverage&query=$.totals.percent_covered_display&suffix=%&color=brightgreen)
 
 
 #### Современный backend-сервис для бронирования отелей, построенный на принципах Чистой Архитектуры. Предоставляет надежные API для управления отелями, бронированиями, аутентификацией пользователей и платежными операциями.
