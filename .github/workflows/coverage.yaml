@@ -25,7 +25,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=src --cov-report=json
+          uv run pytest --cov=src --cov-report=json
 
       - name: Extract coverage percentage
         id: coverage
