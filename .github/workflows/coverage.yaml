@@ -1,0 +1,31 @@
+name: Coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          pip install coverage coverage-badge pytest
+      - name: Run tests
+        run: pytest --cov=src --cov-report=term --cov-report=xml
+      - name: Generate badge
+        run: coverage-badge -o coverage.svg -f
+      - name: Commit badge
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add coverage.svg
+          git commit -m "Update coverage badge" || exit 0
+          git push
