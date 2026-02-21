@@ -1,6 +1,6 @@
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -71,11 +71,14 @@ class UserSingUpEmail(BaseEmail):
     template_name: str = ""
     subject: str = ""
 
+    call_to_action_link: str
+
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class ConfirmationEmail(BaseEmail):
     template_name: str = ""
     subject: str = ""
+    metadata: dict[str, Any] | None = None
 
     confirmation_link: str = ""
     link_lifetime_minutes: int | None = None
