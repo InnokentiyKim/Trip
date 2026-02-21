@@ -1,0 +1,18 @@
+{% extends "_base.html" %}
+
+{% block content %}
+<p>Hi {{ user_name | default('there') }},</p>
+<p>You've booked room(s) in {{ additional_data.hotel_name }}</p>
+
+<p>Booking information.</p>
+<p>Hotel name: {{ additional_data.hotel_name }}</p>
+<p>Check-in date: {{ additional_data.date_from }}</p>
+<p>Check-out date: {{ additional_data.date_to }}</p>
+<p>Number of room(s): {{ additional_data.room_numbers }}</p>
+<p>total_price: {{ additional_data.total_price }}</p>
+
+<p>If you have any questions, please contact our support team.</p>
+<p>If it wasn't you, please, ignore this email.</p>
+<p>Thank you, with best regards!</p>
+<p>The {{ company_name | default('Hotels') }} Team</p>
+{% endblock %}

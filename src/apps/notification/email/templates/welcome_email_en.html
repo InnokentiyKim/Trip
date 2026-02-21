@@ -1,0 +1,26 @@
+{% extends "_base.html" %}
+
+{% block content %}
+<h1>Welcome to {{ company_name | default('Hotels') }}!</h1>
+<p>Hi {{ user_name | default('there') }},</p>
+<p>We're glad to have you on board. Get ready for interesting trips!</p>
+<p>With {{ company_name | default('Hotels') }}, you can easily find the best hotels with suitable prices.</p>
+
+{% if call_to_action_link %}
+<table role="presentation" class="button-container">
+    <tbody>
+        <tr>
+            <td>
+                <a href="{{ call_to_action_link }}" target="_blank" class="button" style="background-color: #3498db; border-radius: 5px; color: #ffffff; display: inline-block; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: bold; line-height: 50px; text-align: center; text-decoration: none; width: 200px; -webkit-text-size-adjust: none;">
+                    Get Started
+                </a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+{% endif %}
+
+<p>If you have any questions, please contact our support team.</p>
+<p>With best regards!</p>
+<p>The {{ company_name | default('Hotels') }} Team</p>
+{% endblock %}
