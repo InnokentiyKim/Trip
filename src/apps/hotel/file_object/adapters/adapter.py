@@ -1,4 +1,6 @@
 import asyncio
+from collections.abc import Generator
+from itertools import islice
 from types import TracebackType
 from typing import Self
 
@@ -10,12 +12,14 @@ from src.apps.hotel.file_object.application.interfaces.gateway import (
     FileObjectGatewayProto,
 )
 from src.apps.hotel.file_object.domain.models import FileObject
+from src.common.interfaces import CustomLoggerProto
 from src.config import Configs
 
 
 class S3FileObjectAdapter(FileObjectGatewayProto):
-    def __init__(self, client: AioBaseClient, config: Configs) -> None:
+    def __init__(self, client: AioBaseClient, logger: CustomLoggerProto, config: Configs) -> None:
         self.client = client
+        self.logger = logger
         self.config = config
         self.bucket_name = config.s3.bucket_name
         self.sample_files_prefix = config.s3.sample_files_prefix
@@ -138,16 +142,76 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
         )
 
     async def delete_multiple_objects(self, keys: list[str]) -> None:
-        """Delete multiple objects from the S3 bucket."""
-        ...
+        """
+        Delete multiple objects from the S3 bucket in batches.
+
+        This method deletes objects from the S3 bucket in chunks (batches) of up to 1000
+        keys at a time, which is the maximum allowed by the S3 API. For each chunk, it
+        constructs a list of objects to delete and sends a delete_objects request to S3.
+        The method logs information about the deletion process, including the number of
+        successfully deleted objects and any errors that occurred.
+
+        Args:
+            keys (list[str]): A list of object keys (filenames) to be deleted from the S3 bucket.
+
+        Returns:
+            None
+        """
+        # TODO: Add retry logic for handling errors returned from S3.
+
+        def chunked(iterable: list[str], size: int = 1000) -> Generator[list[str]]:
+            """
+            Yield successive chunks of the specified size from the iterable.
+
+            This helper function divides a list into smaller chunks of a specified size.
+            It's used to break down large lists of keys into manageable batches for S3 operations.
+
+            Args:
+                iterable (list[str]): A list of strings to be chunked.
+                size (int, optional): The maximum number of items per chunk. Defaults to 1000,
+                which is the maximum number of keys allowed in a single S3 delete_objects request.
+
+            Yields:
+                list[str]: A list containing a chunk of items from the iterable.
+            """
+            iterator = iter(iterable)
+            for first in iterator:
+                batch = [first] + list(islice(iterator, size - 1))
+                yield batch
+
+        for chunk in chunked(keys, 1000):
+            objects = [{"Key": key} for key in chunk]
+            try:
+                self.logger.info(
+                    "Deleting chunk of objects",
+                    Bucket=self.bucket_name,
+                    Keys=chunk,
+                )
+
+                response = await self.client.delete_objects(Bucket=self.bucket_name, Delete={"Objects": objects})
+
+                deleted = response.get("Deleted", [])
+                errors = response.get("Errors", [])
+
+                self.logger.info(
+                    "Finished deleting chunk",
+                    deleted_count=len(deleted),
+                    errors_count=len(errors),
+                    bucket=self.bucket_name,
+                )
+
+            except ClientError as err:
+                self.logger.error("Failed to delete chunk", error=f"{err}", bucket=self.bucket_name)
 
     async def check_availability(self) -> None:
         """Check the availability of the S3 bucket."""
         try:
             await asyncio.wait_for(self.client.head_bucket(Bucket=self.bucket_name), timeout=10)
-        except TimeoutError:
-            raise EndpointConnectionError(endpoint_url=self.client.meta.endpoint_url) from None
+        except TimeoutError as te:
+            self.logger.warning("Timeout is reached while checking S3 availability")
+            raise EndpointConnectionError(endpoint_url=self.client.meta.endpoint_url) from te
         except (ClientError, EndpointConnectionError) as exc:
+            self.logger.warning("S3 connection/client error", error=f"{exc}", exc_info=True)
             raise exc
 
     async def copy_object(self, source_key: str, destination_key: str) -> None:
@@ -163,13 +227,28 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
         """
         copy_source = {"Bucket": self.bucket_name, "Key": source_key}
 
+        self.logger.debug(
+            "Attempting to copy object",
+            CopySource=copy_source,
+            DestinationBucket=self.bucket_name,
+            DestinationKey=destination_key,
+        )
+
         try:
             await self.client.copy_object(
                 Bucket=self.bucket_name,
                 CopySource=copy_source,
                 Key=destination_key,
             )
+            self.logger.debug("Successfully copied object")
+
         except ClientError as exc:
+            self.logger.error(
+                "S3 client error during copy operation",
+                error_code=exc.response.get("Error", {}).get("Code"),
+                error_message=exc.response.get("Error", {}).get("Message"),
+                copy_source=copy_source,
+            )
             raise exc
 
     async def put_object(self, file_object: FileObject) -> None:
@@ -200,3 +279,7 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
             kwargs["ContentType"] = file_object.content_type
 
         await self.client.put_object(**kwargs)
+
+    async def add(self, file_object: FileObject) -> None:
+        """Alias for put_object."""
+        await self.put_object(file_object)
