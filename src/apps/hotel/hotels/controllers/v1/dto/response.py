@@ -22,6 +22,7 @@ class UploadHotelImageResponseDTO(BaseDTO):
 
     url: str
     hotel_id: UUID
+    image_id: UUID | None
     content_type: str = "multipart/form-data"
 
 
