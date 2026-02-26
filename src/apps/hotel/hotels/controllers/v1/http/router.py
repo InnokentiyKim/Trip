@@ -1,5 +1,5 @@
 from typing import Annotated
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from dishka.integrations.fastapi import FromDishka, inject
 from fastapi import APIRouter, Query
@@ -15,6 +15,8 @@ from src.apps.authorization.access.domain.enums import (
     ResourceTypeEnum,
 )
 from src.apps.authorization.access.domain.exceptions import Forbidden
+from src.apps.hotel.file_object.application.service import FileObjectService
+from src.apps.hotel.file_object.domain import commands as file_commands
 from src.apps.hotel.hotels.application.exceptions import (
     HotelAlreadyExistsError,
     HotelNotFoundError,
@@ -129,6 +131,7 @@ async def upload_hotel_image(
     hotel_id: UUID,
     access_service: FromDishka[AccessService],
     hotel_service: FromDishka[HotelService],
+    file_objects: FromDishka[FileObjectService],
     token: str = auth_header,
 ) -> UploadHotelImageResponseDTO:
     """Upload an image for a specific hotel."""
@@ -145,8 +148,13 @@ async def upload_hotel_image(
     hotel = await hotel_service.get_hotel(  # noqa: F841
         hotel_commands.GetHotelCommand(hotel_id=hotel_id)
     )
-    url = ""
-    return UploadHotelImageResponseDTO(url=url, hotel_id=hotel_id)
+
+    image_key = uuid4()
+    url = await file_objects.generate_upload_info(
+        file_commands.GenerateUploadInfo(storage_key=image_key, key_prefix="hotels")
+    )
+
+    return UploadHotelImageResponseDTO(url=url, hotel_id=hotel_id, image_id=image_key)
 
 
 @router.patch(
