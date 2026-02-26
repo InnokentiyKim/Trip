@@ -16,8 +16,8 @@ class FileObjectGatewayProto(GatewayProto):
         ...
 
     @abstractmethod
-    async def generate_upload_pre_signed_url(self, key: str) -> str:
-        """Generate a pre-signed URL for uploading an object to the storage."""
+    async def generate_upload_pre_signed_url(self, storage_key: str) -> str:
+        """Generate a pre-signed URL for uploading an object to S3."""
         ...
 
     @abstractmethod

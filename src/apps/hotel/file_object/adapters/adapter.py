@@ -74,7 +74,7 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
 
         return str(pre_signed_url)
 
-    async def generate_upload_pre_signed_url(self, key: str) -> str:
+    async def generate_upload_pre_signed_url(self, storage_key: str) -> str:
         """
         Generate a pre-signed URL for uploading an object to S3.
 
@@ -85,7 +85,7 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
         to allow users to upload to CDN or localhost URLs.
 
         Args:
-            key (str): The key (path) where the file will be stored in the S3 bucket.
+            storage_key (str): The key (path) where the file will be stored in the S3 bucket.
 
         Returns:
             str: The generated pre-signed URL for PUT access to upload an object with public endpoint.
@@ -94,7 +94,7 @@ class S3FileObjectAdapter(FileObjectGatewayProto):
             ClientMethod="put_object",
             Params={
                 "Bucket": self.bucket_name,
-                "Key": key,
+                "Key": storage_key,
                 "ContentType": "multipart/form-data",
             },
             ExpiresIn=6000,
